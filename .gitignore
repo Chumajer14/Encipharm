@@ -21,6 +21,14 @@ Thumbs.db
 !.env.example
 
 # =========================
+# Secrets / Credentials
+# =========================
+serviceAccountKey.json
+*serviceAccount*.json
+*service-account*.json
+
+
+# =========================
 # Backend (Python / FastAPI)
 # =========================
 backend/.venv/
