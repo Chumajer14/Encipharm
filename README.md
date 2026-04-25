@@ -31,7 +31,7 @@ Quedan fuera de esta fase:
 
 ## Stack tecnológico
 
-- **Frontend web:** Vue 3 + Vite + Pinia.
+- **Frontend web:** React + Vite.
 - **Backend API:** FastAPI.
 - **Base de datos:** Firestore.
 - **Autenticación:** Firebase Auth con Google SSO.
@@ -42,9 +42,9 @@ Quedan fuera de esta fase:
 
 ```text
 /
-├─ backend/
-├─ frontend/
-├─ mobile/
+├─ Backend/
+├─ Frontend/
+├─ Mobile/
 ├─ docs/
 ├─ .gitignore
 ├─ README.md
@@ -71,8 +71,7 @@ APP_ENV=development
 APP_PORT=8000
 
 FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_CLIENT_EMAIL=your-service-account-email
-FIREBASE_PRIVATE_KEY="your-private-key"
+FIREBASE_CREDENTIALS_PATH=path/to/service-account.json
 
 GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
 CORS_ORIGINS=http://localhost:3000
@@ -96,7 +95,7 @@ VITE_FIREBASE_APP_ID=your-app-id
 ### Backend
 
 ```bash
-cd backend
+cd Backend
 cp .env.example .env
 uv sync
 uv run uvicorn app.main:app --reload
@@ -105,7 +104,7 @@ uv run uvicorn app.main:app --reload
 ### Frontend
 
 ```bash
-cd frontend
+cd Frontend
 cp .env.example .env
 npm install
 npm run dev
