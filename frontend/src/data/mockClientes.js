@@ -11,7 +11,7 @@ export const mockClientes = [
   },
   {
     id: "cli_002",
-    nombre: "Nico putito",
+    nombre: "Nicolas Gonzales",
     empresa: "Granja Los Pinos",
     email: "maria@lospinos.cl",
     telefono: "+56987654321",
