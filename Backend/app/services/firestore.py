@@ -1,7 +1,4 @@
-from google.cloud import firestore
-from app.services.firebase import init_firebase
+from firebase_admin import firestore
 
-init_firebase()
-
-def get_db() -> firestore.Client:
-    return firestore.Client()
+def get_db():
+    return firestore.client()
