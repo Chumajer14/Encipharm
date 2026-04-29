@@ -155,3 +155,4 @@ Swagger disponible en `http://127.0.0.1:8000/docs` — secciones **CRM Clientes*
 ## Resultado parcial
 
 Backend CRM operativo con CRUD completo validado en Swagger, control de acceso por roles (`vendedor`, `supervisor`, `admin`) y conexión real a Firestore. Gestión de usuarios implementada con restricción por rol. Frontend con visualización mock funcional. Pendiente integración frontend ↔ backend y módulo de autenticación en pantalla.
+a
