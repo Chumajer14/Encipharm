@@ -1,41 +1,45 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 
+Industria = Literal["aves", "cerdos", "rumiantes", "acua", "otros"]
 
-class ClienteBase(BaseModel):
+class BANT(BaseModel):
+    budget: int = 0
+    authority: int = 0
+    need: int = 0
+    timing: int = 0
+
+class ClienteCreate(BaseModel):
     nombre: str
-    rut: str
+    empresa: str
     email: Optional[EmailStr] = None
     telefono: Optional[str] = None
-    empresa: Optional[str] = None
-    cargo: Optional[str] = None
-    region: Optional[str] = None
-    comuna: Optional[str] = None
-    direccion: Optional[str] = None
-    segmento: Optional[str] = "cliente"  # cliente, prospecto, inactivo
-    notas: Optional[str] = None
-
-
-class ClienteCreate(ClienteBase):
-    vendedor_uid: str
-
+    industria: Industria
+    rut: Optional[str] = None
+    ciudad: Optional[str] = None
+    bant: Optional[BANT] = None
 
 class ClienteUpdate(BaseModel):
     nombre: Optional[str] = None
+    empresa: Optional[str] = None
     email: Optional[EmailStr] = None
     telefono: Optional[str] = None
-    empresa: Optional[str] = None
-    cargo: Optional[str] = None
-    region: Optional[str] = None
-    comuna: Optional[str] = None
-    direccion: Optional[str] = None
-    segmento: Optional[str] = None
-    notas: Optional[str] = None
+    industria: Optional[Industria] = None
+    rut: Optional[str] = None
+    ciudad: Optional[str] = None
+    bant: Optional[BANT] = None
 
-
-class ClienteResponse(ClienteBase):
+class ClienteOut(BaseModel):
     id: str
-    vendedor_uid: str
-    createdAt: datetime
-    updatedAt: datetime
+    nombre: str
+    empresa: str
+    email: Optional[str] = None
+    telefono: Optional[str] = None
+    industria: str
+    rut: Optional[str] = None
+    ciudad: Optional[str] = None
+    vendedorId: str
+    bant: Optional[BANT] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
