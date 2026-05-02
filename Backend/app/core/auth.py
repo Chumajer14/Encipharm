@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.firebase import verify_token
+from app.services.firestore import get_db
 
 security = HTTPBearer()
 
@@ -18,10 +19,9 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-async def require_role(required_role: str):
+def require_role(required_role: str):
     async def role_checker(user: dict = Depends(get_current_user)) -> dict:
-        from google.cloud import firestore
-        db = firestore.Client()
+        db = get_db()
         user_doc = db.collection("users").document(user["uid"]).get()
         if not user_doc.exists:
             raise HTTPException(

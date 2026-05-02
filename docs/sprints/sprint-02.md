@@ -1,55 +1,106 @@
-# Sprint 02 — EPIC 2: CRM, Usuarios y Datos Base
+# Sprint 02 - EPIC 2: CRM, Usuarios y Datos Base
 
-**Fecha:** 24 de abril 2026  
-**Estado:** EN PROCESO (FALTA: 
-                            Pantallas de login y sesióN: Frontend, 
-                            Gestión de usuarios y roles: Backend,
-                            Dashboard vendedor,
-                            Importacion CSV)
+**Fecha de corte:** 2 mayo 2026
 
-**Rama:** `feature/auth-users` → mergeada a `main`
+**Estado:** Backend completado / Frontend parcialmente completado
 
-#OBJETIVO
-Desarrollar la base del frontend del sistema, implementando el módulo CRM de clientes con búsqueda, navegación básica y formularios, utilizando datos simulados (mock) para validar el flujo antes de la integración con backend.
+**Rama de trabajo backend:** `feature/backend-users-roles`
 
-# TAREAS COMPLETADAS
+## Objetivo
 
-| Ticket | Descripción                                                                  | Estado |
-| ------ | ---------------------------------------------------------------------------- | ------ |
-| EV-011 | Creación frontend con React + Vite                                           | ✅      |
-| EV-012 | Estructura base del proyecto (`src/components`, `pages`, `data`, `services`) | ✅      |
-| EV-013 | Implementación de datos mock (`mockClientes.js`)                             | ✅      |
-| EV-014 | Pantalla CRM clientes con listado y búsqueda                                 | ✅      |
-| EV-015 | Implementación de estilos base (App.css, index.css)                          | ✅      |
-| EV-016 | Configuración de navegación con `react-router-dom`                           | ✅      |
-| EV-017 | Pantalla formulario “Crear Cliente”                                          | ✅      |
+Habilitar la base funcional del CRM y del control de permisos para el MVP web: usuarios, roles, clientes, importacion CSV y metricas base para dashboards.
 
+## Alcance trabajado
 
-## ARCHIVOS CREADOS
+| Ticket | Descripcion | Area | Estado |
+|--------|-------------|------|--------|
+| EV-011 | Creacion frontend con React + Vite | Frontend | Completado previamente |
+| EV-012 | Estructura base del frontend | Frontend | Completado previamente |
+| EV-013 | Datos mock de clientes | Frontend | Completado previamente |
+| EV-014 | Pantalla CRM con listado y busqueda mock | Frontend | Completado previamente |
+| EV-015 | Estilos base | Frontend | Completado previamente |
+| EV-016 | Navegacion con React Router | Frontend | Completado previamente |
+| EV-017 | Formulario crear cliente mock | Frontend | Completado previamente |
+| EV-018 | Gestion de usuarios y roles backend | Backend | Completado |
+| EV-019 | CRUD base de clientes backend | Backend | Completado |
+| EV-020 | Importacion CSV con validacion por fila | Backend | Completado |
+| EV-021 | Dashboard vendedor/supervisor base via API | Backend | Completado |
+| EV-022 | QA automatizado backend EPIC 2 | QA | Completado |
 
-frontend/
-├── src/
-│   ├── data/
-│   │   └── mockClientes.js
-│   ├── pages/
-│   │   ├── Clientes.jsx
-│   │   ├── CrearCliente.jsx
-│   │   
-│   ├── components/
-│   ├── services/
-│   ├── App.jsx
-│   ├── App.css
-│   ├── index.css
-│   └── main.jsx
-├── package.json
-└── vite.config.js
+## Fuera de esta entrega
 
-## Resultado
+- Pantallas de login y sesion frontend.
+- Integracion visual del CRM con los endpoints reales.
+- Dashboard UI del vendedor y supervisor.
+- Pipeline, interacciones y propuestas, planificados para EPIC 3.
 
-Frontend ejecutandose correctamente 
-PARA PROBAR, ESTAR EN LA CARPETA "cd frontend" luego en terminal usar "npm run dev"
-Se visualizará:
--Visualización de clientes (MOCK UP/ DATOS PRUEBAS)
--Búsqueda 
--Navegación entre pantallas
--Formulario de creación de cliente (mock)
+## Backend implementado
+
+```text
+Backend/app/
+├── api/
+│   ├── clientes.py
+│   ├── users.py
+│   └── dashboard.py
+├── models/
+│   ├── cliente.py
+│   ├── dashboard.py
+│   └── user.py
+├── services/
+│   ├── clientes.py
+│   ├── users.py
+│   └── dashboard.py
+└── core/
+    └── auth.py
+```
+
+## Endpoints principales
+
+| Metodo | Ruta | Uso |
+|--------|------|-----|
+| GET | `/users/` | Lista usuarios |
+| GET | `/users/{uid}` | Consulta usuario |
+| PATCH | `/users/{uid}` | Actualiza usuario |
+| PATCH | `/users/{uid}/role` | Cambia rol |
+| PATCH | `/users/{uid}/status` | Activa/desactiva usuario |
+| GET | `/clientes/` | Lista clientes con filtros |
+| GET | `/clientes/{cliente_id}` | Consulta cliente |
+| POST | `/clientes/` | Crea cliente |
+| PATCH | `/clientes/{cliente_id}` | Actualiza cliente |
+| POST | `/clientes/import-csv` | Importa clientes desde CSV |
+| GET | `/dashboard/vendedor` | Metricas del vendedor autenticado |
+| GET | `/dashboard/supervisor` | Metricas consolidadas |
+
+## Criterios de aceptacion verificados
+
+- Usuarios y roles protegidos por token Firebase y perfil en Firestore.
+- `admin` puede modificar roles y estado.
+- `supervisor` puede consultar usuarios y dashboard consolidado.
+- `vendedor` no puede administrar usuarios ni importar CSV.
+- CRM backend permite crear, listar, buscar, filtrar y actualizar clientes.
+- Importacion CSV valida todas las filas antes de guardar.
+- Errores de CSV se reportan con numero de fila.
+- Dashboard base entrega conteos por estado, rubro y region.
+
+## QA
+
+Suite ejecutada:
+
+```bash
+cd Backend
+uv run pytest
+```
+
+Resultado:
+
+```text
+13 passed
+```
+
+## Documentacion relacionada
+
+- `docs/api/auth.md`
+- `docs/api/users.md`
+- `docs/api/clientes.md`
+- `docs/api/dashboard.md`
+- `docs/qa/epic-02-backend.md`
