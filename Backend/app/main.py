@@ -7,13 +7,19 @@ from app.api.dashboard import router as dashboard_router
 from app.api.users import router as users_router
 from app.core.auth import get_current_user
 from app.core.config import get_settings
+from app.docs import router as docs_router
 from app.services.firebase import init_firebase
 
 settings = get_settings()
 
 init_firebase()
 
-app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    docs_url=None,
+    redoc_url=None,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +33,7 @@ app.include_router(auth_router)
 app.include_router(clientes_router)
 app.include_router(dashboard_router)
 app.include_router(users_router)
+app.include_router(docs_router)
 
 
 @app.get("/")
