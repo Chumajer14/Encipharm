@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional
 from datetime import datetime
 
@@ -12,9 +12,8 @@ class UserCreate(UserBase):
     uid: str
 
 class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     uid: str
     createdAt: Optional[datetime] = None
     updatedAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True

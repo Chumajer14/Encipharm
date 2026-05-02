@@ -1,60 +1,87 @@
-# Setup — Encipharm Ventas Backend
+# Setup - Encipharm Ventas
 
 ## Requisitos previos
 
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/) instalado globalmente
-- Cuenta de Firebase con proyecto configurado
-- Archivo `serviceAccountKey.json` (solicitar al líder técnico)
+- Python 3.12 o superior.
+- Node.js 20 o superior.
+- `uv` instalado globalmente.
+- Cuenta de Firebase con proyecto configurado.
+- Archivo de credenciales de servicio para desarrollo local.
 
 ## Clonar el repositorio
 
 ```bash
 git clone https://github.com/tu-org/Encipharm.git
-cd Encipharm/Backend
+cd Encipharm
 ```
 
-## Instalar dependencias
+## Backend
 
 ```bash
+cd Backend
 uv sync
-```
-
-## Variables de entorno
-
-Crea un archivo `.env` en `Backend/` basado en `.env.example`:
-
-```env
-APP_NAME=Encipharm Ventas
-APP_ENV=development
-FIREBASE_CREDENTIALS_PATH=serviceAccountKey.json
-```
-
-## Levantar el servidor
-
-```bash
 uv run uvicorn app.main:app --reload
 ```
 
 El servidor queda disponible en:
-- API: http://127.0.0.1:8000
-- Swagger UI: http://127.0.0.1:8000/docs
 
-## Verificar que funciona
+- API: `http://127.0.0.1:8000`
+- Swagger UI: `http://127.0.0.1:8000/docs`
 
-Abre el navegador en `/docs` y confirma que aparecen los endpoints:
+### Variables de entorno backend
 
-| Método | Ruta | Descripción |
+Crea `Backend/.env` basado en estos valores:
+
+```env
+APP_NAME=Encipharm Ventas API
+APP_ENV=development
+APP_VERSION=1.0.0
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+FIREBASE_PROJECT_ID=your-project-id
+GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
+```
+
+## Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+El frontend queda disponible por defecto en `http://localhost:5173`.
+
+## Verificacion local
+
+### Backend
+
+```bash
+cd Backend
+uv run pytest
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run lint
+npm run build
+npm test
+```
+
+## Endpoints actuales
+
+| Metodo | Ruta | Descripcion |
 |--------|------|-------------|
 | GET | `/` | Root |
 | GET | `/health` | Estado del servidor |
-| GET | `/me` | Usuario autenticado (JWT requerido) |
-| POST | `/auth/register` | Registro de nuevo usuario |
+| GET | `/me` | Usuario autenticado, JWT requerido |
+| POST | `/auth/register` | Crea o retorna perfil de usuario autenticado, JWT requerido |
 
 ## Ramas de trabajo
 
-| Rama | Propósito |
+| Rama | Proposito |
 |------|-----------|
-| `main` | Producción estable |
-| `develop` | Integración |
-| `feature/*` | Desarrollo por módulo |
+| `main` | Produccion estable |
+| `develop` | Integracion |
+| `feature/*` | Desarrollo por modulo |

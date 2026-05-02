@@ -1,68 +1,61 @@
-# API — Autenticación
+# API - Autenticacion
 
-Base URL: `http://127.0.0.1:8000` (desarrollo) | `https://api.encipharm.cl/v1` (producción)
+Base URL desarrollo: `http://127.0.0.1:8000`
 
-Todos los endpoints protegidos requieren header:
+Los endpoints protegidos requieren header:
 
-Authorization: Bearer <token_jwt>
-
-
----
+```http
+Authorization: Bearer <firebase_id_token>
+```
 
 ## POST `/auth/register`
 
-Registra un nuevo usuario en Firebase Auth y guarda su perfil en Firestore.
+Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil existente.
 
-**Autenticación:** No requerida
+**Autenticacion:** requerida.
 
-**Body (JSON):**
-```json
-{
-  "uid": "string",
-  "email": "usuario@encipharm.cl",
-  "nombre": "Juan Pérez",
-  "rol": "vendedor",
-  "activo": true
-}
-```
+**Body:** no recibe body. Los datos salen del token Firebase validado.
 
 **Respuesta exitosa `200 OK`:**
+
 ```json
 {
   "uid": "string",
   "email": "usuario@encipharm.cl",
-  "nombre": "Juan Pérez",
+  "nombre": "Juan Perez",
   "rol": "vendedor",
-  "activo": true
+  "activo": true,
+  "createdAt": "2026-04-24T12:00:00Z",
+  "updatedAt": "2026-04-24T12:00:00Z"
 }
 ```
 
----
+Si el usuario no existe en Firestore, se crea con rol inicial `vendedor`.
 
 ## GET `/me`
 
-Retorna los datos del usuario autenticado a partir del token JWT.
+Retorna los datos basicos del usuario autenticado a partir del token JWT.
 
-**Autenticación:** ✅ Requerida
+**Autenticacion:** requerida.
 
 **Respuesta exitosa `200 OK`:**
+
 ```json
 {
   "uid": "string",
   "email": "usuario@encipharm.cl",
-  "message": "Token válido ✅"
+  "message": "Token valido"
 }
 ```
 
----
-
 ## GET `/health`
 
-Verifica que el servidor esté operativo.
+Verifica que el servidor este operativo.
 
-**Autenticación:** No requerida
+**Autenticacion:** no requerida.
 
 **Respuesta exitosa `200 OK`:**
+
 ```json
 {
   "status": "ok",
@@ -70,15 +63,14 @@ Verifica que el servidor esté operativo.
 }
 ```
 
----
-
 ## Modelos Pydantic
 
 | Modelo | Uso |
 |--------|-----|
 | `UserBase` | Campos base del usuario |
-| `UserCreate` | Registro (incluye `uid`) |
+| `UserCreate` | Representacion de creacion interna |
 | `UserResponse` | Respuesta al cliente |
 
-**Implementado en:** `app/models/user.py`  
+**Implementado en:** `app/models/user.py`
+
 **Router en:** `app/api/auth.py`
