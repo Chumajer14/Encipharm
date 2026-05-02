@@ -1,23 +1,23 @@
 # Encipharm Ventas
 
-Sistema de gestión de ventas y MiniCRM para Encipharm, desarrollado como proyecto de equipo bajo metodología Scrumban.  
-El enfoque de esta versión es **MVP web primero**, dejando para Fase 2 las capacidades de IA, Flutter, ERP SAP, Google Calendar e inteligencia competitiva avanzada.
+Sistema de gestion de ventas y MiniCRM para Encipharm, desarrollado como proyecto de equipo bajo metodologia Scrumban.
+El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA, Flutter, ERP SAP, Google Calendar e inteligencia competitiva avanzada.
 
 ## Objetivo
 
-Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboard supervisor en una sola solución web.
+Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboard supervisor en una sola solucion web.
 
 ## Alcance del MVP
 
 Incluye solo las capacidades bloqueantes para operar el sistema:
 
-- Autenticación.
+- Autenticacion.
 - CRM de clientes.
 - Registro de interacciones y visitas web.
 - Pipeline de oportunidades.
-- Propuestas comerciales básicas.
-- Importación CSV de clientes.
-- Gestión de usuarios y roles.
+- Propuestas comerciales basicas.
+- Importacion CSV de clientes.
+- Gestion de usuarios y roles.
 - Dashboard del vendedor y del supervisor.
 
 Quedan fuera de esta fase:
@@ -29,55 +29,52 @@ Quedan fuera de esta fase:
 - Inteligencia competitiva avanzada.
 - Reportes extendidos.
 
-## Stack tecnológico
+## Stack tecnologico
 
 - **Frontend web:** React + Vite.
 - **Backend API:** FastAPI.
 - **Base de datos:** Firestore.
-- **Autenticación:** Firebase Auth con Google SSO.
-- **Infraestructura:** GCP Cloud Run, Cloud Build, Artifact Registry.
-- **Documentación y despliegue:** README vivo y variables seguras en Secret Manager.
+- **Autenticacion:** Firebase Auth con Google SSO.
+- **Infraestructura prevista:** GCP Cloud Run, Cloud Build, Artifact Registry.
+- **Documentacion y despliegue:** README vivo y variables seguras en Secret Manager.
 
 ## Estructura del repositorio
 
 ```text
 /
-├─ Backend/
-├─ Frontend/
-├─ Mobile/
-├─ docs/
-├─ .gitignore
-├─ README.md
-└─ cloudbuild.yaml
+├── Backend/
+├── frontend/
+├── mobile/
+├── docs/
+├── .gitignore
+└── README.md
 ```
+
+> Nota: `mobile/` queda reservado para Fase 2. Actualmente el MVP se concentra en la web.
 
 ## Requisitos
 
 - Python 3.12 o superior.
 - Node.js 20 o superior.
-- Flutter 3.x para Fase 2.
-- Docker y Docker Compose.
 - Firebase CLI.
+- Docker y Docker Compose cuando se agreguen los archivos de despliegue correspondientes.
 
 ## Variables de entorno
 
-Cada proyecto debe tener su propio archivo `.env.example`.
+Cada proyecto debe tener su propio archivo `.env.example`. Los archivos `.env` y credenciales reales no deben versionarse.
 
-### backend/.env.example
+### Backend
 
 ```env
 APP_NAME=Encipharm Ventas API
 APP_ENV=development
-APP_PORT=8000
-
+APP_VERSION=1.0.0
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
 FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_CREDENTIALS_PATH=path/to/service-account.json
-
-GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
-CORS_ORIGINS=http://localhost:3000
+GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 ```
 
-### frontend/.env.example
+### Frontend
 
 ```env
 VITE_APP_NAME=Encipharm Ventas
@@ -90,7 +87,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 ```
 
-## Instalación local
+## Instalacion local
 
 ### Backend
 
@@ -110,65 +107,79 @@ npm install
 npm run dev
 ```
 
-### Desarrollo con Docker
+Con esto, el backend queda disponible en `http://localhost:8000` y el frontend en `http://localhost:5173`.
+
+## Verificacion
 
 ```bash
-docker-compose up --build
+cd frontend
+npm run lint
+npm run build
+npm test
 ```
 
-Con esto, el backend debería quedar disponible en `http://localhost:8000` y el frontend en `http://localhost:3000`.
+```bash
+cd Backend
+uv sync
+uv run pytest
+```
 
 ## Convenciones de trabajo
 
 - Trabajar con ramas por feature.
 - Abrir Pull Request antes de mergear.
-- Mantener lint y tests limpios.
-- Actualizar documentación si cambia un endpoint o flujo.
-- Seguir la definición de Done del proyecto.
+- Mantener lint, build y tests limpios.
+- Actualizar documentacion si cambia un endpoint o flujo.
+- Seguir la definicion de Done del proyecto.
 
 ## Flujo del proyecto
 
 - **Daily interno:** 15 minutos.
 - **Replenishment:** semanal.
-- **Revisión ejecutiva:** cada 2 semanas.
+- **Revision ejecutiva:** cada 2 semanas.
 - **Retrospectiva:** al cierre de cada ciclo.
 
 ## Roadmap general
 
 ### Ciclo 1
-Definición de alcance, arquitectura base y setup técnico.
+
+Definicion de alcance, arquitectura base y setup tecnico.
 
 ### Ciclo 2
-CRM, autenticación, roles y datos base.
+
+CRM, autenticacion, roles y datos base.
 
 ### Ciclo 3
-Interacciones, pipeline y propuestas básicas.
+
+Interacciones, pipeline y propuestas basicas.
 
 ### Ciclo 4
-Migración, dashboards, hardening y QA.
+
+Migracion, dashboards, hardening y QA.
 
 ### Ciclo 5
-UAT, correcciones, documentación y salida.
+
+UAT, correcciones, documentacion y salida.
 
 ## Definition of Done
 
 Un ticket se considera completo solo si:
 
-- El código está en la rama correspondiente.
+- El codigo esta en la rama correspondiente.
 - Existe PR aprobado.
 - Los tests pasan.
 - QA valida la funcionalidad.
-- Los criterios de aceptación se cumplen.
-- La documentación queda actualizada si aplica.
+- Los criterios de aceptacion se cumplen.
+- La documentacion queda actualizada si aplica.
 
 ## Riesgos principales
 
 - El alcance debe mantenerse acotado para cumplir el plazo.
-- La integración con ERP SAP puede diferirse si falta información técnica.
-- La migración depende de la calidad de los archivos Excel/CSV.
+- La integracion con ERP SAP puede diferirse si falta informacion tecnica.
+- La migracion depende de la calidad de los archivos Excel/CSV.
 - Flutter y las capacidades avanzadas quedan para Fase 2.
 
-## Contacto del equipo
+## Estado actual
 
-Proyecto académico del grupo PLM para Gestión de Proyectos Informáticos.  
-Repositorio y documentación en desarrollo continuo.
+- EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend.
+- EPIC 2: CRM web iniciado con datos mock; falta login web, roles, integracion con backend, importacion CSV y dashboard.

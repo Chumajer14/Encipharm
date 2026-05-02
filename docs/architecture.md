@@ -1,79 +1,63 @@
-# Arquitectura — Encipharm Ventas
+# Arquitectura - Encipharm Ventas
 
-## Visión general
+## Vision general
 
-Sistema de gestión de ventas y MiniCRM para Encipharm, construido como monorepo con backend API, frontend web PWA y app móvil (fase 2).
+Sistema de gestion de ventas y MiniCRM para Encipharm, construido como monorepo con backend API, frontend web y carpeta mobile reservada para Fase 2.
 
----
+## Stack tecnologico
 
-## Stack tecnológico
-
-| Capa | Tecnología | Justificación |
-|------|-----------|---------------|
-| Backend | FastAPI + Python 3.12 | Alto rendimiento, tipado estricto, Swagger automático |
-| Gestor de dependencias | uv | Reemplaza pip/poetry, más rápido y reproducible |
-| Autenticación | Firebase Auth | SSO con Google, JWT sin servidor propio |
-| Base de datos | Firestore (GCP) | NoSQL escalable, sincronización offline nativa |
-| Frontend | Vue 3 + Vite | PWA instalable, soporte offline |
-| Mobile | Flutter (Fase 2) | iOS/Android desde un solo codebase — postpuesto |
-| Deploy | GCP (Cloud Run) | Mismo ecosistema que Firebase/Firestore |
-
----
+| Capa | Tecnologia | Justificacion |
+|------|------------|---------------|
+| Backend | FastAPI + Python 3.12+ | Alto rendimiento, tipado y Swagger automatico |
+| Gestor de dependencias | uv | Instalacion reproducible y rapida |
+| Autenticacion | Firebase Auth | SSO con Google y validacion de JWT |
+| Base de datos | Firestore | NoSQL administrado en el ecosistema Firebase/GCP |
+| Frontend | React + Vite | MVP web rapido, liviano y validable |
+| Mobile | Flutter (Fase 2) | iOS/Android desde un solo codebase cuando el MVP web este estable |
+| Deploy previsto | GCP Cloud Run | Mismo ecosistema que Firebase/Firestore |
 
 ## Estructura del monorepo
+
+```text
 Encipharm/
-├── Backend/ ← FastAPI (Python)
-│ ├── app/
-│ │ ├── core/ ← config, auth JWT
-│ │ ├── models/ ← Pydantic schemas
-│ │ ├── services/ ← Firebase, Firestore
-│ │ └── api/ ← routers por módulo
-│ ├── pyproject.toml
-│ └── .env
-├── Frontend/ ← Vue 3 PWA
-├── Mobile/ ← Flutter (postpuesto)
-└── docs/ ← documentación del proyecto
+├── Backend/        # FastAPI
+│   ├── app/
+│   │   ├── api/       # routers por modulo
+│   │   ├── core/      # config y auth JWT
+│   │   ├── models/    # schemas Pydantic
+│   │   └── services/  # Firebase y Firestore
+│   └── pyproject.toml
+├── frontend/       # React + Vite
+├── mobile/         # Fase 2
+└── docs/
+```
 
----
+## Flujo de autenticacion
 
-## Flujo de autenticación
-
-Usuario → Google SSO → Firebase Auth → JWT Token
-↓
-FastAPI middleware valida token
-↓
-Firestore guarda/consulta perfil
-
-
-
----
-
-## Decisiones de diseño
-
-| Decisión | Alternativa descartada | Razón |
-|----------|----------------------|-------|
-| Firebase Auth | Auth propio JWT | Reduce tiempo de desarrollo, SSO Google incluido |
-| Firestore | PostgreSQL | Offline-first nativo, sin migraciones |
-| uv | pip + virtualenv | Resolución de dependencias más rápida y reproducible |
-| PWA web-first | Flutter desde inicio | Plazo MVP < 3 meses, PWA cubre 90% del caso de uso móvil |
-
----
+```text
+Usuario -> Google SSO -> Firebase Auth -> JWT
+JWT -> FastAPI valida token -> Firestore guarda/consulta perfil
+```
 
 ## Roles del sistema
 
-| Rol | Permisos |
-|-----|----------|
-| `admin` | Acceso total, gestión de usuarios |
-| `jefe_ventas` | Dashboard, reportes, equipo |
-| `vendedor` | Visitas, pipeline, clientes propios |
+| Rol | Permisos esperados |
+|-----|--------------------|
+| `admin` | Acceso total y gestion de usuarios |
+| `supervisor` | Dashboard, reportes y equipo |
+| `vendedor` | Clientes propios, visitas y pipeline |
 
----
+## Alcance MVP
 
-## Alcance MVP (Junio 2026)
+- EPIC 1: autenticacion y modelo de usuarios.
+- EPIC 2: CRM, login web, usuarios/roles, dashboard base e importacion CSV.
+- EPIC 3: interacciones, pipeline y propuestas basicas.
+- EPIC 4: migracion, dashboards, hardening y QA.
+- EPIC 5: UAT, documentacion y go-live.
 
-- ✅ EPIC 1: Autenticación y modelo de usuarios
-- 🔄 EPIC 2: Módulo de clientes y pipeline de ventas
-- 🔄 EPIC 3: Dashboard KPIs y reportes básicos
-- ⏸️ EPIC 4-5: Integraciones ERP/SAP, app Flutter — Fase 2
+## Estado actual
 
-
+- Backend FastAPI inicializado con Firebase Auth/JWT.
+- Registro de perfil de usuario autenticado en Firestore.
+- Frontend React con CRM mock, busqueda y formulario de creacion mock.
+- Mobile, SAP, IA, Google Calendar y reportes extendidos quedan fuera del MVP.
