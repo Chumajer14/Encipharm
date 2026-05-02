@@ -12,7 +12,11 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
     # Firebase
     FIREBASE_PROJECT_ID: str

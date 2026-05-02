@@ -12,6 +12,13 @@
   margin-bottom: 20px;
 }
 
+.header-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
 .header h1 {
   margin: 0;
   font-size: 28px;
@@ -20,6 +27,35 @@
 .header p {
   margin-top: 6px;
   color: #94a3b8;
+}
+
+.session-box {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+  text-align: right;
+}
+
+.session-box span {
+  font-weight: 700;
+}
+
+.session-box small {
+  color: #94a3b8;
+  text-transform: capitalize;
+}
+
+.session-box button,
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 10px 12px;
 }
 
 .card {
@@ -85,12 +121,14 @@
   gap: 12px;
 }
 
-.form input {
+.form input,
+.form select {
   padding: 12px;
   border-radius: 10px;
   border: 1px solid #334155;
   background: #111827;
   color: white;
+  font: inherit;
 }
 
 .form button {
@@ -113,4 +151,101 @@
   color: #020617;
   font-weight: bold;
   cursor: pointer;
+}
+
+.login-page {
+  align-items: center;
+  background: #101820;
+  color: white;
+  display: flex;
+  font-family: Arial, sans-serif;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.login-panel {
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #111827;
+  max-width: 460px;
+  padding: 32px;
+  width: 100%;
+}
+
+.login-panel h1 {
+  font-size: 30px;
+  line-height: 1.1;
+  margin: 8px 0 12px;
+}
+
+.login-panel p {
+  color: #475569;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.login-button {
+  background: #0f766e;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 14px;
+  padding: 14px 18px;
+  width: 100%;
+}
+
+.login-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.status-message {
+  margin: 0;
+}
+
+.status-message.error {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.empty-state {
+  border: 1px dashed #334155;
+  border-radius: 8px;
+  color: #cbd5e1;
+  margin-top: 20px;
+  padding: 28px;
+  text-align: center;
+}
+
+.empty-state h2 {
+  color: white;
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .header-row {
+    flex-direction: column;
+  }
+
+  .session-box {
+    align-items: flex-start;
+    text-align: left;
+  }
 }

@@ -36,15 +36,25 @@ def test_auth_endpoints_require_bearer_token(monkeypatch):
     client = build_client(monkeypatch)
 
     me_response = client.get("/me")
+    login_response = client.post("/auth/login")
     register_response = client.post("/auth/register")
 
     assert me_response.status_code in (401, 403)
+    assert login_response.status_code in (401, 403)
     assert register_response.status_code in (401, 403)
 
 
-def test_clientes_module_requires_bearer_token(monkeypatch):
+def test_clientes_endpoints_require_bearer_token(monkeypatch):
     client = build_client(monkeypatch)
 
-    response = client.get("/clientes")
+    list_response = client.get("/clientes")
+    create_response = client.post("/clientes", json={
+        "nombre": "Cliente Demo",
+        "empresa": "Empresa Demo",
+        "email": "demo@example.com",
+        "rubro": "Aves",
+        "region": "Los Lagos",
+    })
 
-    assert response.status_code in (401, 403)
+    assert list_response.status_code in (401, 403)
+    assert create_response.status_code in (401, 403)
