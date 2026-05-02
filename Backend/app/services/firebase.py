@@ -11,6 +11,9 @@ def init_firebase():
             "projectId": settings.FIREBASE_PROJECT_ID,
         })
 
+# ← AGREGA ESTA LÍNEA: inicializa al importar el módulo
+init_firebase()
+
 async def verify_token(token: str) -> dict:
     try:
         decoded = auth.verify_id_token(token)
