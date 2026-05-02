@@ -10,20 +10,14 @@ from app.api.users import router as users_router
 
 settings = get_settings()
 
-init_firebase()
+app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 
-app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-)
+app.add_middleware(CORSMiddleware, allow_origins=settings.CORS_ORIGINS,
+                   allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from app.routers import clientes, usuarios
+app.include_router(clientes.router)
+app.include_router(usuarios.router)
 
 app.include_router(auth_router)
 app.include_router(clientes_router)

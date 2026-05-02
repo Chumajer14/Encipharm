@@ -1,23 +1,23 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Header, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.firebase import verify_token
 from app.services.firestore import get_db
 
 security = HTTPBearer()
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-) -> dict:
-    token = credentials.credentials
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     try:
-        user = await verify_token(token)
-        return user
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        decoded = await verify_token(credentials.credentials)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+    uid = decoded["uid"]
+    perfil = svc_usuarios.obtener_usuario(uid)
+    if perfil:
+        decoded["rol"] = perfil.get("rol", "vendedor")
+        decoded["nombre"] = perfil.get("nombre", "")
+    else:
+        decoded["rol"] = "vendedor"
+    return decoded
 
 def require_role(required_role: str):
     async def role_checker(user: dict = Depends(get_current_user)) -> dict:
