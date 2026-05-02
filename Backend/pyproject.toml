@@ -11,7 +11,6 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic[email]>=2.13.3",
     "pydantic-settings>=2.14.0",
-    "pytest>=9.0.2",
     "python-dotenv>=1.2.2",
     "python-multipart>=0.0.21",
     "uvicorn[standard]>=0.46.0",
