@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { regionesChile } from "../data/regionesChile";
 import { createCliente } from "../services/api";
+import { getFriendlyApiError } from "../utils/apiErrors";
 
 const initialForm = {
   nombre: "",
@@ -17,6 +19,7 @@ function CrearCliente() {
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const { idToken } = useAuth();
   const navigate = useNavigate();
 
@@ -31,17 +34,26 @@ function CrearCliente() {
     e.preventDefault();
     setSaving(true);
     setError("");
+    setSuccess("");
 
     try {
-      await createCliente(idToken, form);
+      const createdCliente = await createCliente(idToken, form);
+      const successMessage = `Cliente ${createdCliente.empresa} creado exitosamente.`;
+      setSuccess(successMessage);
       setForm(initialForm);
-      navigate("/");
+      window.setTimeout(() => {
+        navigate("/", {
+          replace: true,
+          state: { notice: successMessage },
+        });
+      }, 1200);
     } catch (saveError) {
-      setError(saveError.message);
-    } finally {
+      setError(getFriendlyApiError(saveError));
       setSaving(false);
     }
   };
+
+  const formDisabled = saving || Boolean(success);
 
   return (
     <main className="page">
@@ -57,66 +69,127 @@ function CrearCliente() {
         </Link>
       </section>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <input
-          name="nombre"
-          placeholder="Nombre"
-          value={form.nombre}
-          onChange={handleChange}
-          required
-        />
+      {error && (
+        <section className="notice notice-error" role="alert">
+          <strong>No se pudo crear el cliente</strong>
+          <span>{error}</span>
+        </section>
+      )}
 
-        <input
-          name="empresa"
-          placeholder="Empresa"
-          value={form.empresa}
-          onChange={handleChange}
-          required
-        />
+      <form className="form form-card" onSubmit={handleSubmit}>
+        <label>
+          Nombre
+          <input
+            name="nombre"
+            placeholder="Nombre del contacto"
+            value={form.nombre}
+            onChange={handleChange}
+            required
+            disabled={formDisabled}
+          />
+        </label>
 
-        <input
-          name="email"
-          placeholder="Email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
+        <label>
+          Empresa
+          <input
+            name="empresa"
+            placeholder="Empresa o razon social"
+            value={form.empresa}
+            onChange={handleChange}
+            required
+            disabled={formDisabled}
+          />
+        </label>
 
-        <input
-          name="telefono"
-          placeholder="Telefono"
-          value={form.telefono}
-          onChange={handleChange}
-        />
+        <label>
+          Email
+          <input
+            name="email"
+            placeholder="correo@empresa.cl"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            disabled={formDisabled}
+          />
+        </label>
 
-        <input
-          name="rubro"
-          placeholder="Rubro (Aves, Cerdos...)"
-          value={form.rubro}
-          onChange={handleChange}
-          required
-        />
+        <label>
+          Telefono
+          <input
+            name="telefono"
+            placeholder="+56912345678"
+            value={form.telefono}
+            onChange={handleChange}
+            disabled={formDisabled}
+          />
+        </label>
 
-        <input
-          name="region"
-          placeholder="Region"
-          value={form.region}
-          onChange={handleChange}
-          required
-        />
+        <label>
+          Rubro
+          <input
+            name="rubro"
+            placeholder="Aves, Cerdos, Rumiantes..."
+            value={form.rubro}
+            onChange={handleChange}
+            required
+            disabled={formDisabled}
+          />
+        </label>
 
-        <select name="estado" value={form.estado} onChange={handleChange}>
-          <option value="En proceso">En proceso</option>
-          <option value="Completado">Completado</option>
-        </select>
+        <label>
+          Region
+          <select
+            name="region"
+            value={form.region}
+            onChange={handleChange}
+            required
+            disabled={formDisabled}
+          >
+            <option value="">Selecciona una region</option>
+            {regionesChile.map((region) => (
+              <option key={region} value={region}>
+                {region}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        {error && <p className="status-message error">{error}</p>}
+        <label>
+          Estado
+          <select
+            name="estado"
+            value={form.estado}
+            onChange={handleChange}
+            disabled={formDisabled}
+          >
+            <option value="En proceso">En proceso</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </label>
 
-        <button type="submit" disabled={saving}>
-          {saving ? "Guardando..." : "Guardar Cliente"}
-        </button>
+        <div className="form-actions">
+          <Link to="/">
+            <button className="btn-secondary" type="button">
+              Cancelar
+            </button>
+          </Link>
+          <button type="submit" disabled={formDisabled}>
+            {saving ? "Guardando..." : "Guardar Cliente"}
+          </button>
+        </div>
       </form>
+
+      {success && (
+        <div className="modal-backdrop" role="status" aria-live="polite">
+          <section className="success-modal">
+            <span className="success-icon">OK</span>
+            <h2>Cliente creado</h2>
+            <p>{success}</p>
+            <small>Volviendo al CRM...</small>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

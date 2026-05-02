@@ -151,7 +151,7 @@ GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 
 ```env
 VITE_APP_NAME=Encipharm Ventas
-VITE_API_BASE_URL=http://127.0.0.1:8001
+VITE_API_BASE_URL=http://localhost:8000
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
 VITE_FIREBASE_PROJECT_ID=your-project-id
@@ -168,7 +168,7 @@ VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 ```bash
 cd Backend
 uv sync
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### Frontend
@@ -179,11 +179,29 @@ npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Con esto, el backend queda disponible en `http://127.0.0.1:8001` y el frontend en `http://127.0.0.1:5173`.
+Con esto, el backend queda disponible en `http://localhost:8000`.
+La consola definitiva de pruebas esta en `http://localhost:8000/docs`.
+El frontend web, si se requiere para revisar navegacion de usuario, queda en `http://127.0.0.1:5173`.
 
-## QA y verificacion
+## Consola de testing y verificacion
 
-Comandos usados para validar la integracion:
+La ruta principal para testing y presentacion es:
+
+```text
+http://localhost:8000/docs
+```
+
+Esta consola incluye:
+
+- Login con Google desde Firebase Auth.
+- Obtencion de ID Token Firebase.
+- Aplicacion automatica del token al esquema `HTTPBearer`.
+- Uso del boton `Authorize` de Swagger con el token precargado.
+- Pruebas de endpoints protegidos con respuestas reales de API.
+
+## QA tecnica local
+
+Comandos tecnicos usados para validar la integracion durante desarrollo:
 
 ```bash
 cd frontend

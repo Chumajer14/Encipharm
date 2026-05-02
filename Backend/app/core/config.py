@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from typing import Optional
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -21,6 +22,14 @@ class Settings(BaseSettings):
     # Firebase
     FIREBASE_PROJECT_ID: str
     GOOGLE_APPLICATION_CREDENTIALS: str
+
+    # Firebase web config for /docs testing console
+    FIREBASE_WEB_API_KEY: Optional[str] = None
+    FIREBASE_WEB_AUTH_DOMAIN: Optional[str] = None
+    FIREBASE_WEB_STORAGE_BUCKET: Optional[str] = None
+    FIREBASE_WEB_MESSAGING_SENDER_ID: Optional[str] = None
+    FIREBASE_WEB_APP_ID: Optional[str] = None
+    FIREBASE_WEB_MEASUREMENT_ID: Optional[str] = None
 
 @lru_cache()
 def get_settings() -> Settings:

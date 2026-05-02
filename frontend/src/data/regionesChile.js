@@ -1,0 +1,18 @@
+export const regionesChile = [
+  "Arica y Parinacota",
+  "Tarapaca",
+  "Antofagasta",
+  "Atacama",
+  "Coquimbo",
+  "Valparaiso",
+  "Metropolitana de Santiago",
+  "Libertador General Bernardo O'Higgins",
+  "Maule",
+  "Nuble",
+  "Biobio",
+  "La Araucania",
+  "Los Rios",
+  "Los Lagos",
+  "Aysen del General Carlos Ibanez del Campo",
+  "Magallanes y de la Antartica Chilena",
+];

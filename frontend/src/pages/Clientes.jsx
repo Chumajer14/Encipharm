@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { getClientes } from "../services/api";
 import { filtrarClientes } from "../utils/clientes";
@@ -10,6 +10,15 @@ function Clientes() {
   const [loadingClientes, setLoadingClientes] = useState(true);
   const [error, setError] = useState("");
   const { backendUser, idToken, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [notice, setNotice] = useState(location.state?.notice || "");
+
+  useEffect(() => {
+    if (location.state?.notice) {
+      navigate(".", { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
 
   useEffect(() => {
     let active = true;
@@ -66,6 +75,16 @@ function Clientes() {
           Nuevo Cliente
         </button>
       </Link>
+
+      {notice && (
+        <section className="notice notice-success" role="status">
+          <strong>Operacion exitosa</strong>
+          <span>{notice}</span>
+          <button type="button" onClick={() => setNotice("")}>
+            Cerrar
+          </button>
+        </section>
+      )}
 
       <section className="card">
         <input
