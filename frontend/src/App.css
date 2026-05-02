@@ -121,6 +121,23 @@
   gap: 12px;
 }
 
+.form-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  max-width: 720px;
+  padding: 20px;
+}
+
+.form label {
+  color: #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 8px;
+}
+
 .form input,
 .form select {
   padding: 12px;
@@ -140,6 +157,25 @@
   color: black;
   font-weight: bold;
   cursor: pointer;
+}
+
+.form input:disabled,
+.form select:disabled,
+.form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.form-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.form-actions .btn-secondary {
+  margin-top: 10px;
 }
 
 .btn-primary {
@@ -220,6 +256,92 @@
   font-weight: 700;
 }
 
+.notice {
+  align-items: center;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 14px 16px;
+}
+
+.notice strong {
+  white-space: nowrap;
+}
+
+.notice span {
+  flex: 1;
+}
+
+.notice button {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.notice-success {
+  background: #052e24;
+  border: 1px solid #10b981;
+  color: #bbf7d0;
+}
+
+.notice-error {
+  background: #450a0a;
+  border: 1px solid #dc2626;
+  color: #fecaca;
+}
+
+.modal-backdrop {
+  align-items: center;
+  background: rgb(2 6 23 / 78%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
+.success-modal {
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #0f172a;
+  max-width: 380px;
+  padding: 28px;
+  text-align: center;
+  width: 100%;
+}
+
+.success-icon {
+  align-items: center;
+  background: #16a34a;
+  border-radius: 999px;
+  color: white;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 900;
+  height: 46px;
+  justify-content: center;
+  margin-bottom: 12px;
+  width: 46px;
+}
+
+.success-modal h2 {
+  margin: 0 0 8px;
+}
+
+.success-modal p {
+  color: #334155;
+  margin: 0 0 12px;
+}
+
+.success-modal small {
+  color: #64748b;
+}
+
 .empty-state {
   border: 1px dashed #334155;
   border-radius: 8px;
@@ -247,5 +369,15 @@
   .session-box {
     align-items: flex-start;
     text-align: left;
+  }
+
+  .form-actions,
+  .notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notice strong {
+    white-space: normal;
   }
 }

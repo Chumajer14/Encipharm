@@ -13,6 +13,7 @@ class ClienteBase(BaseModel):
     region: Optional[str] = None
     estado: str = "En proceso"
     vendedorUid: Optional[str] = None
+    ownerUid: Optional[str] = None
 
 
 class ClienteCreate(ClienteBase):
@@ -28,6 +29,7 @@ class ClienteUpdate(BaseModel):
     region: Optional[str] = None
     estado: Optional[str] = None
     vendedorUid: Optional[str] = None
+    ownerUid: Optional[str] = None
 
 
 class ClienteResponse(ClienteBase):

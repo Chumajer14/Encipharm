@@ -20,10 +20,12 @@ CSV_FIELDS = {
     "region",
     "estado",
     "vendedorUid",
+    "ownerUid",
 }
 
 
 def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    vendedor_uid = data.get("vendedorUid") or data.get("ownerUid")
     return {
         "id": data.get("id", cliente_id),
         "nombre": data.get("nombre"),
@@ -33,7 +35,8 @@ def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
         "rubro": data.get("rubro"),
         "region": data.get("region"),
         "estado": data.get("estado", "En proceso"),
-        "vendedorUid": data.get("vendedorUid"),
+        "vendedorUid": vendedor_uid,
+        "ownerUid": data.get("ownerUid") or vendedor_uid,
         "createdAt": data.get("createdAt"),
         "updatedAt": data.get("updatedAt"),
     }
@@ -53,7 +56,10 @@ def list_clientes(
     if vendedor_uid:
         clientes = [
             cliente for cliente in clientes
-            if cliente.get("vendedorUid") == vendedor_uid
+            if (
+                cliente.get("vendedorUid") == vendedor_uid
+                or cliente.get("ownerUid") == vendedor_uid
+            )
         ]
 
     if estado:
@@ -95,6 +101,10 @@ def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
         "createdAt": now,
         "updatedAt": now,
     }
+    if data.get("vendedorUid") and not data.get("ownerUid"):
+        data["ownerUid"] = data["vendedorUid"]
+    if data.get("ownerUid") and not data.get("vendedorUid"):
+        data["vendedorUid"] = data["ownerUid"]
     db.collection(CLIENTES_COLLECTION).document(cliente_id).set(data)
     return normalize_cliente(cliente_id, data)
 
