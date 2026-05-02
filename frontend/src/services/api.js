@@ -1,0 +1,45 @@
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+export async function apiFetch(path, { token, ...options } = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    const message = errorBody.detail || "No se pudo completar la solicitud";
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+export function loginWithBackend(token) {
+  return apiFetch("/auth/login", {
+    method: "POST",
+    token,
+  });
+}
+
+export function getClientes(token) {
+  return apiFetch("/clientes", { token });
+}
+
+export function createCliente(token, cliente) {
+  return apiFetch("/clientes", {
+    method: "POST",
+    token,
+    body: JSON.stringify(cliente),
+  });
+}

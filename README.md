@@ -1,29 +1,29 @@
 # Encipharm Ventas
 
-Sistema de gestion de ventas y MiniCRM para Encipharm, desarrollado como proyecto de equipo bajo metodologia Scrumban.
-El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA, Flutter, ERP SAP, Google Calendar e inteligencia competitiva avanzada.
+Sistema de gestion de ventas y MiniCRM para Encipharm, desarrollado bajo metodologia Scrumban.
+El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos.
 
 ## Objetivo
 
-Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboard supervisor en una sola solucion web.
+Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboard supervisor desde una solucion web.
 
 ## Alcance del MVP
 
-Incluye solo las capacidades bloqueantes para operar el sistema:
+Incluye las capacidades bloqueantes para operar el sistema:
 
-- Autenticacion.
-- CRM de clientes.
-- Registro de interacciones y visitas web.
-- Pipeline de oportunidades.
-- Propuestas comerciales basicas.
-- Importacion CSV de clientes.
-- Gestion de usuarios y roles.
-- Dashboard del vendedor y del supervisor.
+- Autenticacion web con Firebase Auth y Google SSO.
+- Validacion de ID Token/JWT en backend con Firebase Admin.
+- CRM de clientes conectado a Firestore.
+- Creacion y listado de clientes reales.
+- Registro de usuarios autenticados en Firestore.
+- Gestion base de usuarios y roles.
+- Base tecnica para dashboard vendedor/supervisor.
+- Base tecnica para importacion CSV y validaciones futuras.
 
 Quedan fuera de esta fase:
 
 - IA / RAG.
-- Flutter.
+- Flutter nativo.
 - ERP SAP.
 - Google Calendar.
 - Inteligencia competitiva avanzada.
@@ -33,10 +33,11 @@ Quedan fuera de esta fase:
 
 - **Frontend web:** React + Vite.
 - **Backend API:** FastAPI.
-- **Base de datos:** Firestore.
+- **Base de datos:** Cloud Firestore.
 - **Autenticacion:** Firebase Auth con Google SSO.
+- **Autorizacion:** Bearer token validado con Firebase Admin.
 - **Infraestructura prevista:** GCP Cloud Run, Cloud Build, Artifact Registry.
-- **Documentacion y despliegue:** README vivo y variables seguras en Secret Manager.
+- **Documentacion y despliegue:** README vivo y variables seguras fuera del repositorio.
 
 ## Estructura del repositorio
 
@@ -52,16 +53,88 @@ Quedan fuera de esta fase:
 
 > Nota: `mobile/` queda reservado para Fase 2. Actualmente el MVP se concentra en la web.
 
-## Requisitos
+## Flujo de autenticacion
 
-- Python 3.12 o superior.
-- Node.js 20 o superior.
-- Firebase CLI.
-- Docker y Docker Compose cuando se agreguen los archivos de despliegue correspondientes.
+1. El usuario entra al frontend y presiona `Login con Google`.
+2. Firebase Auth abre el flujo Google SSO.
+3. Firebase entrega un ID Token al frontend.
+4. El frontend envia ese token al backend en el header:
+
+```http
+Authorization: Bearer <firebase-id-token>
+```
+
+5. FastAPI valida el token con Firebase Admin.
+6. El backend crea o actualiza el usuario en la coleccion `users`.
+7. La sesion queda autorizada para consumir endpoints protegidos.
+
+## Flujo de clientes
+
+La pantalla `CRM Clientes` ya no usa datos mock como fuente principal.
+Los clientes se leen y escriben mediante API protegida:
+
+- `GET /clientes`: lista clientes visibles para el usuario autenticado.
+- `POST /clientes`: crea un cliente en Firestore.
+
+Cada cliente queda almacenado en la coleccion `clientes` con:
+
+- `nombre`
+- `empresa`
+- `email`
+- `telefono`
+- `rubro`
+- `region`
+- `estado`
+- `vendedorUid`
+- `createdAt`
+- `updatedAt`
+
+Regla funcional aplicada en backend:
+
+- `vendedor`: ve los clientes asociados a su `vendedorUid`.
+- `supervisor` y `admin`: pueden ver todos los clientes.
+
+## Endpoints implementados
+
+### Salud
+
+```http
+GET /health
+```
+
+Verifica que la API este activa.
+
+### Usuario autenticado
+
+```http
+GET /me
+```
+
+Valida el token y retorna datos basicos del usuario autenticado.
+
+### Autenticacion
+
+```http
+POST /auth/login
+POST /auth/register
+```
+
+Ambos endpoints validan el token Firebase y sincronizan el usuario en Firestore.
+`/auth/login` es el flujo usado por el frontend.
+
+### Clientes
+
+```http
+GET /clientes
+POST /clientes
+```
+
+Ambos requieren `Authorization: Bearer <token>`.
 
 ## Variables de entorno
 
-Cada proyecto debe tener su propio archivo `.env.example`. Los archivos `.env` y credenciales reales no deben versionarse.
+Cada proyecto debe tener su propio archivo `.env.example`.
+Los archivos `.env`, service accounts y credenciales reales no deben versionarse.
 
 ### Backend
 
@@ -69,7 +142,7 @@ Cada proyecto debe tener su propio archivo `.env.example`. Los archivos `.env` y
 APP_NAME=Encipharm Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
-CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"]
 FIREBASE_PROJECT_ID=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 ```
@@ -78,13 +151,14 @@ GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 
 ```env
 VITE_APP_NAME=Encipharm Ventas
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://127.0.0.1:8001
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
 VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
+VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 ```
 
 ## Instalacion local
@@ -93,36 +167,46 @@ VITE_FIREBASE_APP_ID=your-app-id
 
 ```bash
 cd Backend
-cp .env.example .env
 uv sync
-uv run uvicorn app.main:app --reload
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
 ### Frontend
 
 ```bash
-cd Frontend
-cp .env.example .env
+cd frontend
 npm install
-npm run dev
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Con esto, el backend queda disponible en `http://localhost:8000` y el frontend en `http://localhost:5173`.
+Con esto, el backend queda disponible en `http://127.0.0.1:8001` y el frontend en `http://127.0.0.1:5173`.
 
-## Verificacion
+## QA y verificacion
+
+Comandos usados para validar la integracion:
 
 ```bash
 cd frontend
+npm test
 npm run lint
 npm run build
-npm test
 ```
 
 ```bash
 cd Backend
-uv sync
 uv run pytest
 ```
+
+Checklist funcional:
+
+- Login Google abre popup y autentica contra Firebase.
+- El frontend obtiene ID Token y llama a `/auth/login`.
+- El backend valida el token con Firebase Admin.
+- El usuario queda creado o actualizado en `users`.
+- La ruta del CRM queda protegida.
+- `GET /clientes` lista clientes reales desde Firestore.
+- `POST /clientes` guarda clientes nuevos en Firestore.
+- El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
 
 ## Convenciones de trabajo
 
@@ -131,13 +215,6 @@ uv run pytest
 - Mantener lint, build y tests limpios.
 - Actualizar documentacion si cambia un endpoint o flujo.
 - Seguir la definicion de Done del proyecto.
-
-## Flujo del proyecto
-
-- **Daily interno:** 15 minutos.
-- **Replenishment:** semanal.
-- **Revision ejecutiva:** cada 2 semanas.
-- **Retrospectiva:** al cierre de cada ciclo.
 
 ## Roadmap general
 
@@ -178,8 +255,10 @@ Un ticket se considera completo solo si:
 - La integracion con ERP SAP puede diferirse si falta informacion tecnica.
 - La migracion depende de la calidad de los archivos Excel/CSV.
 - Flutter y las capacidades avanzadas quedan para Fase 2.
+- Las credenciales Firebase Admin no deben exponerse ni versionarse.
 
 ## Estado actual
 
-- EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend.
-- EPIC 2: CRM web iniciado con datos mock; falta login web, roles, integracion con backend, importacion CSV y dashboard.
+- EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
+- EPIC 2: login web, sesion, CRM con Firestore y creacion/listado de clientes reales implementados.
+- Pendiente MVP: gestion ampliada de roles, importacion CSV, dashboard base, interacciones, pipeline y propuestas basicas.

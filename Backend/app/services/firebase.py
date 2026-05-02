@@ -1,8 +1,9 @@
 import firebase_admin
-from firebase_admin import credentials, auth
 from app.core.config import get_settings
+from firebase_admin import auth, credentials
 
 settings = get_settings()
+
 
 def init_firebase():
     if not firebase_admin._apps:
@@ -11,12 +12,9 @@ def init_firebase():
             "projectId": settings.FIREBASE_PROJECT_ID,
         })
 
-# ← AGREGA ESTA LÍNEA: inicializa al importar el módulo
-init_firebase()
 
 async def verify_token(token: str) -> dict:
     try:
-        decoded = auth.verify_id_token(token)
-        return decoded
-    except Exception as e:
-        raise ValueError(f"Token inválido: {e}")
+        return auth.verify_id_token(token, clock_skew_seconds=60)
+    except Exception as error:
+        raise ValueError(f"Token invalido: {error}") from error

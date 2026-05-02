@@ -16,16 +16,14 @@ from app.services.clientes import (
 )
 from app.services.firestore import get_db
 
-
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
 
-@router.get("/", response_model=list[ClienteResponse])
-async def get_clientes(
-    search: str | None = Query(default=None),
-    estado: str | None = Query(default=None),
-    vendedor_uid: str | None = Query(default=None, alias="vendedorUid"),
-    user: dict = Depends(require_role("vendedor")),
+async def _get_clientes_impl(
+    search: str | None,
+    estado: str | None,
+    vendedor_uid: str | None,
+    user: dict,
 ):
     db = get_db()
     if user["rol"] == "vendedor":
@@ -38,6 +36,17 @@ async def get_clientes(
     )
 
 
+@router.get("", response_model=list[ClienteResponse])
+@router.get("/", response_model=list[ClienteResponse])
+async def get_clientes(
+    search: str | None = Query(default=None),
+    estado: str | None = Query(default=None),
+    vendedor_uid: str | None = Query(default=None, alias="vendedorUid"),
+    user: dict = Depends(require_role("vendedor")),
+):
+    return await _get_clientes_impl(search, estado, vendedor_uid, user)
+
+
 @router.get("/{cliente_id}", response_model=ClienteResponse)
 async def get_cliente(
     cliente_id: str,
@@ -47,6 +56,7 @@ async def get_cliente(
     return get_cliente_or_404(db, cliente_id)
 
 
+@router.post("", response_model=ClienteResponse)
 @router.post("/", response_model=ClienteResponse)
 async def post_cliente(
     payload: ClienteCreate,
