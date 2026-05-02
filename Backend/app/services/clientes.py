@@ -1,82 +1,186 @@
+import csv
+import io
 from datetime import datetime, timezone
-from app.services.firestore import get_db as get_firestore
-from app.models.cliente import ClienteCreate, ClienteUpdate
+from typing import Any
+from uuid import uuid4
+
+from fastapi import HTTPException, status
+from pydantic import ValidationError
+
+from app.models.cliente import ClienteCreate
 
 
-def crear_cliente(vendedor_id: str, data: ClienteCreate) -> dict:
-    db = get_firestore()
-    ref = db.collection("clientes").document()
-    now = datetime.now(timezone.utc)
-    payload = data.model_dump()
-    if payload.get("bant") and data.bant:
-        payload["bant"] = data.bant.model_dump()
-    cliente = {
-        **payload,
-        "id": ref.id,
-        "vendedorId": vendedor_id,   # ← agrega el dueño
-        "createdAt": now,
-        "updatedAt": now,
+CLIENTES_COLLECTION = "clientes"
+CSV_FIELDS = {
+    "nombre",
+    "empresa",
+    "email",
+    "telefono",
+    "rubro",
+    "region",
+    "estado",
+    "vendedorUid",
+}
+
+
+def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": data.get("id", cliente_id),
+        "nombre": data.get("nombre"),
+        "empresa": data.get("empresa"),
+        "email": data.get("email"),
+        "telefono": data.get("telefono"),
+        "rubro": data.get("rubro"),
+        "region": data.get("region"),
+        "estado": data.get("estado", "En proceso"),
+        "vendedorUid": data.get("vendedorUid"),
+        "createdAt": data.get("createdAt"),
+        "updatedAt": data.get("updatedAt"),
     }
-    ref.set(cliente)
-    return cliente
 
 
-def listar_clientes(uid: str, rol: str, industria: str | None = None,
-                    ciudad: str | None = None, search: str | None = None) -> list:
-    db = get_firestore()
-    query = db.collection("clientes")
+def list_clientes(
+    db,
+    search: str | None = None,
+    estado: str | None = None,
+    vendedor_uid: str | None = None,
+) -> list[dict[str, Any]]:
+    clientes = [
+        normalize_cliente(doc.id, doc.to_dict())
+        for doc in db.collection(CLIENTES_COLLECTION).stream()
+    ]
 
-    if rol == "vendedor":
-        query = query.where("vendedorId", "==", uid)
-    if industria:
-        query = query.where("industria", "==", industria)
-    if ciudad:
-        query = query.where("ciudad", "==", ciudad)
+    if vendedor_uid:
+        clientes = [
+            cliente for cliente in clientes
+            if cliente.get("vendedorUid") == vendedor_uid
+        ]
 
-    clientes = [doc.to_dict() for doc in query.stream()]
+    if estado:
+        clientes = [
+            cliente for cliente in clientes
+            if cliente.get("estado", "").lower() == estado.lower()
+        ]
 
     if search:
-        term = search.strip().lower()
+        normalized_search = search.lower()
+        search_fields = ("nombre", "empresa", "email", "rubro", "region")
         clientes = [
-            c for c in clientes
-            if term in (c.get("nombre", "") or "").lower()
-            or term in (c.get("empresa", "") or "").lower()
-            or term in (c.get("industria", "") or "").lower()
-            or term in (c.get("ciudad", "") or "").lower()
+            cliente for cliente in clientes
+            if any(
+                normalized_search in str(cliente.get(field) or "").lower()
+                for field in search_fields
+            )
         ]
+
     return clientes
 
 
-def obtener_cliente(cliente_id: str, uid: str, rol: str) -> dict | None:
-    db = get_firestore()
-    doc = db.collection("clientes").document(cliente_id).get()
+def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
+    doc = db.collection(CLIENTES_COLLECTION).document(cliente_id).get()
     if not doc.exists:
-        return None
-    data = doc.to_dict()
-    # Vendedor solo puede ver sus propios clientes
-    if rol == "vendedor" and data.get("vendedorId") != uid:
-        return None
-    return data
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado",
+        )
+    return normalize_cliente(cliente_id, doc.to_dict())
 
 
-def actualizar_cliente(cliente_id: str, uid: str, rol: str,
-                       data: ClienteUpdate) -> dict | None:
-    cliente = obtener_cliente(cliente_id, uid, rol)
-    if not cliente:
-        return None
-    db = get_firestore()
-    ref = db.collection("clientes").document(cliente_id)
-    updates = {k: v for k, v in data.model_dump().items() if v is not None}
-    updates["updatedAt"] = datetime.now(timezone.utc)
-    if "bant" in updates and data.bant:
-        updates["bant"] = data.bant.model_dump()
-    ref.update(updates)
-    return ref.get().to_dict()
+def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    cliente_id = str(uuid4())
+    data = {
+        **payload.model_dump(),
+        "id": cliente_id,
+        "createdAt": now,
+        "updatedAt": now,
+    }
+    db.collection(CLIENTES_COLLECTION).document(cliente_id).set(data)
+    return normalize_cliente(cliente_id, data)
 
 
-def eliminar_cliente(cliente_id: str, uid: str, rol: str) -> bool:
-    cliente = obtener_cliente(cliente_id, uid, rol)
-    if not cliente:
-        return False
-    get_firestore().collection("clientes").document(cliente_id).delete()
-    return True
+def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, Any]:
+    cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
+    cliente_doc = cliente_ref.get()
+
+    if not cliente_doc.exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado",
+        )
+
+    clean_changes = {
+        key: value
+        for key, value in changes.items()
+        if value is not None
+    }
+    clean_changes["updatedAt"] = datetime.now(timezone.utc)
+
+    cliente_ref.update(clean_changes)
+    updated_data = {**cliente_doc.to_dict(), **clean_changes}
+    return normalize_cliente(cliente_id, updated_data)
+
+
+def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[dict[str, Any]], int]:
+    text = raw_content.decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(text))
+
+    if not reader.fieldnames:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo CSV no contiene encabezados",
+        )
+
+    unknown_fields = set(reader.fieldnames) - CSV_FIELDS
+    if unknown_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Columnas no soportadas: {', '.join(sorted(unknown_fields))}",
+        )
+
+    clientes: list[ClienteCreate] = []
+    errores: list[dict[str, Any]] = []
+    total_rows = 0
+
+    for row_number, row in enumerate(reader, start=2):
+        total_rows += 1
+        clean_row = {
+            key: (value.strip() if isinstance(value, str) else value)
+            for key, value in row.items()
+            if key in CSV_FIELDS
+        }
+        clean_row = {
+            key: value
+            for key, value in clean_row.items()
+            if value not in (None, "")
+        }
+
+        try:
+            clientes.append(ClienteCreate.model_validate(clean_row))
+        except ValidationError as exc:
+            errores.append({
+                "fila": row_number,
+                "errores": [
+                    f"{'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
+                    for error in exc.errors()
+                ],
+            })
+
+    return clientes, errores, total_rows
+
+
+def import_clientes_csv(db, raw_content: bytes) -> dict[str, Any]:
+    clientes, errores, total_rows = parse_clientes_csv(raw_content)
+
+    imported_count = 0
+    if not errores:
+        for cliente in clientes:
+            create_cliente(db, cliente)
+            imported_count += 1
+
+    return {
+        "totalFilas": total_rows,
+        "importados": imported_count,
+        "fallidos": len(errores),
+        "errores": errores,
+    }

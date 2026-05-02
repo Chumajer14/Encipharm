@@ -42,9 +42,9 @@ def test_auth_endpoints_require_bearer_token(monkeypatch):
     assert register_response.status_code in (401, 403)
 
 
-def test_clientes_module_is_still_pending(monkeypatch):
+def test_clientes_module_requires_bearer_token(monkeypatch):
     client = build_client(monkeypatch)
 
     response = client.get("/clientes")
 
-    assert response.status_code == 404
+    assert response.status_code in (401, 403)

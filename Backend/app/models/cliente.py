@@ -1,45 +1,50 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, Literal
 from datetime import datetime
+from typing import Optional
 
-Industria = Literal["aves", "cerdos", "rumiantes", "acua", "otros"]
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-class BANT(BaseModel):
-    budget: int = 0
-    authority: int = 0
-    need: int = 0
-    timing: int = 0
 
-class ClienteCreate(BaseModel):
-    nombre: str
-    empresa: str
-    email: Optional[EmailStr] = None
+class ClienteBase(BaseModel):
+    nombre: str = Field(min_length=1)
+    empresa: str = Field(min_length=1)
+    email: EmailStr
     telefono: Optional[str] = None
-    industria: Industria
-    rut: Optional[str] = None
-    ciudad: Optional[str] = None
-    bant: Optional[BANT] = None
+    rubro: Optional[str] = None
+    region: Optional[str] = None
+    estado: str = "En proceso"
+    vendedorUid: Optional[str] = None
+
+
+class ClienteCreate(ClienteBase):
+    pass
+
 
 class ClienteUpdate(BaseModel):
-    nombre: Optional[str] = None
-    empresa: Optional[str] = None
+    nombre: Optional[str] = Field(default=None, min_length=1)
+    empresa: Optional[str] = Field(default=None, min_length=1)
     email: Optional[EmailStr] = None
     telefono: Optional[str] = None
-    industria: Optional[Industria] = None
-    rut: Optional[str] = None
-    ciudad: Optional[str] = None
-    bant: Optional[BANT] = None
+    rubro: Optional[str] = None
+    region: Optional[str] = None
+    estado: Optional[str] = None
+    vendedorUid: Optional[str] = None
 
-class ClienteOut(BaseModel):
+
+class ClienteResponse(ClienteBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
-    nombre: str
-    empresa: str
-    email: Optional[str] = None
-    telefono: Optional[str] = None
-    industria: str
-    rut: Optional[str] = None
-    ciudad: Optional[str] = None
-    vendedorId: str
-    bant: Optional[BANT] = None
     createdAt: Optional[datetime] = None
     updatedAt: Optional[datetime] = None
+
+
+class CsvImportError(BaseModel):
+    fila: int
+    errores: list[str]
+
+
+class CsvImportResult(BaseModel):
+    totalFilas: int
+    importados: int
+    fallidos: int
+    errores: list[CsvImportError]
