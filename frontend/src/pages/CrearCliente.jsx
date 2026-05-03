@@ -39,8 +39,10 @@ function CrearCliente() {
     try {
       const createdCliente = await createCliente(idToken, form);
       const successMessage = `Cliente ${createdCliente.empresa} creado exitosamente.`;
+
       setSuccess(successMessage);
       setForm(initialForm);
+
       window.setTimeout(() => {
         navigate("/", {
           replace: true,
@@ -62,6 +64,7 @@ function CrearCliente() {
           <h1>Nuevo Cliente</h1>
           <p>Registro real en Firestore para el MVP comercial</p>
         </div>
+
         <Link to="/">
           <button className="btn-secondary" type="button">
             Volver
@@ -93,7 +96,7 @@ function CrearCliente() {
           Empresa
           <input
             name="empresa"
-            placeholder="Empresa o razon social"
+            placeholder="Empresa o razón social"
             value={form.empresa}
             onChange={handleChange}
             required
@@ -115,7 +118,7 @@ function CrearCliente() {
         </label>
 
         <label>
-          Telefono
+          Teléfono
           <input
             name="telefono"
             placeholder="+56912345678"
@@ -138,7 +141,7 @@ function CrearCliente() {
         </label>
 
         <label>
-          Region
+          Región
           <select
             name="region"
             value={form.region}
@@ -146,7 +149,7 @@ function CrearCliente() {
             required
             disabled={formDisabled}
           >
-            <option value="">Selecciona una region</option>
+            <option value="">Selecciona una región</option>
             {regionesChile.map((region) => (
               <option key={region} value={region}>
                 {region}
@@ -174,6 +177,7 @@ function CrearCliente() {
               Cancelar
             </button>
           </Link>
+
           <button type="submit" disabled={formDisabled}>
             {saving ? "Guardando..." : "Guardar Cliente"}
           </button>

@@ -1,12 +1,24 @@
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { getClientes } from "../services/api";
 import { filtrarClientes } from "../utils/clientes";
+=======
+
+//import { mockClientes } from "../data/mockClientes";
+import { Link } from "react-router-dom";
+>>>>>>> Stashed changes
+
+// IMPORTAR SERVICIO REAL
+import { useEffect, useState } from "react";
+import { obtenerClientes } from "../services/clientesService";
+
 
 function Clientes() {
   const [busqueda, setBusqueda] = useState("");
   const [clientes, setClientes] = useState([]);
+<<<<<<< Updated upstream
   const [loadingClientes, setLoadingClientes] = useState(true);
   const [error, setError] = useState("");
   const { backendUser, idToken, logout } = useAuth();
@@ -53,6 +65,34 @@ function Clientes() {
   }, [idToken]);
 
   const clientesFiltrados = filtrarClientes(clientes, busqueda);
+=======
+
+  // 🔥 CARGAR CLIENTES DESDE BACKEND
+  useEffect(() => {
+    async function cargarClientes() {
+      try {
+        const data = await obtenerClientes();
+        setClientes(data);
+      } catch (error) {
+        console.error("Error al cargar clientes", error);
+      }
+    }
+
+    cargarClientes();
+  }, []);
+
+  // 🔍 FILTRO
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const texto = busqueda.toLowerCase();
+
+    return (
+      cliente.nombre?.toLowerCase().includes(texto) ||
+      cliente.empresa?.toLowerCase().includes(texto) ||
+      cliente.rubro?.toLowerCase().includes(texto) ||
+      cliente.region?.toLowerCase().includes(texto)
+    );
+  });
+>>>>>>> Stashed changes
 
   return (
     <main className="page">
@@ -70,6 +110,7 @@ function Clientes() {
         </div>
       </section>
 
+<<<<<<< Updated upstream
       <Link to="/crear">
         <button className="btn-primary" type="button">
           Nuevo Cliente
@@ -86,6 +127,14 @@ function Clientes() {
         </section>
       )}
 
+=======
+      {/* BOTÓN NUEVO CLIENTE */}
+      <Link to="/crear">
+        <button className="btn-primary">Nuevo Cliente</button>
+      </Link>
+
+      {/* BUSCADOR */}
+>>>>>>> Stashed changes
       <section className="card">
         <input
           className="search"
@@ -96,6 +145,7 @@ function Clientes() {
         />
       </section>
 
+<<<<<<< Updated upstream
       {loadingClientes && (
         <section className="card">
           <p className="status-message">Cargando clientes...</p>
@@ -115,6 +165,9 @@ function Clientes() {
         </section>
       )}
 
+=======
+      {/* LISTA */}
+>>>>>>> Stashed changes
       <section className="list">
         {clientesFiltrados.map((cliente) => (
           <article className="client-card" key={cliente.id}>
@@ -122,13 +175,23 @@ function Clientes() {
               <h3>{cliente.empresa}</h3>
               <p>{cliente.nombre}</p>
               <span>
+<<<<<<< Updated upstream
                 {cliente.rubro} - {cliente.region}
+=======
+                {cliente.rubro} · {cliente.region}
+>>>>>>> Stashed changes
               </span>
             </div>
 
             <strong
               className={
+<<<<<<< Updated upstream
                 cliente.estado === "Completado" ? "active" : "prospect"
+=======
+                cliente.estado === "Completado"
+                  ? "active"
+                  : "prospect"
+>>>>>>> Stashed changes
               }
             >
               {cliente.estado}
@@ -140,4 +203,8 @@ function Clientes() {
   );
 }
 
+<<<<<<< Updated upstream
 export default Clientes;
+=======
+export default Clientes;
+>>>>>>> Stashed changes
