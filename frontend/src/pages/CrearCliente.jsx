@@ -44,7 +44,7 @@ function CrearCliente() {
       setForm(initialForm);
 
       window.setTimeout(() => {
-        navigate("/", {
+        navigate("/clientes", { //AL DAR BOTON VOLVER SE DEVUELVE A CRM CLIENTES
           replace: true,
           state: { notice: successMessage },
         });
@@ -65,7 +65,7 @@ function CrearCliente() {
           <p>Registro real en Firestore para el MVP comercial</p>
         </div>
 
-        <Link to="/">
+        <Link to="/clientes"> 
           <button className="btn-secondary" type="button">
             Volver
           </button>

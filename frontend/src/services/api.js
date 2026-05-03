@@ -46,3 +46,14 @@ export function createCliente(token, cliente) {
     body: JSON.stringify(cliente),
   });
 }
+
+
+//DASHBOARD
+export function getDashboardVendedor(token) {
+  return apiFetch("/dashboard/vendedor", { token });
+}
+
+export function getDashboardSupervisor(token) {
+  return apiFetch("/dashboard/supervisor", { token });
+}
+

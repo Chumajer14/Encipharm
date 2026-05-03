@@ -1,6 +1,8 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 
+
+
 function Login() {
   const {
     error,
@@ -11,7 +13,7 @@ function Login() {
   } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
