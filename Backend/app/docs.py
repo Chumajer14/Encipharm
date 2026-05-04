@@ -1,11 +1,14 @@
 import json
+from pathlib import Path
 
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from app.core.config import get_settings
 
 router = APIRouter(tags=["Testing"])
+
+GUIDE_PATH = Path(__file__).resolve().parent / "static" / "guias" / "frontend-demo-guide.pdf"
 
 
 def _firebase_web_config() -> dict[str, str | None]:
@@ -68,6 +71,16 @@ async def testing_docs():
       .actions {{
         display: flex;
         gap: 8px;
+      }}
+      .guide-link {{
+        align-items: center;
+        background: #38bdf8;
+        border-radius: 8px;
+        color: #020617;
+        display: inline-flex;
+        font-weight: 800;
+        padding: 10px 14px;
+        text-decoration: none;
       }}
       button {{
         border: 0;
@@ -144,6 +157,7 @@ async def testing_docs():
         <div class="actions">
           <button class="primary" id="loginButton">Login con Google</button>
           <button class="secondary" id="logoutButton">Cerrar sesion</button>
+          <a class="guide-link" href="/docs/guia-presentacion-frontend.pdf" target="_blank" rel="noopener">Guia PDF</a>
         </div>
         <div class="status" id="authStatus">Sin sesion activa. Inicia sesion para autorizar Swagger.</div>
       </section>
@@ -258,3 +272,12 @@ async def testing_docs():
   </body>
 </html>
 """)
+
+
+@router.get("/docs/guia-presentacion-frontend.pdf", include_in_schema=False)
+async def frontend_demo_guide():
+    return FileResponse(
+        GUIDE_PATH,
+        media_type="application/pdf",
+        filename="guia-presentacion-frontend-encipharm.pdf",
+    )
