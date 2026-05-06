@@ -6,7 +6,9 @@ import ClienteDetalle from "./pages/ClienteDetalle";
 import CrearCliente from "./pages/CrearCliente";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Proximamente from "./pages/Proximamente";
+import Interacciones from "./pages/Interacciones";
+import Oportunidades from "./pages/Oportunidades";
+import Propuestas from "./pages/Propuestas";
 import "./App.css";
 
 function App() {
@@ -58,7 +60,16 @@ function App() {
             path="/interacciones"
             element={
               <ProtectedRoute>
-                <Proximamente titulo="Interacciones" />
+                <Interacciones />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/oportunidades"
+            element={
+              <ProtectedRoute>
+                <Oportunidades />
               </ProtectedRoute>
             }
           />
@@ -67,7 +78,7 @@ function App() {
             path="/propuestas"
             element={
               <ProtectedRoute>
-                <Proximamente titulo="Propuestas" />
+                <Propuestas />
               </ProtectedRoute>
             }
           />

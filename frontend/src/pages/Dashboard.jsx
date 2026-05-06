@@ -119,6 +119,11 @@ function Dashboard() {
             <strong>Interacciones</strong>
           </Link>
 
+          <Link to="/oportunidades" className="quick-card">
+            <span>OP</span>
+            <strong>Oportunidades</strong>
+          </Link>
+
           <Link to="/propuestas" className="quick-card">
             <span>PR</span>
             <strong>Propuestas</strong>

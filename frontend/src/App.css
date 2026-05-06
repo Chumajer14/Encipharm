@@ -75,13 +75,19 @@
 .search,
 .filter-select,
 .form input,
-.form select {
+.form select,
+.form textarea {
   background: #111827;
   border: 1px solid #334155;
   border-radius: 8px;
   color: white;
   font: inherit;
   padding: 12px;
+}
+
+.form textarea {
+  min-height: 96px;
+  resize: vertical;
 }
 
 .search {
@@ -99,6 +105,10 @@
 .list {
   display: grid;
   gap: 14px;
+}
+
+.spaced-list {
+  margin-top: 24px;
 }
 
 .client-card {
@@ -456,6 +466,53 @@
 
 .quick-card strong {
   font-size: 16px;
+}
+
+.kanban-board {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 24px;
+}
+
+.kanban-column {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  min-height: 180px;
+  padding: 12px;
+}
+
+.kanban-column h2 {
+  color: #cbd5e1;
+  font-size: 15px;
+  margin: 0 0 12px;
+  text-transform: capitalize;
+}
+
+.kanban-item {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 12px;
+}
+
+.kanban-item span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.kanban-item select,
+.client-actions select {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: white;
+  padding: 8px;
 }
 
 @media (max-width: 640px) {

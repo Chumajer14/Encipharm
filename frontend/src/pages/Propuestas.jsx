@@ -1,0 +1,139 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
+import { createPropuesta, getClientes, getOportunidades, getPropuestas, updatePropuesta } from "../services/api";
+import { getFriendlyApiError } from "../utils/apiErrors";
+
+const initialForm = {
+  clienteId: "",
+  oportunidadId: "",
+  titulo: "",
+  montoNeto: "",
+  descuentoPct: 0,
+  estado: "borrador",
+  notas: "",
+};
+
+function Propuestas() {
+  const { idToken } = useAuth();
+  const [clientes, setClientes] = useState([]);
+  const [oportunidades, setOportunidades] = useState([]);
+  const [propuestas, setPropuestas] = useState([]);
+  const [form, setForm] = useState(initialForm);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadData() {
+      if (!idToken) return;
+      try {
+        const [clientesData, oportunidadesData, propuestasData] = await Promise.all([
+          getClientes(idToken),
+          getOportunidades(idToken),
+          getPropuestas(idToken),
+        ]);
+        setClientes(clientesData);
+        setOportunidades(oportunidadesData);
+        setPropuestas(propuestasData);
+      } catch (loadError) {
+        setError(getFriendlyApiError(loadError));
+      }
+    }
+
+    loadData();
+  }, [idToken]);
+
+  const handleChange = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    try {
+      const created = await createPropuesta(idToken, {
+        ...form,
+        oportunidadId: form.oportunidadId || null,
+        montoNeto: Number(form.montoNeto || 0),
+        descuentoPct: Number(form.descuentoPct || 0),
+        notas: form.notas || null,
+      });
+      setPropuestas([created, ...propuestas]);
+      setForm(initialForm);
+    } catch (saveError) {
+      setError(getFriendlyApiError(saveError));
+    }
+  };
+
+  const updateEstado = async (propuesta, estado) => {
+    const updated = await updatePropuesta(idToken, propuesta.id, { estado });
+    setPropuestas(propuestas.map((item) => item.id === updated.id ? updated : item));
+  };
+
+  return (
+    <main className="page">
+      <section className="header header-row">
+        <div>
+          <h1>Propuestas</h1>
+          <p>Estados y calculos basicos para cotizaciones comerciales</p>
+        </div>
+        <Link to="/dashboard"><button className="btn-secondary" type="button">Volver</button></Link>
+      </section>
+
+      {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
+
+      <form className="form form-card" onSubmit={handleSubmit}>
+        <label>Cliente
+          <select name="clienteId" value={form.clienteId} onChange={handleChange} required>
+            <option value="">Selecciona cliente</option>
+            {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.empresa}</option>)}
+          </select>
+        </label>
+        <label>Oportunidad
+          <select name="oportunidadId" value={form.oportunidadId} onChange={handleChange}>
+            <option value="">Sin oportunidad asociada</option>
+            {oportunidades
+              .filter((item) => !form.clienteId || item.clienteId === form.clienteId)
+              .map((item) => <option key={item.id} value={item.id}>{item.titulo}</option>)}
+          </select>
+        </label>
+        <label>Titulo
+          <input name="titulo" maxLength={160} value={form.titulo} onChange={handleChange} required />
+        </label>
+        <label>Monto neto
+          <input name="montoNeto" type="number" min="0" value={form.montoNeto} onChange={handleChange} required />
+        </label>
+        <label>Descuento %
+          <input name="descuentoPct" type="number" min="0" max="100" value={form.descuentoPct} onChange={handleChange} />
+        </label>
+        <label>Notas
+          <textarea name="notas" maxLength={1000} value={form.notas} onChange={handleChange} />
+        </label>
+        <div className="form-actions">
+          <button type="submit">Crear propuesta</button>
+        </div>
+      </form>
+
+      <section className="list spaced-list">
+        {propuestas.map((propuesta) => (
+          <article className="client-card" key={propuesta.id}>
+            <div>
+              <h3>{propuesta.titulo}</h3>
+              <p>Total: ${Number(propuesta.montoTotal || 0).toLocaleString()} / descuento ${Number(propuesta.montoDescuento || 0).toLocaleString()}</p>
+              <span>{propuesta.estado}</span>
+            </div>
+            <div className="client-actions">
+              <select value={propuesta.estado} onChange={(event) => updateEstado(propuesta, event.target.value)}>
+                <option value="borrador">Borrador</option>
+                <option value="enviada">Enviada</option>
+                <option value="aceptada">Aceptada</option>
+                <option value="rechazada">Rechazada</option>
+              </select>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+export default Propuestas;

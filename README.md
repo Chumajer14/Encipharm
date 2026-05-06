@@ -19,6 +19,9 @@ Incluye las capacidades bloqueantes para operar el sistema:
 - Gestion base de usuarios y roles.
 - Base tecnica para dashboard vendedor/supervisor.
 - Base tecnica para importacion CSV y validaciones futuras.
+- Interacciones comerciales.
+- Pipeline de oportunidades.
+- Propuestas basicas con estados y calculos.
 
 Quedan fuera de esta fase:
 
@@ -134,6 +137,21 @@ POST /clientes
 
 Ambos requieren `Authorization: Bearer <token>`.
 
+### Flujo comercial
+
+```http
+GET /interacciones
+POST /interacciones
+GET /oportunidades
+POST /oportunidades
+PATCH /oportunidades/{id}
+GET /propuestas
+POST /propuestas
+PATCH /propuestas/{id}
+```
+
+Todos requieren `Authorization: Bearer <token>`.
+
 ## Variables de entorno
 
 Cada proyecto debe tener su propio archivo `.env.example`.
@@ -231,6 +249,9 @@ Checklist funcional:
 - `PATCH /clientes/{cliente_id}` edita clientes.
 - `DELETE /clientes/{cliente_id}` da de baja clientes sin perdida irreversible.
 - El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
+- `POST /interacciones` registra llamadas, visitas, correos y reuniones.
+- `POST /oportunidades` crea oportunidades y `PATCH /oportunidades/{id}` cambia etapa.
+- `POST /propuestas` calcula descuento y monto total.
 
 ## Convenciones de trabajo
 
@@ -285,4 +306,5 @@ Un ticket se considera completo solo si:
 
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
-- Pendiente MVP: interacciones, pipeline y propuestas basicas del EPIC 3.
+- EPIC 3: base funcional implementada con interacciones, oportunidades/pipeline y propuestas basicas.
+- Pendiente MVP: dashboard supervisor consolidado del flujo comercial, migracion, hardening final y UAT.
