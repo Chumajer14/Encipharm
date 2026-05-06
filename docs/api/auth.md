@@ -31,6 +31,7 @@ Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil 
 ```
 
 Si el usuario no existe en Firestore, se crea con rol inicial `vendedor`.
+Si el usuario existe con `activo = false`, la API rechaza el login y los endpoints protegidos con `403`.
 
 ## GET `/me`
 
@@ -44,6 +45,8 @@ Retorna los datos basicos del usuario autenticado a partir del token JWT.
 {
   "uid": "string",
   "email": "usuario@encipharm.cl",
+  "rol": "vendedor",
+  "activo": true,
   "message": "Token valido"
 }
 ```

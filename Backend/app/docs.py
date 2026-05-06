@@ -198,10 +198,10 @@ async def testing_docs():
 
       function saveToken(token) {{
         if (token) {{
-          localStorage.setItem("encipharmFirebaseToken", token);
+          sessionStorage.setItem("encipharmFirebaseToken", token);
           swaggerUi?.preauthorizeApiKey("HTTPBearer", token);
         }} else {{
-          localStorage.removeItem("encipharmFirebaseToken");
+          sessionStorage.removeItem("encipharmFirebaseToken");
         }}
       }}
 
@@ -209,16 +209,16 @@ async def testing_docs():
         url: "/openapi.json",
         dom_id: "#swagger-ui",
         deepLinking: true,
-        persistAuthorization: true,
+        persistAuthorization: false,
         requestInterceptor: (request) => {{
-          const token = localStorage.getItem("encipharmFirebaseToken");
+          const token = sessionStorage.getItem("encipharmFirebaseToken");
           if (token) {{
             request.headers.Authorization = `Bearer ${{token}}`;
           }}
           return request;
         }},
         onComplete: () => {{
-          const token = localStorage.getItem("encipharmFirebaseToken");
+          const token = sessionStorage.getItem("encipharmFirebaseToken");
           if (token) {{
             swaggerUi.preauthorizeApiKey("HTTPBearer", token);
           }}

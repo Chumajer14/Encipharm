@@ -67,12 +67,14 @@ Si el usuario autenticado tiene rol `vendedor`, el backend fuerza `vendedorUid` 
 
 ## DELETE `/clientes/{cliente_id}`
 
-Elimina un cliente existente. Retorna `204 No Content` cuando la eliminacion es exitosa.
+Realiza una baja logica de un cliente existente. Retorna `204 No Content` cuando la eliminacion es exitosa.
 
 Reglas:
 
-- `vendedor`: solo puede eliminar clientes propios.
-- `supervisor` y `admin`: pueden eliminar cualquier cliente.
+- `vendedor`: solo puede dar de baja clientes propios.
+- `supervisor` y `admin`: pueden dar de baja cualquier cliente.
+- El registro queda marcado con `deletedAt` y `estado = Inactivo` para evitar perdida irreversible.
+- Los listados y consultas directas ya no retornan clientes con `deletedAt`.
 - Si el cliente no existe, retorna `404`.
 - Si el vendedor intenta operar sobre un cliente ajeno, retorna `403`.
 

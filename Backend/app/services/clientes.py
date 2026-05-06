@@ -51,6 +51,7 @@ def list_clientes(
     clientes = [
         normalize_cliente(doc.id, doc.to_dict())
         for doc in db.collection(CLIENTES_COLLECTION).stream()
+        if not doc.to_dict().get("deletedAt")
     ]
 
     if vendedor_uid:
@@ -85,7 +86,7 @@ def list_clientes(
 def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
     """Return a normalized cliente or raise 404 when the document does not exist."""
     doc = db.collection(CLIENTES_COLLECTION).document(cliente_id).get()
-    if not doc.exists:
+    if not doc.exists or doc.to_dict().get("deletedAt"):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cliente no encontrado",
@@ -116,7 +117,7 @@ def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, An
     cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
     cliente_doc = cliente_ref.get()
 
-    if not cliente_doc.exists:
+    if not cliente_doc.exists or cliente_doc.to_dict().get("deletedAt"):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cliente no encontrado",
@@ -135,17 +136,21 @@ def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, An
 
 
 def delete_cliente(db, cliente_id: str) -> None:
-    """Delete an existing cliente document."""
+    """Mark an existing cliente as deleted without losing historical data."""
     cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
     cliente_doc = cliente_ref.get()
 
-    if not cliente_doc.exists:
+    if not cliente_doc.exists or cliente_doc.to_dict().get("deletedAt"):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cliente no encontrado",
         )
 
-    cliente_ref.delete()
+    cliente_ref.update({
+        "deletedAt": datetime.now(timezone.utc),
+        "estado": "Inactivo",
+        "updatedAt": datetime.now(timezone.utc),
+    })
 
 
 def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[dict[str, Any]], int]:

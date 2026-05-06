@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.auth import get_current_user
 from app.models.user import UserResponse
@@ -24,6 +24,11 @@ async def upsert_authenticated_user(user: dict) -> UserResponse:
 
     if user_doc.exists:
         user_data = user_doc.to_dict()
+        if not user_data.get("activo", True):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Usuario inactivo en el sistema",
+            )
         updated_user = {
             "email": email,
             "nombre": nombre or user_data.get("nombre", email),

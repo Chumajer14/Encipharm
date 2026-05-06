@@ -6,6 +6,7 @@ import ClienteDetalle from "./pages/ClienteDetalle";
 import CrearCliente from "./pages/CrearCliente";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Proximamente from "./pages/Proximamente";
 import "./App.css";
 
 function App() {
@@ -52,6 +53,26 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/interacciones"
+            element={
+              <ProtectedRoute>
+                <Proximamente titulo="Interacciones" />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/propuestas"
+            element={
+              <ProtectedRoute>
+                <Proximamente titulo="Propuestas" />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

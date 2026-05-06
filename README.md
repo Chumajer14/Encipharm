@@ -77,7 +77,7 @@ Los clientes se leen y escriben mediante API protegida:
 - `GET /clientes/{cliente_id}`: consulta un cliente visible para el usuario.
 - `POST /clientes`: crea un cliente en Firestore.
 - `PATCH /clientes/{cliente_id}`: actualiza un cliente visible para el usuario.
-- `DELETE /clientes/{cliente_id}`: elimina un cliente visible para el usuario.
+- `DELETE /clientes/{cliente_id}`: da de baja logicamente un cliente visible para el usuario.
 
 Cada cliente queda almacenado en la coleccion `clientes` con:
 
@@ -229,7 +229,7 @@ Checklist funcional:
 - `GET /clientes/{cliente_id}` consulta detalle de cliente.
 - `POST /clientes` guarda clientes nuevos en Firestore.
 - `PATCH /clientes/{cliente_id}` edita clientes.
-- `DELETE /clientes/{cliente_id}` elimina clientes.
+- `DELETE /clientes/{cliente_id}` da de baja clientes sin perdida irreversible.
 - El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
 
 ## Convenciones de trabajo

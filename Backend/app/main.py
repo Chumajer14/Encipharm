@@ -52,5 +52,6 @@ async def get_me(user: dict = Depends(get_current_user)):
         "uid": user.get("uid"),
         "email": user.get("email"),
         "rol": user.get("rol"),
+        "activo": user.get("activo", True),
         "message": "Token valido",
     }
