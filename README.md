@@ -14,7 +14,7 @@ Incluye las capacidades bloqueantes para operar el sistema:
 - Autenticacion web con Firebase Auth y Google SSO.
 - Validacion de ID Token/JWT en backend con Firebase Admin.
 - CRM de clientes conectado a Firestore.
-- Creacion y listado de clientes reales.
+- Creacion, listado, busqueda, filtros, detalle, edicion y eliminacion de clientes reales.
 - Registro de usuarios autenticados en Firestore.
 - Gestion base de usuarios y roles.
 - Base tecnica para dashboard vendedor/supervisor.
@@ -74,7 +74,10 @@ La pantalla `CRM Clientes` ya no usa datos mock como fuente principal.
 Los clientes se leen y escriben mediante API protegida:
 
 - `GET /clientes`: lista clientes visibles para el usuario autenticado.
+- `GET /clientes/{cliente_id}`: consulta un cliente visible para el usuario.
 - `POST /clientes`: crea un cliente en Firestore.
+- `PATCH /clientes/{cliente_id}`: actualiza un cliente visible para el usuario.
+- `DELETE /clientes/{cliente_id}`: elimina un cliente visible para el usuario.
 
 Cada cliente queda almacenado en la coleccion `clientes` con:
 
@@ -223,7 +226,10 @@ Checklist funcional:
 - El usuario queda creado o actualizado en `users`.
 - La ruta del CRM queda protegida.
 - `GET /clientes` lista clientes reales desde Firestore.
+- `GET /clientes/{cliente_id}` consulta detalle de cliente.
 - `POST /clientes` guarda clientes nuevos en Firestore.
+- `PATCH /clientes/{cliente_id}` edita clientes.
+- `DELETE /clientes/{cliente_id}` elimina clientes.
 - El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
 
 ## Convenciones de trabajo
@@ -278,5 +284,5 @@ Un ticket se considera completo solo si:
 ## Estado actual
 
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
-- EPIC 2: login web, sesion, CRM con Firestore y creacion/listado de clientes reales implementados.
-- Pendiente MVP: gestion ampliada de roles, importacion CSV, dashboard base, interacciones, pipeline y propuestas basicas.
+- EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
+- Pendiente MVP: interacciones, pipeline y propuestas basicas del EPIC 3.

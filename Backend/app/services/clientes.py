@@ -83,6 +83,7 @@ def list_clientes(
 
 
 def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
+    """Return a normalized cliente or raise 404 when the document does not exist."""
     doc = db.collection(CLIENTES_COLLECTION).document(cliente_id).get()
     if not doc.exists:
         raise HTTPException(
@@ -93,6 +94,7 @@ def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
 
 
 def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
+    """Create a cliente document with mirrored owner and vendedor identifiers."""
     now = datetime.now(timezone.utc)
     cliente_id = str(uuid4())
     data = {
@@ -110,6 +112,7 @@ def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
 
 
 def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, Any]:
+    """Apply partial cliente changes while preserving existing values."""
     cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
     cliente_doc = cliente_ref.get()
 
@@ -129,6 +132,20 @@ def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, An
     cliente_ref.update(clean_changes)
     updated_data = {**cliente_doc.to_dict(), **clean_changes}
     return normalize_cliente(cliente_id, updated_data)
+
+
+def delete_cliente(db, cliente_id: str) -> None:
+    """Delete an existing cliente document."""
+    cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
+    cliente_doc = cliente_ref.get()
+
+    if not cliente_doc.exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado",
+        )
+
+    cliente_ref.delete()
 
 
 def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[dict[str, Any]], int]:

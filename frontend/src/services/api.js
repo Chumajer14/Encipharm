@@ -39,6 +39,10 @@ export function getClientes(token) {
   return apiFetch("/clientes", { token });
 }
 
+export function getCliente(token, clienteId) {
+  return apiFetch(`/clientes/${clienteId}`, { token });
+}
+
 export function createCliente(token, cliente) {
   return apiFetch("/clientes", {
     method: "POST",
@@ -47,8 +51,29 @@ export function createCliente(token, cliente) {
   });
 }
 
+export function updateCliente(token, clienteId, cliente) {
+  return apiFetch(`/clientes/${clienteId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(cliente),
+  });
+}
 
-//DASHBOARD
+export async function deleteCliente(token, clienteId) {
+  const response = await fetch(`${API_BASE_URL}/clientes/${clienteId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Error ${response.status}`);
+  }
+}
+
+
 export function getDashboardVendedor(token) {
   return apiFetch("/dashboard/vendedor", { token });
 }
