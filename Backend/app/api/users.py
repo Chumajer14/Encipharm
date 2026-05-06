@@ -17,10 +17,11 @@ router = APIRouter(prefix="/users", tags=["Usuarios"])
 @router.get("/", response_model=list[UserResponse])
 async def get_users(
     activo: bool | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=500),
     _: dict = Depends(require_role("supervisor")),
 ):
     db = get_db()
-    return list_users(db, activo=activo)
+    return list_users(db, activo=activo, limit=limit)
 
 
 @router.get("/{uid}", response_model=UserResponse)

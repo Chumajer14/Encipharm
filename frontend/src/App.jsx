@@ -6,6 +6,9 @@ import ClienteDetalle from "./pages/ClienteDetalle";
 import CrearCliente from "./pages/CrearCliente";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Interacciones from "./pages/Interacciones";
+import Oportunidades from "./pages/Oportunidades";
+import Propuestas from "./pages/Propuestas";
 import "./App.css";
 
 function App() {
@@ -52,6 +55,35 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/interacciones"
+            element={
+              <ProtectedRoute>
+                <Interacciones />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/oportunidades"
+            element={
+              <ProtectedRoute>
+                <Oportunidades />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/propuestas"
+            element={
+              <ProtectedRoute>
+                <Propuestas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

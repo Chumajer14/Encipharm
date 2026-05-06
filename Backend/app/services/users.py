@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 
 
 USERS_COLLECTION = "users"
+MAX_USERS_RESPONSE = 500
 
 
 def normalize_user(uid: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -19,12 +20,23 @@ def normalize_user(uid: str, data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def list_users(db, activo: bool | None = None) -> list[dict[str, Any]]:
+def list_users(
+    db,
+    activo: bool | None = None,
+    limit: int | None = 100,
+) -> list[dict[str, Any]]:
+    if limit is not None:
+        limit = min(max(limit, 1), MAX_USERS_RESPONSE)
+
     users = []
     for doc in db.collection(USERS_COLLECTION).stream():
         data = normalize_user(doc.id, doc.to_dict())
         if activo is None or data["activo"] == activo:
             users.append(data)
+
+        if limit is not None and len(users) >= limit:
+            break
+
     return users
 
 

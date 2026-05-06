@@ -2,11 +2,10 @@ import firebase_admin
 from app.core.config import get_settings
 from firebase_admin import auth, credentials
 
-settings = get_settings()
-
 
 def init_firebase():
     if not firebase_admin._apps:
+        settings = get_settings()
         cred = credentials.Certificate(settings.GOOGLE_APPLICATION_CREDENTIALS)
         firebase_admin.initialize_app(cred, {
             "projectId": settings.FIREBASE_PROJECT_ID,

@@ -39,6 +39,7 @@ async def _get_clientes_impl(
     search: str | None,
     estado: str | None,
     vendedor_uid: str | None,
+    limit: int,
     user: dict,
 ):
     db = get_db()
@@ -49,18 +50,20 @@ async def _get_clientes_impl(
         search=search,
         estado=estado,
         vendedor_uid=vendedor_uid,
+        limit=limit,
     )
 
 
 @router.get("", response_model=list[ClienteResponse])
 @router.get("/", response_model=list[ClienteResponse])
 async def get_clientes(
-    search: str | None = Query(default=None),
-    estado: str | None = Query(default=None),
-    vendedor_uid: str | None = Query(default=None, alias="vendedorUid"),
+    search: str | None = Query(default=None, max_length=80),
+    estado: str | None = Query(default=None, max_length=32),
+    vendedor_uid: str | None = Query(default=None, alias="vendedorUid", max_length=128),
+    limit: int = Query(default=100, ge=1, le=500),
     user: dict = Depends(require_role("vendedor")),
 ):
-    return await _get_clientes_impl(search, estado, vendedor_uid, user)
+    return await _get_clientes_impl(search, estado, vendedor_uid, limit, user)
 
 
 @router.get("/{cliente_id}", response_model=ClienteResponse)

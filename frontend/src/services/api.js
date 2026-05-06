@@ -82,3 +82,55 @@ export function getDashboardSupervisor(token) {
   return apiFetch("/dashboard/supervisor", { token });
 }
 
+export function getInteracciones(token) {
+  return apiFetch("/interacciones", { token });
+}
+
+export function createInteraccion(token, interaccion) {
+  return apiFetch("/interacciones", {
+    method: "POST",
+    token,
+    body: JSON.stringify(interaccion),
+  });
+}
+
+export function getOportunidades(token) {
+  return apiFetch("/oportunidades", { token });
+}
+
+export function createOportunidad(token, oportunidad) {
+  return apiFetch("/oportunidades", {
+    method: "POST",
+    token,
+    body: JSON.stringify(oportunidad),
+  });
+}
+
+export function updateOportunidad(token, oportunidadId, oportunidad) {
+  return apiFetch(`/oportunidades/${oportunidadId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(oportunidad),
+  });
+}
+
+export function getPropuestas(token) {
+  return apiFetch("/propuestas", { token });
+}
+
+export function createPropuesta(token, propuesta) {
+  return apiFetch("/propuestas", {
+    method: "POST",
+    token,
+    body: JSON.stringify(propuesta),
+  });
+}
+
+export function updatePropuesta(token, propuestaId, propuesta) {
+  return apiFetch(`/propuestas/${propuestaId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(propuesta),
+  });
+}
+

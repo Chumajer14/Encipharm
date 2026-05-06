@@ -23,12 +23,19 @@ Cerrar EPIC 2: CRM, autenticacion, usuarios/roles, datos base, importacion CSV b
 
 ## Cambios tecnicos principales
 
-- Se agrego `DELETE /clientes/{cliente_id}`.
+- Se agrego `DELETE /clientes/{cliente_id}` como baja logica para evitar perdida irreversible de clientes.
 - Se agrego validacion de pertenencia para `GET`, `PATCH` y `DELETE /clientes/{cliente_id}` cuando el rol es `vendedor`.
 - Se fuerza `vendedorUid` del usuario autenticado en altas y actualizaciones realizadas por vendedores.
+- Se bloqueo login, `/me` y endpoints protegidos para usuarios marcados como `activo = false`.
+- La consola `/docs` usa `sessionStorage` y no persiste autorizacion Swagger entre sesiones.
+- Se agregaron limites contra saturacion: `limit` en listados, maximo de 1 MB/1000 filas para CSV y rate limit de 120 solicitudes por minuto por IP.
+- Se agrego limite global de 1 MB por request y validacion de `Content-Length`.
+- Se corrigio el dashboard para calcular metricas completas aunque el endpoint publico de clientes este paginado.
+- Se bloquearon payloads con riesgo de formula injection y estados de cliente fuera de catalogo.
 - Se corrigio el consumo frontend del contrato real del dashboard.
 - Se agrego `/clientes/:clienteId` para detalle y edicion.
 - Se centralizaron validaciones de formulario en `frontend/src/utils/clienteForm.js`.
+- Se agregaron pantallas protegidas de estado pendiente para rutas de EPIC 3, evitando pantallas vacias desde accesos rapidos.
 
 ## Criterios de aceptacion
 

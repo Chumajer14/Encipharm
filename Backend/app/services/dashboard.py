@@ -12,7 +12,7 @@ def _counter_to_list(counter: Counter) -> list[dict[str, Any]]:
 
 
 def build_dashboard(db, vendedor_uid: str | None = None) -> dict[str, Any]:
-    clientes = list_clientes(db, vendedor_uid=vendedor_uid)
+    clientes = list_clientes(db, vendedor_uid=vendedor_uid, limit=None)
     estados = Counter(cliente.get("estado") or "Sin estado" for cliente in clientes)
     rubros = Counter(cliente.get("rubro") or "Sin rubro" for cliente in clientes)
     regiones = Counter(cliente.get("region") or "Sin region" for cliente in clientes)

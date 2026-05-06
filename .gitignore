@@ -32,23 +32,41 @@ serviceAccountKey.json
 # Backend (Python / FastAPI)
 # =========================
 backend/.venv/
+Backend/.venv/
 backend/venv/
+Backend/venv/
 backend/__pycache__/
+Backend/__pycache__/
 backend/**/*.pyc
+Backend/**/*.pyc
 backend/**/*.pyo
+Backend/**/*.pyo
 backend/**/*.pyd
+Backend/**/*.pyd
 backend/.pytest_cache/
+Backend/.pytest_cache/
 backend/.mypy_cache/
+Backend/.mypy_cache/
 backend/.ruff_cache/
+Backend/.ruff_cache/
 backend/.coverage
+Backend/.coverage
 backend/coverage.xml
+Backend/coverage.xml
 backend/htmlcov/
+Backend/htmlcov/
 backend/.python-version
+Backend/.python-version
 backend/.cache/
+Backend/.cache/
 backend/dist/
+Backend/dist/
 backend/build/
+Backend/build/
 backend/*.sqlite3
+Backend/*.sqlite3
 backend/*.db
+Backend/*.db
 
 # =========================
 # Frontend (Vue / Node / Vite)

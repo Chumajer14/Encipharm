@@ -30,9 +30,10 @@ Query params:
 
 | Parametro | Tipo | Descripcion |
 |-----------|------|-------------|
-| `search` | string opcional | Busca por nombre, empresa, email, rubro o region |
-| `estado` | string opcional | Filtra por estado |
-| `vendedorUid` | string opcional | Filtra por vendedor; se ignora para rol vendedor |
+| `search` | string opcional, max 80 | Busca por nombre, empresa, email, rubro o region |
+| `estado` | string opcional, max 32 | Filtra por estado |
+| `vendedorUid` | string opcional, max 128 | Filtra por vendedor; se ignora para rol vendedor |
+| `limit` | entero opcional, 1-500 | Limita la cantidad de clientes retornados; default 100 |
 
 ## POST `/clientes/`
 
@@ -52,6 +53,16 @@ Crea un cliente.
 
 Si no se envia `vendedorUid`, el backend asigna el UID del usuario autenticado.
 
+Validaciones defensivas:
+
+- `nombre`: 1-120 caracteres.
+- `empresa`: 1-160 caracteres.
+- `telefono`: max 32 caracteres.
+- `rubro`: max 120 caracteres.
+- `region`: max 80 caracteres.
+- `estado`: solo `En proceso`, `Completado` o `Inactivo`.
+- Campos de texto no pueden iniciar con `=`, `+`, `-` o `@` para evitar formula injection en futuras exportaciones.
+
 ## PATCH `/clientes/{cliente_id}`
 
 Actualiza parcialmente un cliente.
@@ -67,12 +78,14 @@ Si el usuario autenticado tiene rol `vendedor`, el backend fuerza `vendedorUid` 
 
 ## DELETE `/clientes/{cliente_id}`
 
-Elimina un cliente existente. Retorna `204 No Content` cuando la eliminacion es exitosa.
+Realiza una baja logica de un cliente existente. Retorna `204 No Content` cuando la eliminacion es exitosa.
 
 Reglas:
 
-- `vendedor`: solo puede eliminar clientes propios.
-- `supervisor` y `admin`: pueden eliminar cualquier cliente.
+- `vendedor`: solo puede dar de baja clientes propios.
+- `supervisor` y `admin`: pueden dar de baja cualquier cliente.
+- El registro queda marcado con `deletedAt` y `estado = Inactivo` para evitar perdida irreversible.
+- Los listados y consultas directas ya no retornan clientes con `deletedAt`.
 - Si el cliente no existe, retorna `404`.
 - Si el vendedor intenta operar sobre un cliente ajeno, retorna `403`.
 
@@ -97,6 +110,9 @@ Comportamiento:
 - Valida todas las filas antes de guardar.
 - Si hay errores, no importa ninguna fila.
 - Retorna errores por numero de fila.
+- Rechaza archivos sobre 1 MB.
+- Rechaza archivos sobre 1000 filas.
+- Rechaza archivos que no esten codificados en UTF-8.
 
 Respuesta exitosa:
 
