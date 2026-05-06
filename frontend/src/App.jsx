@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthProvider";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Clientes from "./pages/Clientes";
+import ClienteDetalle from "./pages/ClienteDetalle";
 import CrearCliente from "./pages/CrearCliente";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +22,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Clientes />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/clientes/:clienteId"
+            element={
+              <ProtectedRoute>
+                <ClienteDetalle />
               </ProtectedRoute>
             }
           />

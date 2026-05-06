@@ -4,47 +4,50 @@ import { useAuth } from "../auth/authContext";
 import { regionesChile } from "../data/regionesChile";
 import { createCliente } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
-
-const initialForm = {
-  nombre: "",
-  empresa: "",
-  email: "",
-  telefono: "",
-  rubro: "",
-  region: "",
-  estado: "En proceso",
-};
+import {
+  CLIENTE_ESTADOS,
+  clienteInitialForm,
+  validateClienteForm,
+} from "../utils/clienteForm";
 
 function CrearCliente() {
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(clienteInitialForm);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { idToken } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (event) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [event.target.name]: event.target.value,
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
     setSuccess("");
 
+    const validation = validateClienteForm(form);
+    setFieldErrors(validation.errors);
+    if (!validation.isValid) {
+      setError("Corrige los campos marcados antes de guardar.");
+      return;
+    }
+
     try {
-      const createdCliente = await createCliente(idToken, form);
+      setSaving(true);
+      const createdCliente = await createCliente(idToken, validation.payload);
       const successMessage = `Cliente ${createdCliente.empresa} creado exitosamente.`;
 
       setSuccess(successMessage);
-      setForm(initialForm);
+      setForm(clienteInitialForm);
 
       window.setTimeout(() => {
-        navigate("/clientes", { //AL DAR BOTON VOLVER SE DEVUELVE A CRM CLIENTES
+        navigate("/clientes", {
           replace: true,
           state: { notice: successMessage },
         });
@@ -65,7 +68,7 @@ function CrearCliente() {
           <p>Registro real en Firestore para el MVP comercial</p>
         </div>
 
-        <Link to="/clientes"> 
+        <Link to="/clientes">
           <button className="btn-secondary" type="button">
             Volver
           </button>
@@ -87,21 +90,21 @@ function CrearCliente() {
             placeholder="Nombre del contacto"
             value={form.nombre}
             onChange={handleChange}
-            required
             disabled={formDisabled}
           />
+          {fieldErrors.nombre && <small className="field-error">{fieldErrors.nombre}</small>}
         </label>
 
         <label>
           Empresa
           <input
             name="empresa"
-            placeholder="Empresa o razón social"
+            placeholder="Empresa o razon social"
             value={form.empresa}
             onChange={handleChange}
-            required
             disabled={formDisabled}
           />
+          {fieldErrors.empresa && <small className="field-error">{fieldErrors.empresa}</small>}
         </label>
 
         <label>
@@ -112,13 +115,13 @@ function CrearCliente() {
             type="email"
             value={form.email}
             onChange={handleChange}
-            required
             disabled={formDisabled}
           />
+          {fieldErrors.email && <small className="field-error">{fieldErrors.email}</small>}
         </label>
 
         <label>
-          Teléfono
+          Telefono
           <input
             name="telefono"
             placeholder="+56912345678"
@@ -126,6 +129,7 @@ function CrearCliente() {
             onChange={handleChange}
             disabled={formDisabled}
           />
+          {fieldErrors.telefono && <small className="field-error">{fieldErrors.telefono}</small>}
         </label>
 
         <label>
@@ -135,27 +139,27 @@ function CrearCliente() {
             placeholder="Aves, Cerdos, Rumiantes..."
             value={form.rubro}
             onChange={handleChange}
-            required
             disabled={formDisabled}
           />
+          {fieldErrors.rubro && <small className="field-error">{fieldErrors.rubro}</small>}
         </label>
 
         <label>
-          Región
+          Region
           <select
             name="region"
             value={form.region}
             onChange={handleChange}
-            required
             disabled={formDisabled}
           >
-            <option value="">Selecciona una región</option>
+            <option value="">Selecciona una region</option>
             {regionesChile.map((region) => (
               <option key={region} value={region}>
                 {region}
               </option>
             ))}
           </select>
+          {fieldErrors.region && <small className="field-error">{fieldErrors.region}</small>}
         </label>
 
         <label>
@@ -166,13 +170,16 @@ function CrearCliente() {
             onChange={handleChange}
             disabled={formDisabled}
           >
-            <option value="En proceso">En proceso</option>
-            <option value="Completado">Completado</option>
+            {CLIENTE_ESTADOS.map((estado) => (
+              <option key={estado} value={estado}>
+                {estado}
+              </option>
+            ))}
           </select>
         </label>
 
         <div className="form-actions">
-          <Link to="/">
+          <Link to="/clientes">
             <button className="btn-secondary" type="button">
               Cancelar
             </button>

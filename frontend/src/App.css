@@ -1,5 +1,3 @@
-
-
 .page {
   min-height: 100vh;
   background: #020617;
@@ -13,7 +11,7 @@
 }
 
 .header-row {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
   gap: 16px;
   justify-content: space-between;
@@ -29,52 +27,73 @@
   color: #94a3b8;
 }
 
-.session-box {
-  align-items: flex-end;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 180px;
-  text-align: right;
-}
-
-.session-box span {
-  font-weight: 700;
-}
-
-.session-box small {
-  color: #94a3b8;
-  text-transform: capitalize;
-}
-
-.session-box button,
 .btn-secondary {
-  background: transparent;
+  padding: 10px 14px;
+  border-radius: 8px;
   border: 1px solid #334155;
-  border-radius: 10px;
-  color: #e2e8f0;
+  background: #0f172a;
+  color: white;
   cursor: pointer;
   font-weight: 700;
-  padding: 10px 12px;
+}
+
+.btn-primary {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #22c55e;
+  color: #020617;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.card,
+.filters-card,
+.form-card,
+.stat-card,
+.dashboard-detail article {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
 }
 
 .card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 16px;
   margin-bottom: 20px;
+  padding: 16px;
+}
+
+.filters-card {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr minmax(180px, 240px);
+  margin-bottom: 20px;
+  padding: 16px;
+}
+
+.search,
+.filter-select,
+.form input,
+.form select {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: white;
+  font: inherit;
+  padding: 12px;
 }
 
 .search {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid #334155;
   background: #313c55;
-  color: white;
-  font-size: 15px;
   box-sizing: border-box;
+  font-size: 15px;
+  padding: 14px;
+  width: 100%;
+}
+
+.filter-select {
+  padding: 14px;
 }
 
 .list {
@@ -83,13 +102,14 @@
 }
 
 .client-card {
-  background: #49325f;
-  border: 1px solid #14161a;
-  border-radius: 16px;
-  padding: 16px;
+  align-items: center;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
   display: flex;
-  justify-content: space-between;
   gap: 12px;
+  justify-content: space-between;
+  padding: 16px;
 }
 
 .client-card h3 {
@@ -103,8 +123,23 @@
 }
 
 .client-card span {
-  color: #000000;
+  color: #94a3b8;
   font-size: 14px;
+}
+
+.client-actions {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 120px;
+}
+
+.client-actions a {
+  color: #5eead4;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .active {
@@ -122,9 +157,6 @@
 }
 
 .form-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
   max-width: 720px;
   padding: 20px;
 }
@@ -138,25 +170,20 @@
   gap: 8px;
 }
 
-.form input,
-.form select {
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #111827;
-  color: white;
-  font: inherit;
-}
-
 .form button {
   margin-top: 10px;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: none;
   background: #22c55e;
   color: black;
   font-weight: bold;
   cursor: pointer;
+}
+
+.form .btn-danger {
+  background: #991b1b;
+  color: white;
 }
 
 .form input:disabled,
@@ -178,15 +205,9 @@
   margin-top: 10px;
 }
 
-.btn-primary {
-  margin: 16px 0;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: none;
-  background: #22c55e;
-  color: #020617;
-  font-weight: bold;
-  cursor: pointer;
+.field-error {
+  color: #fca5a5;
+  font-weight: 700;
 }
 
 .login-page {
@@ -251,8 +272,9 @@
   margin: 0;
 }
 
-.status-message.error {
-  color: #b91c1c;
+.status-message.error,
+.error-text {
+  color: #f87171;
   font-weight: 700;
 }
 
@@ -271,15 +293,6 @@
 
 .notice span {
   flex: 1;
-}
-
-.notice button {
-  background: transparent;
-  border: 1px solid currentColor;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  padding: 8px 10px;
 }
 
 .notice-success {
@@ -361,42 +374,6 @@
   margin: 0;
 }
 
-@media (max-width: 640px) {
-  .header-row {
-    flex-direction: column;
-  }
-
-  .session-box {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .form-actions,
-  .notice {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .notice strong {
-    white-space: normal;
-  }
-}
-
-.header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-secondary {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: white;
-  cursor: pointer;
-}
-
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -405,14 +382,13 @@
 }
 
 .stat-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 18px;
   padding: 18px;
 }
 
 .stat-card span {
-  font-size: 28px;
+  color: #5eead4;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .stat-card h3 {
@@ -422,6 +398,31 @@
 
 .stat-card strong {
   font-size: 32px;
+}
+
+.dashboard-detail {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 24px 0;
+}
+
+.dashboard-detail article {
+  padding: 18px;
+}
+
+.dashboard-detail h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.dashboard-detail p {
+  align-items: center;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 10px 0;
 }
 
 .quick-section h2 {
@@ -437,7 +438,7 @@
 .quick-card {
   background: #111827;
   border: 1px solid #334155;
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 20px;
   color: white;
   text-decoration: none;
@@ -447,29 +448,29 @@
   font-size: 22px;
 }
 
+.quick-card span {
+  color: #5eead4;
+  font-size: 16px;
+  font-weight: 900;
+}
+
 .quick-card strong {
   font-size: 16px;
 }
 
-.error-text {
-  color: #f87171;
-  font-weight: bold;
-}
+@media (max-width: 640px) {
+  .header-row,
+  .form-actions,
+  .notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
+  .filters-card {
+    grid-template-columns: 1fr;
+  }
 
-.boton-volver {
-  background-color: #202d4a;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
-
-
-}
-
-.botonn-volver:hover {
-  background-color: #155e52;
+  .notice strong {
+    white-space: normal;
+  }
 }

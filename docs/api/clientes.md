@@ -16,9 +16,11 @@ Authorization: Bearer <firebase_id_token>
 | `GET /clientes/{cliente_id}` | `admin`, `supervisor`, `vendedor` |
 | `POST /clientes/` | `admin`, `supervisor`, `vendedor` |
 | `PATCH /clientes/{cliente_id}` | `admin`, `supervisor`, `vendedor` |
+| `DELETE /clientes/{cliente_id}` | `admin`, `supervisor`, `vendedor` |
 | `POST /clientes/import-csv` | `admin`, `supervisor` |
 
-Los vendedores solo listan sus propios clientes. Supervisores y administradores pueden filtrar por `vendedorUid`.
+Los vendedores solo listan, consultan, modifican y eliminan clientes asignados a su `vendedorUid` u `ownerUid`.
+Supervisores y administradores pueden operar sobre todos los clientes y filtrar por `vendedorUid`.
 
 ## GET `/clientes/`
 
@@ -60,6 +62,19 @@ Actualiza parcialmente un cliente.
   "region": "Biobio"
 }
 ```
+
+Si el usuario autenticado tiene rol `vendedor`, el backend fuerza `vendedorUid` y `ownerUid` al UID autenticado para evitar reasignaciones manuales.
+
+## DELETE `/clientes/{cliente_id}`
+
+Elimina un cliente existente. Retorna `204 No Content` cuando la eliminacion es exitosa.
+
+Reglas:
+
+- `vendedor`: solo puede eliminar clientes propios.
+- `supervisor` y `admin`: pueden eliminar cualquier cliente.
+- Si el cliente no existe, retorna `404`.
+- Si el vendedor intenta operar sobre un cliente ajeno, retorna `403`.
 
 ## POST `/clientes/import-csv`
 
