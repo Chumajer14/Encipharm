@@ -16,6 +16,11 @@
 | CSV no UTF-8 | Importacion retorna `400` |
 | Formula injection | Modelos rechazan textos iniciados con `=`, `+`, `-` o `@` |
 | Brute force o rafaga basica | Middleware de rate limit por IP, 120 solicitudes por minuto |
+| Payload JSON/multipart sobredimensionado | Middleware rechaza `Content-Length` sobre 1 MB antes del parseo |
+| Content-Length invalido | Middleware retorna `400` sin llegar al endpoint |
+| Memoria del rate limiter crece por IPs falsas | Limpieza de clientes expirados al alcanzar limite de tracking |
+| Dashboard con metricas incompletas por paginacion | Dashboard usa conteo interno sin limite de API |
+| Listado de usuarios amplio | `GET /users` usa `limit` entre 1 y 500 |
 | CORS permisivo en produccion | Configuracion rechaza `CORS_ORIGINS=["*"]` con `APP_ENV=production` |
 | Token persistente en consola `/docs` | Uso de `sessionStorage` y Swagger sin persistencia de autorizacion |
 | Rutas frontend no implementadas | Pantallas protegidas de modulo pendiente para EPIC 3 |

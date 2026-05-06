@@ -29,6 +29,8 @@ Cerrar EPIC 2: CRM, autenticacion, usuarios/roles, datos base, importacion CSV b
 - Se bloqueo login, `/me` y endpoints protegidos para usuarios marcados como `activo = false`.
 - La consola `/docs` usa `sessionStorage` y no persiste autorizacion Swagger entre sesiones.
 - Se agregaron limites contra saturacion: `limit` en listados, maximo de 1 MB/1000 filas para CSV y rate limit de 120 solicitudes por minuto por IP.
+- Se agrego limite global de 1 MB por request y validacion de `Content-Length`.
+- Se corrigio el dashboard para calcular metricas completas aunque el endpoint publico de clientes este paginado.
 - Se bloquearon payloads con riesgo de formula injection y estados de cliente fuera de catalogo.
 - Se corrigio el consumo frontend del contrato real del dashboard.
 - Se agrego `/clientes/:clienteId` para detalle y edicion.

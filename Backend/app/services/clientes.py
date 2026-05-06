@@ -50,9 +50,10 @@ def list_clientes(
     search: str | None = None,
     estado: str | None = None,
     vendedor_uid: str | None = None,
-    limit: int = 100,
+    limit: int | None = None,
 ) -> list[dict[str, Any]]:
-    limit = min(max(limit, 1), MAX_CLIENTES_RESPONSE)
+    if limit is not None:
+        limit = min(max(limit, 1), MAX_CLIENTES_RESPONSE)
     clientes = [
         normalize_cliente(doc.id, doc.to_dict())
         for doc in db.collection(CLIENTES_COLLECTION).stream()
@@ -84,6 +85,9 @@ def list_clientes(
                 for field in search_fields
             )
         ]
+
+    if limit is None:
+        return clientes
 
     return clientes[:limit]
 

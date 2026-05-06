@@ -7,7 +7,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.users import router as users_router
 from app.core.auth import get_current_user
 from app.core.config import get_settings
-from app.core.rate_limit import InMemoryRateLimitMiddleware
+from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
 from app.docs import router as docs_router
 from app.services.firebase import init_firebase
 
@@ -23,6 +23,7 @@ app = FastAPI(
 )
 
 app.add_middleware(InMemoryRateLimitMiddleware, requests_per_minute=120)
+app.add_middleware(RequestSizeLimitMiddleware, max_body_bytes=1_000_000)
 
 app.add_middleware(
     CORSMiddleware,

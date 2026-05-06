@@ -25,6 +25,7 @@ Query params:
 | Parametro | Tipo | Descripcion |
 |-----------|------|-------------|
 | `activo` | boolean opcional | Filtra usuarios activos o inactivos |
+| `limit` | entero opcional, 1-500 | Limita usuarios retornados; default 100 |
 
 ## GET `/users/{uid}`
 

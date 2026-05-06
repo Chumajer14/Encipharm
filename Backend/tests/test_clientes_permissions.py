@@ -6,6 +6,7 @@ from app.api.auth import upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
 from app.core.auth import require_role
 from app.models.cliente import ClienteCreate
+from app.services.dashboard import build_dashboard
 from app.services.clientes import (
     MAX_CSV_ROWS,
     create_cliente,
@@ -14,6 +15,7 @@ from app.services.clientes import (
     list_clientes,
     parse_clientes_csv,
 )
+from app.services.users import list_users
 
 
 class FakeDocumentSnapshot:
@@ -131,6 +133,40 @@ def test_list_clientes_limits_large_responses():
         )
 
     assert len(list_clientes(db, limit=10)) == 10
+
+
+def test_dashboard_counts_all_clients_without_api_limit():
+    db = FakeDb()
+    for index in range(105):
+        create_cliente(
+            db,
+            ClienteCreate(
+                nombre=f"Cliente {index}",
+                empresa=f"Empresa {index}",
+                email=f"dashboard{index}@encipharm.cl",
+                rubro="Aves",
+                region="Maule",
+                vendedorUid="seller-1",
+            ),
+        )
+
+    dashboard = build_dashboard(db, vendedor_uid="seller-1")
+
+    assert dashboard["totalClientes"] == 105
+
+
+def test_list_users_limits_large_responses():
+    db = FakeDb()
+    for index in range(105):
+        db.collection("users").document(f"user-{index}").set({
+            "uid": f"user-{index}",
+            "email": f"user{index}@encipharm.cl",
+            "nombre": f"User {index}",
+            "rol": "vendedor",
+            "activo": True,
+        })
+
+    assert len(list_users(db, limit=25)) == 25
 
 
 def test_cliente_rejects_formula_injection_payloads():
