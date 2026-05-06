@@ -11,6 +11,9 @@ from app.models.cliente import ClienteCreate
 
 
 CLIENTES_COLLECTION = "clientes"
+MAX_CSV_BYTES = 1_000_000
+MAX_CSV_ROWS = 1_000
+MAX_CLIENTES_RESPONSE = 500
 CSV_FIELDS = {
     "nombre",
     "empresa",
@@ -47,7 +50,9 @@ def list_clientes(
     search: str | None = None,
     estado: str | None = None,
     vendedor_uid: str | None = None,
+    limit: int = 100,
 ) -> list[dict[str, Any]]:
+    limit = min(max(limit, 1), MAX_CLIENTES_RESPONSE)
     clientes = [
         normalize_cliente(doc.id, doc.to_dict())
         for doc in db.collection(CLIENTES_COLLECTION).stream()
@@ -80,7 +85,7 @@ def list_clientes(
             )
         ]
 
-    return clientes
+    return clientes[:limit]
 
 
 def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
@@ -154,7 +159,20 @@ def delete_cliente(db, cliente_id: str) -> None:
 
 
 def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[dict[str, Any]], int]:
-    text = raw_content.decode("utf-8-sig")
+    if len(raw_content) > MAX_CSV_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail="El archivo CSV supera el tamano maximo de 1 MB",
+        )
+
+    try:
+        text = raw_content.decode("utf-8-sig")
+    except UnicodeDecodeError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo CSV debe estar codificado en UTF-8",
+        ) from error
+
     reader = csv.DictReader(io.StringIO(text))
 
     if not reader.fieldnames:
@@ -176,6 +194,11 @@ def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[di
 
     for row_number, row in enumerate(reader, start=2):
         total_rows += 1
+        if total_rows > MAX_CSV_ROWS:
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail=f"El archivo CSV supera el maximo de {MAX_CSV_ROWS} filas",
+            )
         clean_row = {
             key: (value.strip() if isinstance(value, str) else value)
             for key, value in row.items()

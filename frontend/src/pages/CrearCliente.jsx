@@ -88,6 +88,7 @@ function CrearCliente() {
           <input
             name="nombre"
             placeholder="Nombre del contacto"
+            maxLength={120}
             value={form.nombre}
             onChange={handleChange}
             disabled={formDisabled}
@@ -100,6 +101,7 @@ function CrearCliente() {
           <input
             name="empresa"
             placeholder="Empresa o razon social"
+            maxLength={160}
             value={form.empresa}
             onChange={handleChange}
             disabled={formDisabled}
@@ -125,6 +127,7 @@ function CrearCliente() {
           <input
             name="telefono"
             placeholder="+56912345678"
+            maxLength={32}
             value={form.telefono}
             onChange={handleChange}
             disabled={formDisabled}
@@ -137,6 +140,7 @@ function CrearCliente() {
           <input
             name="rubro"
             placeholder="Aves, Cerdos, Rumiantes..."
+            maxLength={120}
             value={form.rubro}
             onChange={handleChange}
             disabled={formDisabled}

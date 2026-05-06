@@ -129,13 +129,13 @@ function ClienteDetalle() {
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>
           Nombre
-          <input name="nombre" value={form.nombre} onChange={handleChange} disabled={disabled} />
+          <input name="nombre" maxLength={120} value={form.nombre} onChange={handleChange} disabled={disabled} />
           {fieldErrors.nombre && <small className="field-error">{fieldErrors.nombre}</small>}
         </label>
 
         <label>
           Empresa
-          <input name="empresa" value={form.empresa} onChange={handleChange} disabled={disabled} />
+          <input name="empresa" maxLength={160} value={form.empresa} onChange={handleChange} disabled={disabled} />
           {fieldErrors.empresa && <small className="field-error">{fieldErrors.empresa}</small>}
         </label>
 
@@ -147,13 +147,13 @@ function ClienteDetalle() {
 
         <label>
           Telefono
-          <input name="telefono" value={form.telefono} onChange={handleChange} disabled={disabled} />
+          <input name="telefono" maxLength={32} value={form.telefono} onChange={handleChange} disabled={disabled} />
           {fieldErrors.telefono && <small className="field-error">{fieldErrors.telefono}</small>}
         </label>
 
         <label>
           Rubro
-          <input name="rubro" value={form.rubro} onChange={handleChange} disabled={disabled} />
+          <input name="rubro" maxLength={120} value={form.rubro} onChange={handleChange} disabled={disabled} />
           {fieldErrors.rubro && <small className="field-error">{fieldErrors.rubro}</small>}
         </label>
 

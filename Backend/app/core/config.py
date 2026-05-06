@@ -1,6 +1,9 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from typing import Optional
+
+from pydantic import model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -30,6 +33,12 @@ class Settings(BaseSettings):
     FIREBASE_WEB_MESSAGING_SENDER_ID: Optional[str] = None
     FIREBASE_WEB_APP_ID: Optional[str] = None
     FIREBASE_WEB_MEASUREMENT_ID: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_security_settings(self):
+        if self.APP_ENV == "production" and "*" in self.CORS_ORIGINS:
+            raise ValueError("CORS_ORIGINS no puede incluir '*' en produccion")
+        return self
 
 @lru_cache()
 def get_settings() -> Settings:

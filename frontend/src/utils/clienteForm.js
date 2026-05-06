@@ -12,6 +12,14 @@ export const clienteInitialForm = {
 
 const textPattern = /^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ .,&'-]+$/;
 const phonePattern = /^(\+?56)?9?\d{8}$/;
+const formulaPrefixes = ["=", "+", "-", "@"];
+const fieldLimits = {
+  nombre: 120,
+  empresa: 160,
+  telefono: 32,
+  rubro: 120,
+  region: 80,
+};
 
 function normalizeText(value) {
   return String(value || "").trim();
@@ -36,6 +44,10 @@ export function validateClienteForm(form) {
   for (const field of ["nombre", "empresa", "rubro", "region"]) {
     if (!payload[field]) {
       errors[field] = "Campo obligatorio.";
+    } else if (payload[field].length > fieldLimits[field]) {
+      errors[field] = `Maximo ${fieldLimits[field]} caracteres.`;
+    } else if (formulaPrefixes.some((prefix) => payload[field].startsWith(prefix))) {
+      errors[field] = "No puede iniciar con caracteres de formula.";
     } else if (!textPattern.test(payload[field])) {
       errors[field] = "Usa solo letras, numeros y signos comerciales basicos.";
     }
@@ -48,8 +60,14 @@ export function validateClienteForm(form) {
   }
 
   const normalizedPhone = payload.telefono?.replace(/\s+/g, "");
-  if (normalizedPhone && !phonePattern.test(normalizedPhone)) {
-    errors.telefono = "Usa formato chileno, por ejemplo +56912345678.";
+  if (normalizedPhone) {
+    if (normalizedPhone.length > fieldLimits.telefono) {
+      errors.telefono = `Maximo ${fieldLimits.telefono} caracteres.`;
+    } else if (formulaPrefixes.some((prefix) => normalizedPhone.startsWith(prefix))) {
+      errors.telefono = "No puede iniciar con caracteres de formula.";
+    } else if (!phonePattern.test(normalizedPhone)) {
+      errors.telefono = "Usa formato chileno, por ejemplo +56912345678.";
+    }
   }
 
   return {
