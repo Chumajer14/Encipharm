@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { regionesChile } from "../data/regionesChile";
-import { deleteCliente, getCliente, updateCliente } from "../services/api";
+import { deleteCliente, getCliente, getInteracciones, getOportunidades, getPropuestas, updateCliente } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 import {
   CLIENTE_ESTADOS,
@@ -16,6 +16,11 @@ function ClienteDetalle() {
   const navigate = useNavigate();
   const [form, setForm] = useState(clienteInitialForm);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [historial, setHistorial] = useState({
+    interacciones: [],
+    oportunidades: [],
+    propuestas: [],
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -28,7 +33,12 @@ function ClienteDetalle() {
 
       try {
         setLoading(true);
-        const cliente = await getCliente(idToken, clienteId);
+        const [cliente, interacciones, oportunidades, propuestas] = await Promise.all([
+          getCliente(idToken, clienteId),
+          getInteracciones(idToken, { clienteId }),
+          getOportunidades(idToken, { clienteId }),
+          getPropuestas(idToken, { clienteId }),
+        ]);
         setForm({
           nombre: cliente.nombre || "",
           empresa: cliente.empresa || "",
@@ -38,6 +48,7 @@ function ClienteDetalle() {
           region: cliente.region || "",
           estado: cliente.estado || "En proceso",
         });
+        setHistorial({ interacciones, oportunidades, propuestas });
       } catch (loadError) {
         setError(getFriendlyApiError(loadError));
       } finally {
@@ -190,6 +201,44 @@ function ClienteDetalle() {
           </button>
         </div>
       </form>
+
+      <section className="detail-grid">
+        <article className="detail-panel">
+          <h2>Oportunidades</h2>
+          {historial.oportunidades.length === 0 && <p className="muted-text">Sin oportunidades registradas.</p>}
+          {historial.oportunidades.map((oportunidad) => (
+            <div className="timeline-item" key={oportunidad.id}>
+              <Link to={`/oportunidades/${oportunidad.id}`}><strong>{oportunidad.titulo}</strong></Link>
+              <span>{oportunidad.etapa} / ${Number(oportunidad.valorEstimado || 0).toLocaleString()}</span>
+            </div>
+          ))}
+        </article>
+
+        <article className="detail-panel">
+          <h2>Propuestas</h2>
+          {historial.propuestas.length === 0 && <p className="muted-text">Sin propuestas registradas.</p>}
+          {historial.propuestas.map((propuesta) => (
+            <div className="timeline-item" key={propuesta.id}>
+              <strong>{propuesta.titulo}</strong>
+              <span>{propuesta.estado} / ${Number(propuesta.montoTotal || 0).toLocaleString()}</span>
+            </div>
+          ))}
+        </article>
+      </section>
+
+      <section className="detail-panel">
+        <h2>Interacciones</h2>
+        {historial.interacciones.length === 0 && <p className="muted-text">Sin interacciones registradas.</p>}
+        <div className="timeline-list">
+          {historial.interacciones.map((interaccion) => (
+            <article className="timeline-item" key={interaccion.id}>
+              <strong>{interaccion.tipo}</strong>
+              <span>{new Date(interaccion.fecha).toLocaleString()}</span>
+              <p>{interaccion.resumen}</p>
+            </article>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

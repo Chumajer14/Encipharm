@@ -5,16 +5,20 @@ from app.models.comercial import (
     InteractionCreate,
     InteractionResponse,
     OpportunityCreate,
+    OpportunityDetailResponse,
     OpportunityResponse,
+    OpportunityStage,
     OpportunityUpdate,
     ProposalCreate,
     ProposalResponse,
+    ProposalStatus,
     ProposalUpdate,
 )
 from app.services.comercial import (
     create_interaction,
     create_opportunity,
     create_proposal,
+    get_opportunity_detail,
     list_interactions,
     list_opportunities,
     list_proposals,
@@ -47,10 +51,19 @@ async def post_interaccion(
 @router.get("/oportunidades", response_model=list[OpportunityResponse])
 async def get_oportunidades(
     cliente_id: str | None = Query(default=None, alias="clienteId", max_length=128),
+    etapa: OpportunityStage | None = Query(default=None),
     limit: int = Query(default=100, ge=1, le=500),
     user: dict = Depends(require_role("vendedor")),
 ):
-    return list_opportunities(get_db(), user=user, cliente_id=cliente_id, limit=limit)
+    return list_opportunities(get_db(), user=user, cliente_id=cliente_id, etapa=etapa, limit=limit)
+
+
+@router.get("/oportunidades/{oportunidad_id}/detalle", response_model=OpportunityDetailResponse)
+async def get_oportunidad_detalle(
+    oportunidad_id: str,
+    user: dict = Depends(require_role("vendedor")),
+):
+    return get_opportunity_detail(get_db(), oportunidad_id, user)
 
 
 @router.post("/oportunidades", response_model=OpportunityResponse)
@@ -78,10 +91,19 @@ async def patch_oportunidad(
 @router.get("/propuestas", response_model=list[ProposalResponse])
 async def get_propuestas(
     cliente_id: str | None = Query(default=None, alias="clienteId", max_length=128),
+    estado: ProposalStatus | None = Query(default=None),
+    oportunidad_id: str | None = Query(default=None, alias="oportunidadId", max_length=128),
     limit: int = Query(default=100, ge=1, le=500),
     user: dict = Depends(require_role("vendedor")),
 ):
-    return list_proposals(get_db(), user=user, cliente_id=cliente_id, limit=limit)
+    return list_proposals(
+        get_db(),
+        user=user,
+        cliente_id=cliente_id,
+        estado=estado,
+        oportunidad_id=oportunidad_id,
+        limit=limit,
+    )
 
 
 @router.post("/propuestas", response_model=ProposalResponse)

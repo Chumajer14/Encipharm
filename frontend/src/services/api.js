@@ -82,8 +82,19 @@ export function getDashboardSupervisor(token) {
   return apiFetch("/dashboard/supervisor", { token });
 }
 
-export function getInteracciones(token) {
-  return apiFetch("/interacciones", { token });
+function withQuery(path, params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, value);
+    }
+  });
+  const suffix = query.toString();
+  return suffix ? `${path}?${suffix}` : path;
+}
+
+export function getInteracciones(token, params = {}) {
+  return apiFetch(withQuery("/interacciones", params), { token });
 }
 
 export function createInteraccion(token, interaccion) {
@@ -94,8 +105,12 @@ export function createInteraccion(token, interaccion) {
   });
 }
 
-export function getOportunidades(token) {
-  return apiFetch("/oportunidades", { token });
+export function getOportunidades(token, params = {}) {
+  return apiFetch(withQuery("/oportunidades", params), { token });
+}
+
+export function getOportunidadDetalle(token, oportunidadId) {
+  return apiFetch(`/oportunidades/${oportunidadId}/detalle`, { token });
 }
 
 export function createOportunidad(token, oportunidad) {
@@ -114,8 +129,8 @@ export function updateOportunidad(token, oportunidadId, oportunidad) {
   });
 }
 
-export function getPropuestas(token) {
-  return apiFetch("/propuestas", { token });
+export function getPropuestas(token, params = {}) {
+  return apiFetch(withQuery("/propuestas", params), { token });
 }
 
 export function createPropuesta(token, propuesta) {

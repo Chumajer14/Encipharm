@@ -19,6 +19,7 @@ function Oportunidades() {
   const [clientes, setClientes] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [filtroEtapa, setFiltroEtapa] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -27,7 +28,7 @@ function Oportunidades() {
       try {
         const [clientesData, oportunidadesData] = await Promise.all([
           getClientes(idToken),
-          getOportunidades(idToken),
+          getOportunidades(idToken, { etapa: filtroEtapa }),
         ]);
         setClientes(clientesData);
         setOportunidades(oportunidadesData);
@@ -37,7 +38,7 @@ function Oportunidades() {
     }
 
     loadData();
-  }, [idToken]);
+  }, [idToken, filtroEtapa]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -55,6 +56,9 @@ function Oportunidades() {
       });
       setOportunidades([created, ...oportunidades]);
       setForm(initialForm);
+      if (filtroEtapa && created.etapa !== filtroEtapa) {
+        setFiltroEtapa("");
+      }
     } catch (saveError) {
       setError(getFriendlyApiError(saveError));
     }
@@ -62,7 +66,11 @@ function Oportunidades() {
 
   const moveStage = async (oportunidad, etapa) => {
     const updated = await updateOportunidad(idToken, oportunidad.id, { etapa });
-    setOportunidades(oportunidades.map((item) => item.id === updated.id ? updated : item));
+    setOportunidades(
+      oportunidades
+        .map((item) => item.id === updated.id ? updated : item)
+        .filter((item) => !filtroEtapa || item.etapa === filtroEtapa)
+    );
   };
 
   return (
@@ -76,6 +84,15 @@ function Oportunidades() {
       </section>
 
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
+
+      <section className="filters-card compact-filters">
+        <label>Etapa
+          <select className="filter-select" value={filtroEtapa} onChange={(event) => setFiltroEtapa(event.target.value)}>
+            <option value="">Todas las etapas</option>
+            {etapas.map((etapa) => <option key={etapa} value={etapa}>{etapa}</option>)}
+          </select>
+        </label>
+      </section>
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
@@ -112,6 +129,7 @@ function Oportunidades() {
                 <select value={item.etapa} onChange={(event) => moveStage(item, event.target.value)}>
                   {etapas.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
                 </select>
+                <Link to={`/oportunidades/${item.id}`}>Ver detalle</Link>
               </div>
             ))}
           </article>

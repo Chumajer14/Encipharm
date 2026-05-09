@@ -55,7 +55,21 @@ def _proposal_amounts(monto_neto: float, descuento_pct: float) -> tuple[float, f
     return monto_descuento, monto_total
 
 
+def _sort_recent(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return commercial records ordered by the newest known timestamp first."""
+    def sort_key(item: dict[str, Any]) -> str:
+        value = item.get("updatedAt") or item.get("createdAt") or item.get("fecha") or ""
+        return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+    return sorted(
+        items,
+        key=sort_key,
+        reverse=True,
+    )
+
+
 def list_interactions(db, user: dict, cliente_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+    """List interactions visible for the current user, optionally scoped to one cliente."""
     interactions = []
     for doc in db.collection(INTERACTIONS_COLLECTION).stream():
         data = {"id": doc.id, **doc.to_dict()}
@@ -63,10 +77,11 @@ def list_interactions(db, user: dict, cliente_id: str | None = None, limit: int 
             continue
         if _visible_by_user(data, user):
             interactions.append(data)
-    return _limited(interactions, limit)
+    return _limited(_sort_recent(interactions), limit)
 
 
 def create_interaction(db, payload: InteractionCreate, user: dict) -> dict[str, Any]:
+    """Create an interaction after validating cliente ownership rules."""
     assert_cliente_visible(db, payload.clienteId, user)
     interaction_id = str(uuid4())
     now = _now()
@@ -81,18 +96,28 @@ def create_interaction(db, payload: InteractionCreate, user: dict) -> dict[str, 
     return data
 
 
-def list_opportunities(db, user: dict, cliente_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+def list_opportunities(
+    db,
+    user: dict,
+    cliente_id: str | None = None,
+    etapa: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    """List opportunities visible for the user with optional cliente and stage filters."""
     opportunities = []
     for doc in db.collection(OPPORTUNITIES_COLLECTION).stream():
         data = {"id": doc.id, **doc.to_dict()}
         if cliente_id and data.get("clienteId") != cliente_id:
             continue
+        if etapa and data.get("etapa") != etapa:
+            continue
         if _visible_by_user(data, user):
             opportunities.append(data)
-    return _limited(opportunities, limit)
+    return _limited(_sort_recent(opportunities), limit)
 
 
 def create_opportunity(db, payload: OpportunityCreate, user: dict) -> dict[str, Any]:
+    """Create an opportunity tied to a cliente visible to the user."""
     assert_cliente_visible(db, payload.clienteId, user)
     opportunity_id = str(uuid4())
     now = _now()
@@ -108,6 +133,7 @@ def create_opportunity(db, payload: OpportunityCreate, user: dict) -> dict[str, 
 
 
 def update_opportunity(db, opportunity_id: str, changes: dict[str, Any], user: dict) -> dict[str, Any]:
+    """Apply partial opportunity changes after record-level authorization."""
     doc = _doc_or_404(db, OPPORTUNITIES_COLLECTION, opportunity_id, "Oportunidad no encontrada")
     data = doc.to_dict()
     if not _visible_by_user(data, user):
@@ -118,18 +144,50 @@ def update_opportunity(db, opportunity_id: str, changes: dict[str, Any], user: d
     return {**data, **clean_changes, "id": opportunity_id}
 
 
-def list_proposals(db, user: dict, cliente_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+def get_opportunity_detail(db, opportunity_id: str, user: dict) -> dict[str, Any]:
+    """Return one opportunity with its cliente interactions and linked proposals."""
+    doc = _doc_or_404(db, OPPORTUNITIES_COLLECTION, opportunity_id, "Oportunidad no encontrada")
+    opportunity = {"id": doc.id, **doc.to_dict()}
+    if not _visible_by_user(opportunity, user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos para esta oportunidad")
+
+    cliente_id = opportunity["clienteId"]
+    return {
+        "oportunidad": opportunity,
+        "interacciones": list_interactions(db, user=user, cliente_id=cliente_id, limit=25),
+        "propuestas": [
+            proposal
+            for proposal in list_proposals(db, user=user, cliente_id=cliente_id, limit=100)
+            if proposal.get("oportunidadId") == opportunity_id
+        ],
+    }
+
+
+def list_proposals(
+    db,
+    user: dict,
+    cliente_id: str | None = None,
+    estado: str | None = None,
+    oportunidad_id: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    """List proposals visible for the user with optional cliente, opportunity and status filters."""
     proposals = []
     for doc in db.collection(PROPOSALS_COLLECTION).stream():
         data = {"id": doc.id, **doc.to_dict()}
         if cliente_id and data.get("clienteId") != cliente_id:
             continue
+        if estado and data.get("estado") != estado:
+            continue
+        if oportunidad_id and data.get("oportunidadId") != oportunidad_id:
+            continue
         if _visible_by_user(data, user):
             proposals.append(data)
-    return _limited(proposals, limit)
+    return _limited(_sort_recent(proposals), limit)
 
 
 def create_proposal(db, payload: ProposalCreate, user: dict) -> dict[str, Any]:
+    """Create a proposal and calculate monetary totals server-side."""
     assert_cliente_visible(db, payload.clienteId, user)
     if payload.oportunidadId:
         opportunity = _doc_or_404(db, OPPORTUNITIES_COLLECTION, payload.oportunidadId, "Oportunidad no encontrada")
@@ -155,6 +213,7 @@ def create_proposal(db, payload: ProposalCreate, user: dict) -> dict[str, Any]:
 
 
 def update_proposal(db, proposal_id: str, changes: dict[str, Any], user: dict) -> dict[str, Any]:
+    """Apply proposal changes and recalculate monetary totals when needed."""
     doc = _doc_or_404(db, PROPOSALS_COLLECTION, proposal_id, "Propuesta no encontrada")
     data = doc.to_dict()
     if not _visible_by_user(data, user):

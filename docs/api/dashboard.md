@@ -50,7 +50,20 @@ Roles permitidos:
 
 ## Alcance
 
-Este dashboard cubre el cierre backend del EPIC 2. Las metricas de pipeline, propuestas e interacciones quedan para EPIC 3.
+## Metricas comerciales EPIC 3
+
+La respuesta incluye metricas comerciales consolidadas:
+
+| Campo | Descripcion |
+|-------|-------------|
+| `totalOportunidades` | Cantidad de oportunidades visibles |
+| `valorPipeline` | Suma de `valorEstimado` de oportunidades visibles |
+| `totalPropuestas` | Cantidad de propuestas visibles |
+| `valorPropuestasAceptadas` | Suma de `montoTotal` en propuestas aceptadas |
+| `oportunidadesPorEtapa` | Conteo de oportunidades por etapa |
+| `propuestasPorEstado` | Conteo de propuestas por estado |
+
+En dashboard vendedor se filtra por `vendedorUid`. En dashboard supervisor/admin se consolida la vista completa.
 
 ## Archivos relacionados
 

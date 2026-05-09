@@ -13,6 +13,7 @@ from app.services.comercial import (
     create_interaction,
     create_opportunity,
     create_proposal,
+    get_opportunity_detail,
     list_interactions,
     list_opportunities,
     list_proposals,
@@ -149,6 +150,26 @@ def test_opportunity_can_move_stage():
     assert list_opportunities(db, user)[0]["etapa"] == "cotizacion"
 
 
+def test_opportunities_can_be_filtered_by_stage():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Pipeline nuevo", etapa="nuevo"),
+        user,
+    )
+    cotizacion = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Pipeline cotizacion", etapa="cotizacion"),
+        user,
+    )
+
+    filtered = list_opportunities(db, user, etapa="cotizacion")
+
+    assert [item["id"] for item in filtered] == [cotizacion["id"]]
+
+
 def test_proposal_calculates_discount_and_total():
     db = FakeDb()
     cliente = _cliente(db)
@@ -190,6 +211,74 @@ def test_proposal_update_recalculates_total():
 
     assert updated["montoDescuento"] == 25000
     assert updated["montoTotal"] == 75000
+
+
+def test_proposals_can_be_filtered_by_status_and_opportunity():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Venta anual"),
+        user,
+    )
+    accepted = create_proposal(
+        db,
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta aceptada",
+            montoNeto=100000,
+            estado="aceptada",
+        ),
+        user,
+    )
+    create_proposal(
+        db,
+        ProposalCreate(clienteId=cliente["id"], titulo="Propuesta borrador", montoNeto=100000),
+        user,
+    )
+
+    filtered = list_proposals(db, user, estado="aceptada", oportunidad_id=opportunity["id"])
+
+    assert [item["id"] for item in filtered] == [accepted["id"]]
+
+
+def test_opportunity_detail_includes_cliente_interactions_and_linked_proposals():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Venta anual"),
+        user,
+    )
+    interaction = create_interaction(
+        db,
+        InteractionCreate(
+            clienteId=cliente["id"],
+            tipo="reunion",
+            fecha="2026-05-05T10:00:00Z",
+            resumen="Revision de propuesta",
+        ),
+        user,
+    )
+    proposal = create_proposal(
+        db,
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta anual",
+            montoNeto=100000,
+        ),
+        user,
+    )
+
+    detail = get_opportunity_detail(db, opportunity["id"], user)
+
+    assert detail["oportunidad"]["id"] == opportunity["id"]
+    assert [item["id"] for item in detail["interacciones"]] == [interaction["id"]]
+    assert [item["id"] for item in detail["propuestas"]] == [proposal["id"]]
 
 
 def test_proposal_rejects_opportunity_from_other_cliente():

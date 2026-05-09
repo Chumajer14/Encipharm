@@ -67,6 +67,9 @@ class FakeDb:
     def __init__(self):
         self.collections = {
             "clientes": FakeCollection(),
+            "interacciones": FakeCollection(),
+            "oportunidades": FakeCollection(),
+            "propuestas": FakeCollection(),
             "users": FakeCollection(),
         }
 
@@ -153,6 +156,43 @@ def test_dashboard_counts_all_clients_without_api_limit():
     dashboard = build_dashboard(db, vendedor_uid="seller-1")
 
     assert dashboard["totalClientes"] == 105
+
+
+def test_dashboard_includes_commercial_metrics():
+    db = FakeDb()
+    db.collection("oportunidades").document("op-1").set({
+        "id": "op-1",
+        "clienteId": "cliente-1",
+        "titulo": "Oportunidad A",
+        "etapa": "cotizacion",
+        "valorEstimado": 250000,
+        "vendedorUid": "seller-1",
+    })
+    db.collection("oportunidades").document("op-2").set({
+        "id": "op-2",
+        "clienteId": "cliente-2",
+        "titulo": "Oportunidad B",
+        "etapa": "negociacion",
+        "valorEstimado": 750000,
+        "vendedorUid": "seller-2",
+    })
+    db.collection("propuestas").document("prop-1").set({
+        "id": "prop-1",
+        "clienteId": "cliente-1",
+        "titulo": "Propuesta A",
+        "estado": "aceptada",
+        "montoTotal": 90000,
+        "vendedorUid": "seller-1",
+    })
+
+    dashboard = build_dashboard(db, vendedor_uid="seller-1")
+
+    assert dashboard["totalOportunidades"] == 1
+    assert dashboard["valorPipeline"] == 250000
+    assert dashboard["totalPropuestas"] == 1
+    assert dashboard["valorPropuestasAceptadas"] == 90000
+    assert dashboard["oportunidadesPorEtapa"] == [{"clave": "cotizacion", "total": 1}]
+    assert dashboard["propuestasPorEstado"] == [{"clave": "aceptada", "total": 1}]
 
 
 def test_list_users_limits_large_responses():

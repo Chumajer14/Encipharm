@@ -14,12 +14,15 @@ const initialForm = {
   notas: "",
 };
 
+const estados = ["borrador", "enviada", "aceptada", "rechazada"];
+
 function Propuestas() {
   const { idToken } = useAuth();
   const [clientes, setClientes] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [propuestas, setPropuestas] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [filtroEstado, setFiltroEstado] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,7 +32,7 @@ function Propuestas() {
         const [clientesData, oportunidadesData, propuestasData] = await Promise.all([
           getClientes(idToken),
           getOportunidades(idToken),
-          getPropuestas(idToken),
+          getPropuestas(idToken, { estado: filtroEstado }),
         ]);
         setClientes(clientesData);
         setOportunidades(oportunidadesData);
@@ -40,7 +43,7 @@ function Propuestas() {
     }
 
     loadData();
-  }, [idToken]);
+  }, [idToken, filtroEstado]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -59,6 +62,9 @@ function Propuestas() {
       });
       setPropuestas([created, ...propuestas]);
       setForm(initialForm);
+      if (filtroEstado && created.estado !== filtroEstado) {
+        setFiltroEstado("");
+      }
     } catch (saveError) {
       setError(getFriendlyApiError(saveError));
     }
@@ -66,7 +72,11 @@ function Propuestas() {
 
   const updateEstado = async (propuesta, estado) => {
     const updated = await updatePropuesta(idToken, propuesta.id, { estado });
-    setPropuestas(propuestas.map((item) => item.id === updated.id ? updated : item));
+    setPropuestas(
+      propuestas
+        .map((item) => item.id === updated.id ? updated : item)
+        .filter((item) => !filtroEstado || item.estado === filtroEstado)
+    );
   };
 
   return (
@@ -80,6 +90,15 @@ function Propuestas() {
       </section>
 
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
+
+      <section className="filters-card compact-filters">
+        <label>Estado
+          <select className="filter-select" value={filtroEstado} onChange={(event) => setFiltroEstado(event.target.value)}>
+            <option value="">Todos los estados</option>
+            {estados.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
+          </select>
+        </label>
+      </section>
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
@@ -123,10 +142,7 @@ function Propuestas() {
             </div>
             <div className="client-actions">
               <select value={propuesta.estado} onChange={(event) => updateEstado(propuesta, event.target.value)}>
-                <option value="borrador">Borrador</option>
-                <option value="enviada">Enviada</option>
-                <option value="aceptada">Aceptada</option>
-                <option value="rechazada">Rechazada</option>
+                {estados.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
               </select>
             </div>
           </article>

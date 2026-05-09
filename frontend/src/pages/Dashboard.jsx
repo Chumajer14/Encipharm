@@ -74,6 +74,24 @@ function Dashboard() {
           <h3>Completados</h3>
           <strong>{getCount(data?.clientesPorEstado, "Completado")}</strong>
         </article>
+
+        <article className="stat-card">
+          <span>OP</span>
+          <h3>Oportunidades</h3>
+          <strong>{data?.totalOportunidades ?? 0}</strong>
+        </article>
+
+        <article className="stat-card">
+          <span>VP</span>
+          <h3>Valor pipeline</h3>
+          <strong>${Number(data?.valorPipeline || 0).toLocaleString()}</strong>
+        </article>
+
+        <article className="stat-card">
+          <span>PA</span>
+          <h3>Propuestas aceptadas</h3>
+          <strong>${Number(data?.valorPropuestasAceptadas || 0).toLocaleString()}</strong>
+        </article>
       </section>
 
       {isSupervisorView && (
@@ -91,6 +109,26 @@ function Dashboard() {
           <article>
             <h2>Clientes por region</h2>
             {data?.clientesPorRegion?.map((item) => (
+              <p key={item.clave}>
+                <span>{item.clave}</span>
+                <strong>{item.total}</strong>
+              </p>
+            ))}
+          </article>
+
+          <article>
+            <h2>Oportunidades por etapa</h2>
+            {data?.oportunidadesPorEtapa?.map((item) => (
+              <p key={item.clave}>
+                <span>{item.clave}</span>
+                <strong>{item.total}</strong>
+              </p>
+            ))}
+          </article>
+
+          <article>
+            <h2>Propuestas por estado</h2>
+            {data?.propuestasPorEstado?.map((item) => (
               <p key={item.clave}>
                 <span>{item.clave}</span>
                 <strong>{item.total}</strong>

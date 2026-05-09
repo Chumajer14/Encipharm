@@ -4,7 +4,7 @@
 
 **Rama:** `feature-epic-3-flujo-comercial`
 
-**Estado:** Base funcional implementada
+**Estado:** Completado
 
 ## Objetivo
 
@@ -22,6 +22,10 @@ Completar el flujo comercial minimo del equipo de ventas: registrar interaccione
 | EV-028 | UI pipeline Kanban | Frontend | Completado |
 | EV-029 | UI propuestas y estados | Frontend | Completado |
 | EV-030 | QA automatizado EPIC 3 base | QA | Completado |
+| EV-031 | Filtros por etapa/estado en frontend y API | Fullstack | Completado |
+| EV-032 | Vista de detalle por oportunidad | Fullstack | Completado |
+| EV-033 | Historial comercial en detalle de cliente | Frontend | Completado |
+| EV-034 | Dashboard supervisor con pipeline y propuestas | Fullstack | Completado |
 
 ## Backend implementado
 
@@ -50,6 +54,7 @@ frontend/src/pages/
 | GET | `/oportunidades` | Lista oportunidades visibles |
 | POST | `/oportunidades` | Crea oportunidad |
 | PATCH | `/oportunidades/{id}` | Actualiza etapa/datos |
+| GET | `/oportunidades/{id}/detalle` | Consulta oportunidad con interacciones y propuestas |
 | GET | `/propuestas` | Lista propuestas visibles |
 | POST | `/propuestas` | Crea propuesta |
 | PATCH | `/propuestas/{id}` | Actualiza estado/datos |
@@ -63,6 +68,10 @@ frontend/src/pages/
 - Propuesta no puede vincularse a una oportunidad de otro cliente.
 - Payloads comerciales bloquean formula injection.
 - Frontend expone pantallas reales para interacciones, oportunidades y propuestas.
+- Frontend permite filtrar oportunidades por etapa y propuestas por estado.
+- Detalle de oportunidad muestra seguimiento, propuestas vinculadas e interacciones del cliente.
+- Detalle de cliente muestra historial comercial embebido.
+- Dashboard supervisor consolida oportunidades, valor de pipeline y propuestas.
 
 ## QA
 
@@ -76,12 +85,19 @@ uv run pytest
 Resultado esperado:
 
 ```text
-24 passed
+28 passed
 ```
 
-## Pendiente para completar EPIC 3 avanzado
+## QA adicional ejecutado
 
-- Filtros por etapa/estado en frontend.
-- Vista de detalle por oportunidad.
-- Historial comercial embebido en detalle de cliente.
-- Dashboard supervisor consolidado con oportunidades y propuestas.
+```bash
+cd frontend
+npm run build
+npm run lint
+```
+
+Resultados:
+
+- Backend: `28 passed`.
+- Frontend build: exitoso.
+- Frontend lint: exitoso.
