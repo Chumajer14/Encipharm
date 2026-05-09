@@ -19,7 +19,10 @@ function Oportunidades() {
   const [clientes, setClientes] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [filtroEtapa, setFiltroEtapa] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [updatingId, setUpdatingId] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -27,7 +30,7 @@ function Oportunidades() {
       try {
         const [clientesData, oportunidadesData] = await Promise.all([
           getClientes(idToken),
-          getOportunidades(idToken),
+          getOportunidades(idToken, { etapa: filtroEtapa }),
         ]);
         setClientes(clientesData);
         setOportunidades(oportunidadesData);
@@ -37,7 +40,7 @@ function Oportunidades() {
     }
 
     loadData();
-  }, [idToken]);
+  }, [idToken, filtroEtapa]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -47,6 +50,7 @@ function Oportunidades() {
     event.preventDefault();
     setError("");
     try {
+      setSaving(true);
       const created = await createOportunidad(idToken, {
         ...form,
         valorEstimado: Number(form.valorEstimado || 0),
@@ -55,14 +59,31 @@ function Oportunidades() {
       });
       setOportunidades([created, ...oportunidades]);
       setForm(initialForm);
+      if (filtroEtapa && created.etapa !== filtroEtapa) {
+        setFiltroEtapa("");
+      }
     } catch (saveError) {
       setError(getFriendlyApiError(saveError));
+    } finally {
+      setSaving(false);
     }
   };
 
   const moveStage = async (oportunidad, etapa) => {
-    const updated = await updateOportunidad(idToken, oportunidad.id, { etapa });
-    setOportunidades(oportunidades.map((item) => item.id === updated.id ? updated : item));
+    setError("");
+    try {
+      setUpdatingId(oportunidad.id);
+      const updated = await updateOportunidad(idToken, oportunidad.id, { etapa });
+      setOportunidades(
+        oportunidades
+          .map((item) => item.id === updated.id ? updated : item)
+          .filter((item) => !filtroEtapa || item.etapa === filtroEtapa)
+      );
+    } catch (updateError) {
+      setError(getFriendlyApiError(updateError));
+    } finally {
+      setUpdatingId("");
+    }
   };
 
   return (
@@ -76,6 +97,15 @@ function Oportunidades() {
       </section>
 
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
+
+      <section className="filters-card compact-filters">
+        <label>Etapa
+          <select className="filter-select" value={filtroEtapa} onChange={(event) => setFiltroEtapa(event.target.value)}>
+            <option value="">Todas las etapas</option>
+            {etapas.map((etapa) => <option key={etapa} value={etapa}>{etapa}</option>)}
+          </select>
+        </label>
+      </section>
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
@@ -97,7 +127,7 @@ function Oportunidades() {
           <textarea name="descripcion" maxLength={1000} value={form.descripcion} onChange={handleChange} />
         </label>
         <div className="form-actions">
-          <button type="submit">Crear oportunidad</button>
+          <button type="submit" disabled={saving}>{saving ? "Creando..." : "Crear oportunidad"}</button>
         </div>
       </form>
 
@@ -109,9 +139,10 @@ function Oportunidades() {
               <div className="kanban-item" key={item.id}>
                 <strong>{item.titulo}</strong>
                 <span>${Number(item.valorEstimado || 0).toLocaleString()} / {item.probabilidad}%</span>
-                <select value={item.etapa} onChange={(event) => moveStage(item, event.target.value)}>
+                <select value={item.etapa} disabled={updatingId === item.id} onChange={(event) => moveStage(item, event.target.value)}>
                   {etapas.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
                 </select>
+                <Link to={`/oportunidades/${item.id}`}>Ver detalle</Link>
               </div>
             ))}
           </article>

@@ -76,6 +76,14 @@ class OpportunityResponse(OpportunityCreate):
     updatedAt: Optional[datetime] = None
 
 
+class OpportunityDetailResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    oportunidad: OpportunityResponse
+    interacciones: list[InteractionResponse]
+    propuestas: list["ProposalResponse"]
+
+
 class ProposalCreate(BaseModel):
     clienteId: str = Field(min_length=1, max_length=128)
     oportunidadId: Optional[str] = Field(default=None, max_length=128)

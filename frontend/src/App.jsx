@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Interacciones from "./pages/Interacciones";
 import Oportunidades from "./pages/Oportunidades";
+import OportunidadDetalle from "./pages/OportunidadDetalle";
 import Propuestas from "./pages/Propuestas";
 import "./App.css";
 
@@ -70,6 +71,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Oportunidades />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/oportunidades/:oportunidadId"
+            element={
+              <ProtectedRoute>
+                <OportunidadDetalle />
               </ProtectedRoute>
             }
           />

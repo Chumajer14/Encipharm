@@ -231,6 +231,27 @@ def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[di
 def import_clientes_csv(db, raw_content: bytes) -> dict[str, Any]:
     clientes, errores, total_rows = parse_clientes_csv(raw_content)
 
+    seen_emails: set[str] = set()
+    existing_emails = {
+        str(cliente.get("email") or "").strip().lower()
+        for cliente in list_clientes(db, limit=None)
+        if cliente.get("email")
+    }
+
+    for index, cliente in enumerate(clientes, start=2):
+        email = cliente.email.strip().lower()
+        row_errors = []
+        if email in seen_emails:
+            row_errors.append("email: correo duplicado dentro del archivo")
+        if email in existing_emails:
+            row_errors.append("email: cliente ya existe en el CRM")
+        if row_errors:
+            errores.append({
+                "fila": index,
+                "errores": row_errors,
+            })
+        seen_emails.add(email)
+
     imported_count = 0
     if not errores:
         for cliente in clientes:
