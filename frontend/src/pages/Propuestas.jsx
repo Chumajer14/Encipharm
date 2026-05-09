@@ -24,6 +24,8 @@ function Propuestas() {
   const [form, setForm] = useState(initialForm);
   const [filtroEstado, setFiltroEstado] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [updatingId, setUpdatingId] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -53,6 +55,7 @@ function Propuestas() {
     event.preventDefault();
     setError("");
     try {
+      setSaving(true);
       const created = await createPropuesta(idToken, {
         ...form,
         oportunidadId: form.oportunidadId || null,
@@ -67,16 +70,26 @@ function Propuestas() {
       }
     } catch (saveError) {
       setError(getFriendlyApiError(saveError));
+    } finally {
+      setSaving(false);
     }
   };
 
   const updateEstado = async (propuesta, estado) => {
-    const updated = await updatePropuesta(idToken, propuesta.id, { estado });
-    setPropuestas(
-      propuestas
-        .map((item) => item.id === updated.id ? updated : item)
-        .filter((item) => !filtroEstado || item.estado === filtroEstado)
-    );
+    setError("");
+    try {
+      setUpdatingId(propuesta.id);
+      const updated = await updatePropuesta(idToken, propuesta.id, { estado });
+      setPropuestas(
+        propuestas
+          .map((item) => item.id === updated.id ? updated : item)
+          .filter((item) => !filtroEstado || item.estado === filtroEstado)
+      );
+    } catch (updateError) {
+      setError(getFriendlyApiError(updateError));
+    } finally {
+      setUpdatingId("");
+    }
   };
 
   return (
@@ -128,7 +141,7 @@ function Propuestas() {
           <textarea name="notas" maxLength={1000} value={form.notas} onChange={handleChange} />
         </label>
         <div className="form-actions">
-          <button type="submit">Crear propuesta</button>
+          <button type="submit" disabled={saving}>{saving ? "Creando..." : "Crear propuesta"}</button>
         </div>
       </form>
 
@@ -141,7 +154,7 @@ function Propuestas() {
               <span>{propuesta.estado}</span>
             </div>
             <div className="client-actions">
-              <select value={propuesta.estado} onChange={(event) => updateEstado(propuesta, event.target.value)}>
+              <select value={propuesta.estado} disabled={updatingId === propuesta.id} onChange={(event) => updateEstado(propuesta, event.target.value)}>
                 {estados.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
               </select>
             </div>

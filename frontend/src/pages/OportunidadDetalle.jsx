@@ -13,6 +13,8 @@ function OportunidadDetalle() {
   const [detalle, setDetalle] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [updatingOpportunity, setUpdatingOpportunity] = useState(false);
+  const [updatingProposalId, setUpdatingProposalId] = useState("");
 
   useEffect(() => {
     async function loadDetalle() {
@@ -31,16 +33,32 @@ function OportunidadDetalle() {
   }, [idToken, oportunidadId]);
 
   const updateEtapa = async (etapa) => {
-    const updated = await updateOportunidad(idToken, oportunidadId, { etapa });
-    setDetalle({ ...detalle, oportunidad: updated });
+    setError("");
+    try {
+      setUpdatingOpportunity(true);
+      const updated = await updateOportunidad(idToken, oportunidadId, { etapa });
+      setDetalle({ ...detalle, oportunidad: updated });
+    } catch (updateError) {
+      setError(getFriendlyApiError(updateError));
+    } finally {
+      setUpdatingOpportunity(false);
+    }
   };
 
   const updateEstadoPropuesta = async (propuesta, estado) => {
-    const updated = await updatePropuesta(idToken, propuesta.id, { estado });
-    setDetalle({
-      ...detalle,
-      propuestas: detalle.propuestas.map((item) => item.id === updated.id ? updated : item),
-    });
+    setError("");
+    try {
+      setUpdatingProposalId(propuesta.id);
+      const updated = await updatePropuesta(idToken, propuesta.id, { estado });
+      setDetalle({
+        ...detalle,
+        propuestas: detalle.propuestas.map((item) => item.id === updated.id ? updated : item),
+      });
+    } catch (updateError) {
+      setError(getFriendlyApiError(updateError));
+    } finally {
+      setUpdatingProposalId("");
+    }
   };
 
   const oportunidad = detalle?.oportunidad;
@@ -70,7 +88,7 @@ function OportunidadDetalle() {
                 <div><dt>Etapa</dt><dd>{oportunidad.etapa}</dd></div>
               </dl>
               <label>Actualizar etapa
-                <select value={oportunidad.etapa} onChange={(event) => updateEtapa(event.target.value)}>
+                <select value={oportunidad.etapa} disabled={updatingOpportunity} onChange={(event) => updateEtapa(event.target.value)}>
                   {etapas.map((etapa) => <option key={etapa} value={etapa}>{etapa}</option>)}
                 </select>
               </label>
@@ -83,7 +101,7 @@ function OportunidadDetalle() {
                 <div className="timeline-item" key={propuesta.id}>
                   <strong>{propuesta.titulo}</strong>
                   <span>${Number(propuesta.montoTotal || 0).toLocaleString()}</span>
-                  <select value={propuesta.estado} onChange={(event) => updateEstadoPropuesta(propuesta, event.target.value)}>
+                  <select value={propuesta.estado} disabled={updatingProposalId === propuesta.id} onChange={(event) => updateEstadoPropuesta(propuesta, event.target.value)}>
                     {estados.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
                   </select>
                 </div>

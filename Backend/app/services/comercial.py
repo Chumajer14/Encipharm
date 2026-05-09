@@ -191,7 +191,13 @@ def create_proposal(db, payload: ProposalCreate, user: dict) -> dict[str, Any]:
     assert_cliente_visible(db, payload.clienteId, user)
     if payload.oportunidadId:
         opportunity = _doc_or_404(db, OPPORTUNITIES_COLLECTION, payload.oportunidadId, "Oportunidad no encontrada")
-        if opportunity.to_dict().get("clienteId") != payload.clienteId:
+        opportunity_data = opportunity.to_dict()
+        if not _visible_by_user(opportunity_data, user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permisos para esta oportunidad",
+            )
+        if opportunity_data.get("clienteId") != payload.clienteId:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="La oportunidad no pertenece al cliente indicado",

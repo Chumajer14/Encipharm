@@ -12,6 +12,7 @@ from app.services.clientes import (
     create_cliente,
     delete_cliente,
     get_cliente_or_404,
+    import_clientes_csv,
     list_clientes,
     parse_clientes_csv,
 )
@@ -249,6 +250,48 @@ def test_csv_rejects_too_many_rows():
         parse_clientes_csv("\n".join(rows).encode("utf-8"))
 
     assert exc_info.value.status_code == 413
+
+
+def test_csv_import_rejects_duplicate_emails_without_partial_writes():
+    db = FakeDb()
+    content = "\n".join([
+        "nombre,empresa,email",
+        "Cliente Uno,Empresa Uno,duplicado@encipharm.cl",
+        "Cliente Dos,Empresa Dos,duplicado@encipharm.cl",
+    ]).encode("utf-8")
+
+    result = import_clientes_csv(db, content)
+
+    assert result["importados"] == 0
+    assert result["fallidos"] == 1
+    assert result["errores"][0]["fila"] == 3
+    assert list_clientes(db) == []
+
+
+def test_csv_import_rejects_existing_email_without_partial_writes():
+    db = FakeDb()
+    create_cliente(
+        db,
+        ClienteCreate(
+            nombre="Cliente Existente",
+            empresa="Empresa Existente",
+            email="existente@encipharm.cl",
+            rubro="Aves",
+            region="Maule",
+            vendedorUid="seller-1",
+        ),
+    )
+    content = "\n".join([
+        "nombre,empresa,email",
+        "Cliente Nuevo,Empresa Nueva,existente@encipharm.cl",
+    ]).encode("utf-8")
+
+    result = import_clientes_csv(db, content)
+
+    assert result["importados"] == 0
+    assert result["fallidos"] == 1
+    assert result["errores"][0]["fila"] == 2
+    assert len(list_clientes(db)) == 1
 
 
 @pytest.mark.anyio

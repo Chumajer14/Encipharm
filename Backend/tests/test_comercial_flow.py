@@ -307,6 +307,36 @@ def test_proposal_rejects_opportunity_from_other_cliente():
     assert exc_info.value.status_code == 400
 
 
+def test_seller_cannot_link_proposal_to_other_seller_opportunity():
+    db = FakeDb()
+    cliente = _cliente(db, vendedor_uid="seller-1")
+    other_user = {"uid": "seller-2", "rol": "vendedor"}
+    db.collection("oportunidades").document("op-other").set({
+        "id": "op-other",
+        "clienteId": cliente["id"],
+        "titulo": "Oportunidad ajena",
+        "etapa": "cotizacion",
+        "valorEstimado": 100000,
+        "probabilidad": 50,
+        "vendedorUid": "seller-2",
+    })
+
+    with pytest.raises(HTTPException) as exc_info:
+        create_proposal(
+            db,
+            ProposalCreate(
+                clienteId=cliente["id"],
+                oportunidadId="op-other",
+                titulo="Propuesta cruzada",
+                montoNeto=100000,
+            ),
+            {"uid": "seller-1", "rol": "vendedor"},
+        )
+
+    assert other_user["uid"] == "seller-2"
+    assert exc_info.value.status_code == 403
+
+
 def test_commercial_models_reject_formula_injection():
     with pytest.raises(ValidationError):
         OpportunityCreate(

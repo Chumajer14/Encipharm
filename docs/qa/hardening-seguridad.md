@@ -23,6 +23,9 @@
 | Listado de usuarios amplio | `GET /users` usa `limit` entre 1 y 500 |
 | CORS permisivo en produccion | Configuracion rechaza `CORS_ORIGINS=["*"]` con `APP_ENV=production` |
 | Token persistente en consola `/docs` | Uso de `sessionStorage` y Swagger sin persistencia de autorizacion |
+| Acceso directo a Firestore desde cliente | `firestore.rules` versionado con denegacion total; el MVP opera mediante la API FastAPI con Firebase Admin y validacion de roles/propiedad |
+| Importacion CSV con duplicados | Validacion atomica por email contra archivo y CRM antes de escribir nuevos clientes |
+| Asociacion de propuesta a oportunidad ajena | Validacion de visibilidad de oportunidad antes de crear la propuesta |
 | Rutas frontend no implementadas | Pantallas protegidas de modulo pendiente para EPIC 3 |
 
 ## Comandos de verificacion
