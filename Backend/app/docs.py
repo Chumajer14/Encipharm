@@ -33,7 +33,7 @@ async def testing_docs():
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Encipharm API - Consola de pruebas</title>
+    <title>Enci API - Consola de pruebas</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
     <style>
       :root {{
@@ -150,7 +150,7 @@ async def testing_docs():
   <body>
     <header class="topbar">
       <section>
-        <h1>Encipharm API - Consola de pruebas</h1>
+        <h1>Enci API - Consola de pruebas</h1>
         <p>Login con Google, autorizacion automatica y pruebas de endpoints protegidos.</p>
       </section>
       <section class="auth-panel">
@@ -198,10 +198,10 @@ async def testing_docs():
 
       function saveToken(token) {{
         if (token) {{
-          sessionStorage.setItem("encipharmFirebaseToken", token);
+          sessionStorage.setItem("enciFirebaseToken", token);
           swaggerUi?.preauthorizeApiKey("HTTPBearer", token);
         }} else {{
-          sessionStorage.removeItem("encipharmFirebaseToken");
+          sessionStorage.removeItem("enciFirebaseToken");
         }}
       }}
 
@@ -211,14 +211,14 @@ async def testing_docs():
         deepLinking: true,
         persistAuthorization: false,
         requestInterceptor: (request) => {{
-          const token = sessionStorage.getItem("encipharmFirebaseToken");
+          const token = sessionStorage.getItem("enciFirebaseToken");
           if (token) {{
             request.headers.Authorization = `Bearer ${{token}}`;
           }}
           return request;
         }},
         onComplete: () => {{
-          const token = sessionStorage.getItem("encipharmFirebaseToken");
+          const token = sessionStorage.getItem("enciFirebaseToken");
           if (token) {{
             swaggerUi.preauthorizeApiKey("HTTPBearer", token);
           }}
@@ -279,5 +279,5 @@ async def frontend_demo_guide():
     return FileResponse(
         GUIDE_PATH,
         media_type="application/pdf",
-        filename="guia-presentacion-frontend-encipharm.pdf",
+        filename="guia-presentacion-frontend-enci.pdf",
     )

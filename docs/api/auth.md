@@ -21,7 +21,7 @@ Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil 
 ```json
 {
   "uid": "string",
-  "email": "usuario@encipharm.cl",
+  "email": "usuario@enci.cl",
   "nombre": "Juan Perez",
   "rol": "vendedor",
   "activo": true,
@@ -44,7 +44,7 @@ Retorna los datos basicos del usuario autenticado a partir del token JWT.
 ```json
 {
   "uid": "string",
-  "email": "usuario@encipharm.cl",
+  "email": "usuario@enci.cl",
   "rol": "vendedor",
   "activo": true,
   "message": "Token valido"

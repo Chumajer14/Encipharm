@@ -101,6 +101,8 @@ Query params:
 
 ### POST `/propuestas`
 
+`oportunidadId` es obligatorio. La oportunidad debe ser visible para el usuario autenticado y pertenecer al mismo cliente indicado en `clienteId`.
+
 ```json
 {
   "clienteId": "cliente-1",
@@ -130,4 +132,5 @@ Actualiza parcialmente titulo, monto, descuento, estado o notas. Si cambia monto
 - Campos de texto no pueden iniciar con `=`, `+`, `-` o `@`.
 - Montos aceptan maximo `1.000.000.000`.
 - Probabilidad acepta rango 0-100.
+- Toda propuesta debe asociarse a una oportunidad existente y visible.
 - Una propuesta no puede asociarse a una oportunidad de otro cliente.

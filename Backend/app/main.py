@@ -53,7 +53,7 @@ app.include_router(docs_router)
 
 @app.get("/")
 def root():
-    return {"message": "Encipharm API funcionando"}
+    return {"message": "Enci API funcionando"}
 
 
 @app.get("/health")

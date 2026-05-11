@@ -42,7 +42,7 @@ function Dashboard() {
     <main className="page">
       <section className="header header-row">
         <div>
-          <h1>Encipharm Ventas</h1>
+          <h1>Enci Ventas</h1>
           <p>
             Dashboard {isSupervisorView ? "supervisor" : "vendedor"} / {backendUser?.email}
           </p>

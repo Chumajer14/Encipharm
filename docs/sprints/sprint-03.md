@@ -65,6 +65,7 @@ frontend/src/pages/
 - Supervisor/admin pueden consultar registros consolidados.
 - Oportunidades se mueven entre etapas del pipeline.
 - Propuestas calculan descuento y total.
+- Toda propuesta queda vinculada a una oportunidad visible del mismo cliente.
 - Propuesta no puede vincularse a una oportunidad de otro cliente.
 - Payloads comerciales bloquean formula injection.
 - Frontend expone pantallas reales para interacciones, oportunidades y propuestas.
@@ -85,7 +86,7 @@ uv run pytest
 Resultado esperado:
 
 ```text
-28 passed
+32 passed
 ```
 
 ## QA adicional ejecutado
@@ -98,6 +99,6 @@ npm run lint
 
 Resultados:
 
-- Backend: `28 passed`.
+- Backend: `32 passed`.
 - Frontend build: exitoso.
 - Frontend lint: exitoso.

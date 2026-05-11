@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  onAuthStateChanged,
+  onIdTokenChanged,
   signInWithPopup,
   signOut as firebaseSignOut,
 } from "firebase/auth";
@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
       return undefined;
     }
 
-    return onAuthStateChanged(auth, async (user) => {
+    return onIdTokenChanged(auth, async (user) => {
       setLoading(true);
 
       if (!user) {

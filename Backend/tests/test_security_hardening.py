@@ -12,7 +12,7 @@ def test_production_rejects_wildcard_cors():
         Settings(
             APP_ENV="production",
             CORS_ORIGINS=["*"],
-            FIREBASE_PROJECT_ID="encipharm-test",
+            FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         )
 

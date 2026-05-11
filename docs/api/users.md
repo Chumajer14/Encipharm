@@ -70,7 +70,7 @@ Activa o desactiva un usuario. Requiere `admin`.
 ```json
 {
   "uid": "seller-1",
-  "email": "seller@encipharm.cl",
+  "email": "seller@enci.cl",
   "nombre": "Vendedor",
   "rol": "vendedor",
   "activo": true,

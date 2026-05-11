@@ -1,8 +1,8 @@
-# Arquitectura - Encipharm Ventas
+# Arquitectura - Enci Ventas
 
 ## Vision general
 
-Sistema de gestion de ventas y MiniCRM para Encipharm, construido como monorepo con backend API, frontend web y carpeta mobile reservada para Fase 2.
+Sistema de gestion de ventas y MiniCRM para Enci, construido como monorepo con backend API, frontend web y carpeta mobile reservada para Fase 2.
 
 ## Stack tecnologico
 
@@ -19,7 +19,7 @@ Sistema de gestion de ventas y MiniCRM para Encipharm, construido como monorepo 
 ## Estructura del monorepo
 
 ```text
-Encipharm/
+Enci/
 ├── Backend/        # FastAPI
 │   ├── app/
 │   │   ├── api/       # routers por modulo

@@ -1,6 +1,6 @@
-# Encipharm Ventas
+# Enci Ventas
 
-Sistema de gestion de ventas y MiniCRM para Encipharm, desarrollado bajo metodologia Scrumban.
+Sistema de gestion de ventas y MiniCRM para Enci, desarrollado bajo metodologia Scrumban.
 El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos.
 
 ## Objetivo
@@ -145,6 +145,7 @@ POST /interacciones
 GET /oportunidades
 POST /oportunidades
 PATCH /oportunidades/{id}
+GET /oportunidades/{id}/detalle
 GET /propuestas
 POST /propuestas
 PATCH /propuestas/{id}
@@ -160,7 +161,7 @@ Los archivos `.env`, service accounts y credenciales reales no deben versionarse
 ### Backend
 
 ```env
-APP_NAME=Encipharm Ventas API
+APP_NAME=Enci Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"]
@@ -171,7 +172,7 @@ GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 ### Frontend
 
 ```env
-VITE_APP_NAME=Encipharm Ventas
+VITE_APP_NAME=Enci Ventas
 VITE_API_BASE_URL=http://localhost:8000
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
@@ -251,7 +252,7 @@ Checklist funcional:
 - El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
 - `POST /interacciones` registra llamadas, visitas, correos y reuniones.
 - `POST /oportunidades` crea oportunidades y `PATCH /oportunidades/{id}` cambia etapa.
-- `POST /propuestas` calcula descuento y monto total.
+- `POST /propuestas` exige oportunidad asociada, calcula descuento y monto total.
 
 ## Convenciones de trabajo
 
@@ -306,5 +307,5 @@ Un ticket se considera completo solo si:
 
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
-- EPIC 3: base funcional implementada con interacciones, oportunidades/pipeline y propuestas basicas.
-- Pendiente MVP: dashboard supervisor consolidado del flujo comercial, migracion, hardening final y UAT.
+- EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
+- Pendiente MVP: migracion, hardening final, pruebas E2E y UAT.

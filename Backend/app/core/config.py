@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    APP_NAME: str = "Encipharm API"
+    APP_NAME: str = "Enci API"
     APP_ENV: str = "development"
     APP_VERSION: str = "1.0.0"
 

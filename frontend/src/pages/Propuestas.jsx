@@ -48,7 +48,12 @@ function Propuestas() {
   }, [idToken, filtroEstado]);
 
   const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    const { name, value } = event.target;
+    if (name === "clienteId") {
+      setForm({ ...form, clienteId: value, oportunidadId: "" });
+      return;
+    }
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (event) => {
@@ -58,7 +63,6 @@ function Propuestas() {
       setSaving(true);
       const created = await createPropuesta(idToken, {
         ...form,
-        oportunidadId: form.oportunidadId || null,
         montoNeto: Number(form.montoNeto || 0),
         descuentoPct: Number(form.descuentoPct || 0),
         notas: form.notas || null,
@@ -121,8 +125,8 @@ function Propuestas() {
           </select>
         </label>
         <label>Oportunidad
-          <select name="oportunidadId" value={form.oportunidadId} onChange={handleChange}>
-            <option value="">Sin oportunidad asociada</option>
+          <select name="oportunidadId" value={form.oportunidadId} onChange={handleChange} required>
+            <option value="">Selecciona oportunidad</option>
             {oportunidades
               .filter((item) => !form.clienteId || item.clienteId === form.clienteId)
               .map((item) => <option key={item.id} value={item.id}>{item.titulo}</option>)}

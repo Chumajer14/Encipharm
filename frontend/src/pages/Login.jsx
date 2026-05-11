@@ -19,7 +19,7 @@ function Login() {
   return (
     <main className="login-page">
       <section className="login-panel">
-        <p className="eyebrow">Encipharm Ventas</p>
+        <p className="eyebrow">Enci Ventas</p>
         <h1>Acceso seguro al CRM comercial</h1>
         <p>
           Ingresa con Google para obtener el token de Firebase y autorizar tu
