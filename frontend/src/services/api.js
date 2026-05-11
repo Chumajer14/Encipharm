@@ -60,6 +60,14 @@ export function loginWithBackend(token) {
   });
 }
 
+export function updateCurrentUserTemporaryRole(token, rol) {
+  return apiFetch("/auth/temporary-role", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ rol }),
+  });
+}
+
 export function getClientes(token) {
   return apiFetch("/clientes", { token });
 }
