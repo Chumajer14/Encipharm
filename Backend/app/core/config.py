@@ -1,6 +1,6 @@
 import json
 from functools import lru_cache
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
 
     # CORS
-    CORS_ORIGINS: list[str] = [
+    CORS_ORIGINS: Any = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
