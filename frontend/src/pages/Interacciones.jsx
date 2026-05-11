@@ -9,6 +9,7 @@ const initialForm = {
   clienteId: "",
   tipo: "visita",
   fecha: "",
+  hora: "",
   resumen: "",
   resultado: "",
   proximaAccion: "",
@@ -57,7 +58,8 @@ function Interacciones() {
       setSaving(true);
       const payload = {
         ...form,
-        fecha: new Date(form.fecha).toISOString(),
+        fecha: new Date(`${form.fecha}T${form.hora}`).toISOString(),
+        hora: undefined,
         resultado: form.resultado || null,
         proximaAccion: form.proximaAccion || null,
       };
@@ -106,9 +108,14 @@ function Interacciones() {
             <option value="reunion">Reunion</option>
           </select>
         </label>
-        <label>Fecha
-          <input name="fecha" type="datetime-local" value={form.fecha} onChange={handleChange} required />
-        </label>
+        <div className="date-time-grid">
+          <label>Fecha
+            <input name="fecha" type="date" value={form.fecha} onChange={handleChange} required />
+          </label>
+          <label>Hora
+            <input name="hora" type="time" value={form.hora} onChange={handleChange} required />
+          </label>
+        </div>
         <label>Resumen
           <textarea name="resumen" maxLength={1000} value={form.resumen} onChange={handleChange} required />
         </label>

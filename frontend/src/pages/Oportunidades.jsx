@@ -146,7 +146,10 @@ function Oportunidades() {
           </div>
         </label>
         <label>Probabilidad
-          <input name="probabilidad" type="number" min="0" max="100" value={form.probabilidad} onChange={handleChange} />
+          <div className="suffix-input">
+            <input name="probabilidad" type="number" min="0" max="100" value={form.probabilidad} onChange={handleChange} />
+            <span>%</span>
+          </div>
         </label>
         <label>Descripcion
           <textarea name="descripcion" maxLength={1000} value={form.descripcion} onChange={handleChange} />

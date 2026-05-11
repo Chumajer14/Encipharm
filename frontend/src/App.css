@@ -267,6 +267,37 @@
   outline: 1px solid white;
 }
 
+.suffix-input {
+  align-items: center;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+}
+
+.suffix-input input {
+  border: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.suffix-input span {
+  color: #94a3b8;
+  font-weight: 800;
+  padding-right: 12px;
+}
+
+.suffix-input:focus-within {
+  outline: 1px solid white;
+}
+
+.date-time-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .form-actions {
   align-items: center;
   display: flex;
@@ -688,6 +719,10 @@
   }
 
   .filters-card {
+    grid-template-columns: 1fr;
+  }
+
+  .date-time-grid {
     grid-template-columns: 1fr;
   }
 
