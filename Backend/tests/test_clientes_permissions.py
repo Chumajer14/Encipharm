@@ -372,7 +372,7 @@ async def test_temporary_role_is_disabled_in_production(monkeypatch):
         "app.api.auth.get_settings",
         lambda: Settings(
             APP_ENV="production",
-            CORS_ORIGINS=["https://enci.cl"],
+            CORS_ORIGINS="https://enci.cl",
             FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         ),

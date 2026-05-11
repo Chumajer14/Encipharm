@@ -1,8 +1,8 @@
 import json
 from functools import lru_cache
-from typing import Any, Optional
+from typing import Optional
 
-from pydantic import field_validator, model_validator
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,11 +17,11 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
 
     # CORS
-    CORS_ORIGINS: Any = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ]
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,"
+        "http://localhost:5173,"
+        "http://127.0.0.1:5173"
+    )
     CORS_ORIGIN_REGEX: Optional[str] = None
 
     # Firebase
@@ -36,31 +36,27 @@ class Settings(BaseSettings):
     FIREBASE_WEB_APP_ID: Optional[str] = None
     FIREBASE_WEB_MEASUREMENT_ID: Optional[str] = None
 
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, value):
+    @property
+    def cors_origins_list(self) -> list[str]:
         """Accept JSON arrays or comma-separated values from hosting panels."""
-        if isinstance(value, str):
-            raw_value = value.strip()
-            if not raw_value:
-                return []
-            if raw_value.startswith("["):
-                value = json.loads(raw_value)
-            else:
-                value = raw_value.split(",")
+        raw_value = self.CORS_ORIGINS.strip()
+        if not raw_value:
+            return []
 
-        if isinstance(value, list):
-            return [
-                origin.strip().rstrip("/")
-                for origin in value
-                if isinstance(origin, str) and origin.strip()
-            ]
+        if raw_value.startswith("["):
+            value = json.loads(raw_value)
+        else:
+            value = raw_value.split(",")
 
-        return value
+        return [
+            origin.strip().rstrip("/")
+            for origin in value
+            if isinstance(origin, str) and origin.strip()
+        ]
 
     @model_validator(mode="after")
     def validate_security_settings(self):
-        if self.APP_ENV == "production" and "*" in self.CORS_ORIGINS:
+        if self.APP_ENV == "production" and "*" in self.cors_origins_list:
             raise ValueError("CORS_ORIGINS no puede incluir '*' en produccion")
         if self.APP_ENV == "production" and self.CORS_ORIGIN_REGEX in {".*", "^.*$"}:
             raise ValueError("CORS_ORIGIN_REGEX no puede permitir todos los origenes en produccion")
