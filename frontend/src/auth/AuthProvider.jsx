@@ -6,6 +6,7 @@ import {
 } from "firebase/auth";
 import {
   auth,
+  getFirebaseConfigHelpMessage,
   googleProvider,
   isFirebaseConfigured,
 } from "../services/firebase";
@@ -90,7 +91,7 @@ export function AuthProvider({ children }) {
 
   const login = async () => {
     if (!auth) {
-      setError("Firebase no esta configurado en frontend/.env");
+      setError(getFirebaseConfigHelpMessage());
       return;
     }
 

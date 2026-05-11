@@ -34,6 +34,8 @@ VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 
 `VITE_API_BASE_URL` debe apuntar a una API publica con HTTPS. Un backend local en `localhost` no sera accesible desde Vercel.
 
+Si el login muestra un mensaje de variables faltantes, revisar que las variables existan en el mismo ambiente del deploy. Vercel genera un build estatico, por lo que despues de crear o editar variables hay que ejecutar un Redeploy.
+
 ## Firebase Auth
 
 Agregar el dominio generado por Vercel en Firebase Console > Authentication > Settings > Authorized domains.

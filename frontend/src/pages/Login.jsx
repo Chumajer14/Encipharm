@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
-
+import { getFirebaseConfigHelpMessage } from "../services/firebase";
 
 
 function Login() {
@@ -37,7 +37,7 @@ function Login() {
 
         {!isFirebaseConfigured && (
           <p className="status-message error">
-            Falta completar la configuracion web de Firebase en frontend/.env.
+            {getFirebaseConfigHelpMessage()}
           </p>
         )}
 
