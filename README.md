@@ -278,7 +278,7 @@ Interacciones, pipeline y propuestas basicas.
 
 ### Ciclo 4
 
-Migracion, dashboards, hardening y QA.
+Dashboards, hardening y QA. La migracion de datos queda diferida.
 
 ### Ciclo 5
 
@@ -299,7 +299,7 @@ Un ticket se considera completo solo si:
 
 - El alcance debe mantenerse acotado para cumplir el plazo.
 - La integracion con ERP SAP puede diferirse si falta informacion tecnica.
-- La migracion depende de la calidad de los archivos Excel/CSV.
+- La migracion de datos historicos queda diferida hasta definir archivos fuente y reglas de limpieza.
 - Flutter y las capacidades avanzadas quedan para Fase 2.
 - Las credenciales Firebase Admin no deben exponerse ni versionarse.
 
@@ -308,4 +308,5 @@ Un ticket se considera completo solo si:
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
 - EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
-- Pendiente MVP: migracion, hardening final, pruebas E2E y UAT.
+- EPIC 4: iniciado con hardening de sesion, 404 real y estados vacios en dashboards. Migracion fuera de alcance por ahora.
+- Pendiente MVP: hardening final, pruebas E2E y UAT.

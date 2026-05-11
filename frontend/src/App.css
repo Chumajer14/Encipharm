@@ -475,8 +475,36 @@
   margin: 0 0 8px;
 }
 
+.empty-state h1 {
+  color: white;
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
 .empty-state p {
   margin: 0;
+}
+
+.not-found-page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.not-found-panel {
+  max-width: 460px;
+  width: 100%;
+}
+
+.not-found-panel button {
+  background: #22c55e;
+  border: 0;
+  border-radius: 8px;
+  color: #020617;
+  cursor: pointer;
+  font-weight: 800;
+  margin-top: 18px;
+  padding: 12px 16px;
 }
 
 .dashboard-grid {

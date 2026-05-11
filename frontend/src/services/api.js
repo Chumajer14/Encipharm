@@ -1,6 +1,20 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+function notifyAuthExpired(status) {
+  if (status === 401) {
+    window.dispatchEvent(new CustomEvent("enci:auth-expired"));
+  }
+}
+
 export async function apiFetch(path, { token, ...options } = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -22,7 +36,8 @@ export async function apiFetch(path, { token, ...options } = {}) {
       ? errorBody.detail.map((item) => item.msg).join(" ")
       : errorBody.detail;
     const message = detail || `Error ${response.status}`;
-    throw new Error(message);
+    notifyAuthExpired(response.status);
+    throw new ApiError(message, response.status);
   }
 
   return response.json();
@@ -69,7 +84,8 @@ export async function deleteCliente(token, clienteId) {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.detail || `Error ${response.status}`);
+    notifyAuthExpired(response.status);
+    throw new ApiError(errorBody.detail || `Error ${response.status}`, response.status);
   }
 }
 

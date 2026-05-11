@@ -76,6 +76,18 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  useEffect(() => {
+    async function handleAuthExpired() {
+      setError("Tu sesion expiro. Ingresa nuevamente.");
+      if (auth) {
+        await firebaseSignOut(auth);
+      }
+    }
+
+    window.addEventListener("enci:auth-expired", handleAuthExpired);
+    return () => window.removeEventListener("enci:auth-expired", handleAuthExpired);
+  }, []);
+
   const login = async () => {
     if (!auth) {
       setError("Firebase no esta configurado en frontend/.env");
