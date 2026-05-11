@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import ClienteSelect from "../components/ClienteSelect";
 import { createInteraccion, getClientes, getInteracciones } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -21,11 +22,13 @@ function Interacciones() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadingClientes, setLoadingClientes] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       if (!idToken) return;
       try {
+        setLoadingClientes(true);
         const [clientesData, interaccionesData] = await Promise.all([
           getClientes(idToken),
           getInteracciones(idToken),
@@ -34,6 +37,8 @@ function Interacciones() {
         setInteracciones(interaccionesData);
       } catch (loadError) {
         setError(getFriendlyApiError(loadError));
+      } finally {
+        setLoadingClientes(false);
       }
     }
 
@@ -86,10 +91,12 @@ function Interacciones() {
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
-          <select name="clienteId" value={form.clienteId} onChange={handleChange} required>
-            <option value="">Selecciona cliente</option>
-            {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.empresa}</option>)}
-          </select>
+          <ClienteSelect
+            clientes={clientes}
+            loading={loadingClientes}
+            onChange={handleChange}
+            value={form.clienteId}
+          />
         </label>
         <label>Tipo
           <select name="tipo" value={form.tipo} onChange={handleChange}>

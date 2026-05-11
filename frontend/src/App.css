@@ -216,6 +216,32 @@
   opacity: 0.7;
 }
 
+.select-loading-wrap {
+  position: relative;
+}
+
+.select-loading-wrap select {
+  width: 100%;
+}
+
+.select-spinner {
+  animation: spin 0.8s linear infinite;
+  border: 2px solid #334155;
+  border-top-color: #5eead4;
+  border-radius: 999px;
+  height: 16px;
+  position: absolute;
+  right: 42px;
+  top: calc(50% - 8px);
+  width: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .form-actions {
   align-items: center;
   display: flex;

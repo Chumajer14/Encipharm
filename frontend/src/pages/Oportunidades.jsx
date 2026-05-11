@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import ClienteSelect from "../components/ClienteSelect";
 import { createOportunidad, getClientes, getOportunidades, updateOportunidad } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -23,11 +24,13 @@ function Oportunidades() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
+  const [loadingClientes, setLoadingClientes] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       if (!idToken) return;
       try {
+        setLoadingClientes(true);
         const [clientesData, oportunidadesData] = await Promise.all([
           getClientes(idToken),
           getOportunidades(idToken, { etapa: filtroEtapa }),
@@ -36,6 +39,8 @@ function Oportunidades() {
         setOportunidades(oportunidadesData);
       } catch (loadError) {
         setError(getFriendlyApiError(loadError));
+      } finally {
+        setLoadingClientes(false);
       }
     }
 
@@ -109,10 +114,12 @@ function Oportunidades() {
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
-          <select name="clienteId" value={form.clienteId} onChange={handleChange} required>
-            <option value="">Selecciona cliente</option>
-            {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.empresa}</option>)}
-          </select>
+          <ClienteSelect
+            clientes={clientes}
+            loading={loadingClientes}
+            onChange={handleChange}
+            value={form.clienteId}
+          />
         </label>
         <label>Titulo
           <input name="titulo" maxLength={160} value={form.titulo} onChange={handleChange} required />
