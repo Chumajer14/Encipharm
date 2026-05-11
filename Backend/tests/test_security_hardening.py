@@ -11,7 +11,31 @@ def test_production_rejects_wildcard_cors():
     with pytest.raises(ValidationError):
         Settings(
             APP_ENV="production",
-            CORS_ORIGINS=["*"],
+            CORS_ORIGINS="*",
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        )
+
+
+def test_cors_origins_accept_comma_separated_hosting_value():
+    settings = Settings(
+        CORS_ORIGINS="https://enci.vercel.app, https://preview.vercel.app/",
+        FIREBASE_PROJECT_ID="enci-test",
+        GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+    )
+
+    assert settings.cors_origins_list == [
+        "https://enci.vercel.app",
+        "https://preview.vercel.app",
+    ]
+
+
+def test_production_rejects_open_cors_regex():
+    with pytest.raises(ValidationError):
+        Settings(
+            APP_ENV="production",
+            CORS_ORIGINS="https://enci.cl",
+            CORS_ORIGIN_REGEX=".*",
             FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         )
