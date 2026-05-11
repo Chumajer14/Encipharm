@@ -17,6 +17,30 @@ def test_production_rejects_wildcard_cors():
         )
 
 
+def test_cors_origins_accept_comma_separated_hosting_value():
+    settings = Settings(
+        CORS_ORIGINS="https://enci.vercel.app, https://preview.vercel.app/",
+        FIREBASE_PROJECT_ID="enci-test",
+        GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+    )
+
+    assert settings.CORS_ORIGINS == [
+        "https://enci.vercel.app",
+        "https://preview.vercel.app",
+    ]
+
+
+def test_production_rejects_open_cors_regex():
+    with pytest.raises(ValidationError):
+        Settings(
+            APP_ENV="production",
+            CORS_ORIGINS=["https://enci.cl"],
+            CORS_ORIGIN_REGEX=".*",
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        )
+
+
 @pytest.mark.anyio
 async def test_rate_limiter_blocks_request_bursts():
     async def app(scope, receive, send):

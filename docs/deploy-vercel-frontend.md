@@ -55,6 +55,18 @@ Agregar los dominios de Vercel a `CORS_ORIGINS` del backend:
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173","https://<proyecto>.vercel.app","https://<preview>.vercel.app"]
 ```
 
+En Render tambien se puede usar una lista separada por comas si el panel complica el JSON:
+
+```env
+CORS_ORIGINS=https://<proyecto>.vercel.app,https://<preview>.vercel.app
+```
+
+Para previews de Vercel generados automaticamente, usar una expresion regular acotada al proyecto:
+
+```env
+CORS_ORIGIN_REGEX=^https://encipharm(-[a-z0-9-]+)?-chumajer14s-projects\.vercel\.app$
+```
+
 En produccion no usar `*` como origen permitido.
 
 ## Flujo recomendado
