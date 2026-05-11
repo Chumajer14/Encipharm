@@ -201,9 +201,19 @@ def test_proposal_update_recalculates_total():
     db = FakeDb()
     cliente = _cliente(db)
     user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Venta anual"),
+        user,
+    )
     proposal = create_proposal(
         db,
-        ProposalCreate(clienteId=cliente["id"], titulo="Propuesta", montoNeto=100000),
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta",
+            montoNeto=100000,
+        ),
         user,
     )
 
@@ -235,7 +245,12 @@ def test_proposals_can_be_filtered_by_status_and_opportunity():
     )
     create_proposal(
         db,
-        ProposalCreate(clienteId=cliente["id"], titulo="Propuesta borrador", montoNeto=100000),
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta borrador",
+            montoNeto=100000,
+        ),
         user,
     )
 
@@ -342,4 +357,13 @@ def test_commercial_models_reject_formula_injection():
         OpportunityCreate(
             clienteId="cliente-1",
             titulo="=HYPERLINK(\"http://attacker\")",
+        )
+
+
+def test_proposal_requires_opportunity():
+    with pytest.raises(ValidationError):
+        ProposalCreate(
+            clienteId="cliente-1",
+            titulo="Propuesta sin oportunidad",
+            montoNeto=100000,
         )

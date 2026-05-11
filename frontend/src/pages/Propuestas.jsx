@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import ClienteSelect from "../components/ClienteSelect";
 import { createPropuesta, getClientes, getOportunidades, getPropuestas, updatePropuesta } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -26,11 +27,13 @@ function Propuestas() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
+  const [loadingClientes, setLoadingClientes] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       if (!idToken) return;
       try {
+        setLoadingClientes(true);
         const [clientesData, oportunidadesData, propuestasData] = await Promise.all([
           getClientes(idToken),
           getOportunidades(idToken),
@@ -41,6 +44,8 @@ function Propuestas() {
         setPropuestas(propuestasData);
       } catch (loadError) {
         setError(getFriendlyApiError(loadError));
+      } finally {
+        setLoadingClientes(false);
       }
     }
 
@@ -48,7 +53,12 @@ function Propuestas() {
   }, [idToken, filtroEstado]);
 
   const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    const { name, value } = event.target;
+    if (name === "clienteId") {
+      setForm({ ...form, clienteId: value, oportunidadId: "" });
+      return;
+    }
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (event) => {
@@ -58,7 +68,6 @@ function Propuestas() {
       setSaving(true);
       const created = await createPropuesta(idToken, {
         ...form,
-        oportunidadId: form.oportunidadId || null,
         montoNeto: Number(form.montoNeto || 0),
         descuentoPct: Number(form.descuentoPct || 0),
         notas: form.notas || null,
@@ -115,14 +124,16 @@ function Propuestas() {
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
-          <select name="clienteId" value={form.clienteId} onChange={handleChange} required>
-            <option value="">Selecciona cliente</option>
-            {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.empresa}</option>)}
-          </select>
+          <ClienteSelect
+            clientes={clientes}
+            loading={loadingClientes}
+            onChange={handleChange}
+            value={form.clienteId}
+          />
         </label>
         <label>Oportunidad
-          <select name="oportunidadId" value={form.oportunidadId} onChange={handleChange}>
-            <option value="">Sin oportunidad asociada</option>
+          <select name="oportunidadId" value={form.oportunidadId} onChange={handleChange} required>
+            <option value="">Selecciona oportunidad</option>
             {oportunidades
               .filter((item) => !form.clienteId || item.clienteId === form.clienteId)
               .map((item) => <option key={item.id} value={item.id}>{item.titulo}</option>)}

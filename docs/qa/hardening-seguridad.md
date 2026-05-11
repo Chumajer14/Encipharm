@@ -26,7 +26,8 @@
 | Acceso directo a Firestore desde cliente | `firestore.rules` versionado con denegacion total; el MVP opera mediante la API FastAPI con Firebase Admin y validacion de roles/propiedad |
 | Importacion CSV con duplicados | Validacion atomica por email contra archivo y CRM antes de escribir nuevos clientes |
 | Asociacion de propuesta a oportunidad ajena | Validacion de visibilidad de oportunidad antes de crear la propuesta |
-| Rutas frontend no implementadas | Pantallas protegidas de modulo pendiente para EPIC 3 |
+| Rutas inexistentes | Pagina 404 real con retorno al flujo principal |
+| Sesion expirada | Evento global de token expirado con logout y mensaje de reingreso |
 
 ## Comandos de verificacion
 

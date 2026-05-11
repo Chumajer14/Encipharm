@@ -1,6 +1,6 @@
-# Encipharm Ventas
+# Enci Ventas
 
-Sistema de gestion de ventas y MiniCRM para Encipharm, desarrollado bajo metodologia Scrumban.
+Sistema de gestion de ventas y MiniCRM para Enci, desarrollado bajo metodologia Scrumban.
 El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos.
 
 ## Objetivo
@@ -40,6 +40,7 @@ Quedan fuera de esta fase:
 - **Autenticacion:** Firebase Auth con Google SSO.
 - **Autorizacion:** Bearer token validado con Firebase Admin.
 - **Infraestructura prevista:** GCP Cloud Run, Cloud Build, Artifact Registry.
+- **Preview frontend:** Vercel para publicar la app web React/Vite de forma independiente.
 - **Documentacion y despliegue:** README vivo y variables seguras fuera del repositorio.
 
 ## Estructura del repositorio
@@ -145,6 +146,7 @@ POST /interacciones
 GET /oportunidades
 POST /oportunidades
 PATCH /oportunidades/{id}
+GET /oportunidades/{id}/detalle
 GET /propuestas
 POST /propuestas
 PATCH /propuestas/{id}
@@ -160,7 +162,7 @@ Los archivos `.env`, service accounts y credenciales reales no deben versionarse
 ### Backend
 
 ```env
-APP_NAME=Encipharm Ventas API
+APP_NAME=Enci Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"]
@@ -171,7 +173,7 @@ GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 ### Frontend
 
 ```env
-VITE_APP_NAME=Encipharm Ventas
+VITE_APP_NAME=Enci Ventas
 VITE_API_BASE_URL=http://localhost:8000
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
@@ -181,6 +183,8 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 ```
+
+Para publicar el frontend en Vercel, configurar el proyecto con Root Directory = `frontend` y cargar las mismas variables `VITE_*` en Preview/Production. `VITE_API_BASE_URL` debe apuntar a una API publica HTTPS; `localhost` solo sirve para desarrollo local. Guia detallada: `docs/deploy-vercel-frontend.md`.
 
 ## Instalacion local
 
@@ -251,7 +255,7 @@ Checklist funcional:
 - El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
 - `POST /interacciones` registra llamadas, visitas, correos y reuniones.
 - `POST /oportunidades` crea oportunidades y `PATCH /oportunidades/{id}` cambia etapa.
-- `POST /propuestas` calcula descuento y monto total.
+- `POST /propuestas` exige oportunidad asociada, calcula descuento y monto total.
 
 ## Convenciones de trabajo
 
@@ -277,7 +281,7 @@ Interacciones, pipeline y propuestas basicas.
 
 ### Ciclo 4
 
-Migracion, dashboards, hardening y QA.
+Dashboards, hardening y QA. La migracion de datos queda diferida.
 
 ### Ciclo 5
 
@@ -298,7 +302,7 @@ Un ticket se considera completo solo si:
 
 - El alcance debe mantenerse acotado para cumplir el plazo.
 - La integracion con ERP SAP puede diferirse si falta informacion tecnica.
-- La migracion depende de la calidad de los archivos Excel/CSV.
+- La migracion de datos historicos queda diferida hasta definir archivos fuente y reglas de limpieza.
 - Flutter y las capacidades avanzadas quedan para Fase 2.
 - Las credenciales Firebase Admin no deben exponerse ni versionarse.
 
@@ -306,5 +310,6 @@ Un ticket se considera completo solo si:
 
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
-- EPIC 3: base funcional implementada con interacciones, oportunidades/pipeline y propuestas basicas.
-- Pendiente MVP: dashboard supervisor consolidado del flujo comercial, migracion, hardening final y UAT.
+- EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
+- EPIC 4: iniciado con hardening de sesion, 404 real y estados vacios en dashboards. Migracion fuera de alcance por ahora.
+- Pendiente MVP: hardening final, pruebas E2E y UAT.

@@ -7,6 +7,19 @@ function getCount(items = [], key) {
   return items.find((item) => item.clave === key)?.total ?? 0;
 }
 
+function MetricList({ emptyText, items = [] }) {
+  if (items.length === 0) {
+    return <p className="muted-text">{emptyText}</p>;
+  }
+
+  return items.map((item) => (
+    <p key={item.clave}>
+      <span>{item.clave}</span>
+      <strong>{item.total}</strong>
+    </p>
+  ));
+}
+
 function Dashboard() {
   const { idToken, backendUser, logout } = useAuth();
   const [data, setData] = useState(null);
@@ -42,7 +55,7 @@ function Dashboard() {
     <main className="page">
       <section className="header header-row">
         <div>
-          <h1>Encipharm Ventas</h1>
+          <h1>Enci Ventas</h1>
           <p>
             Dashboard {isSupervisorView ? "supervisor" : "vendedor"} / {backendUser?.email}
           </p>
@@ -98,42 +111,22 @@ function Dashboard() {
         <section className="dashboard-detail">
           <article>
             <h2>Clientes por rubro</h2>
-            {data?.clientesPorRubro?.map((item) => (
-              <p key={item.clave}>
-                <span>{item.clave}</span>
-                <strong>{item.total}</strong>
-              </p>
-            ))}
+            <MetricList items={data?.clientesPorRubro} emptyText="Sin clientes por rubro." />
           </article>
 
           <article>
             <h2>Clientes por region</h2>
-            {data?.clientesPorRegion?.map((item) => (
-              <p key={item.clave}>
-                <span>{item.clave}</span>
-                <strong>{item.total}</strong>
-              </p>
-            ))}
+            <MetricList items={data?.clientesPorRegion} emptyText="Sin clientes por region." />
           </article>
 
           <article>
             <h2>Oportunidades por etapa</h2>
-            {data?.oportunidadesPorEtapa?.map((item) => (
-              <p key={item.clave}>
-                <span>{item.clave}</span>
-                <strong>{item.total}</strong>
-              </p>
-            ))}
+            <MetricList items={data?.oportunidadesPorEtapa} emptyText="Sin oportunidades por etapa." />
           </article>
 
           <article>
             <h2>Propuestas por estado</h2>
-            {data?.propuestasPorEstado?.map((item) => (
-              <p key={item.clave}>
-                <span>{item.clave}</span>
-                <strong>{item.total}</strong>
-              </p>
-            ))}
+            <MetricList items={data?.propuestasPorEstado} emptyText="Sin propuestas por estado." />
           </article>
         </section>
       )}

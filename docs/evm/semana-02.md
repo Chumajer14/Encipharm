@@ -4,7 +4,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| Proyecto | Encipharm Ventas MVP |
+| Proyecto | Enci Ventas MVP |
 | Sprint | Sprint 02 - EPIC 2 |
 | Fecha de corte | 2 mayo 2026 |
 | Alcance evaluado | Backend EPIC 2 + QA |

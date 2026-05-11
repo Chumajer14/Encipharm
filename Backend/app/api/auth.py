@@ -3,8 +3,10 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.auth import get_current_user
-from app.models.user import UserResponse
+from app.core.config import get_settings
+from app.models.user import UserResponse, UserRoleUpdate
 from app.services.firestore import get_db
+from app.services.users import update_user
 
 router = APIRouter(prefix="/auth", tags=["Autenticacion"])
 
@@ -60,3 +62,20 @@ async def login_user(user: dict = Depends(get_current_user)):
 @router.post("/register", response_model=UserResponse)
 async def register_user(user: dict = Depends(get_current_user)):
     return await upsert_authenticated_user(user)
+
+
+@router.patch("/temporary-role", response_model=UserResponse)
+async def patch_temporary_own_role(
+    payload: UserRoleUpdate,
+    user: dict = Depends(get_current_user),
+):
+    """Permite cambiar temporalmente el rol propio solo para pruebas internas."""
+    settings = get_settings()
+    if settings.APP_ENV == "production":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cambio temporal de rol deshabilitado en produccion",
+        )
+
+    db = get_db()
+    return update_user(db, user["uid"], {"rol": payload.rol})

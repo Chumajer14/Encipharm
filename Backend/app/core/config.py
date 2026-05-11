@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import Optional
 
@@ -11,16 +12,17 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    APP_NAME: str = "Encipharm API"
+    APP_NAME: str = "Enci API"
     APP_ENV: str = "development"
     APP_VERSION: str = "1.0.0"
 
     # CORS
-    CORS_ORIGINS: list[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ]
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,"
+        "http://localhost:5173,"
+        "http://127.0.0.1:5173"
+    )
+    CORS_ORIGIN_REGEX: Optional[str] = None
 
     # Firebase
     FIREBASE_PROJECT_ID: str
@@ -34,10 +36,30 @@ class Settings(BaseSettings):
     FIREBASE_WEB_APP_ID: Optional[str] = None
     FIREBASE_WEB_MEASUREMENT_ID: Optional[str] = None
 
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Accept JSON arrays or comma-separated values from hosting panels."""
+        raw_value = self.CORS_ORIGINS.strip()
+        if not raw_value:
+            return []
+
+        if raw_value.startswith("["):
+            value = json.loads(raw_value)
+        else:
+            value = raw_value.split(",")
+
+        return [
+            origin.strip().rstrip("/")
+            for origin in value
+            if isinstance(origin, str) and origin.strip()
+        ]
+
     @model_validator(mode="after")
     def validate_security_settings(self):
-        if self.APP_ENV == "production" and "*" in self.CORS_ORIGINS:
+        if self.APP_ENV == "production" and "*" in self.cors_origins_list:
             raise ValueError("CORS_ORIGINS no puede incluir '*' en produccion")
+        if self.APP_ENV == "production" and self.CORS_ORIGIN_REGEX in {".*", "^.*$"}:
+            raise ValueError("CORS_ORIGIN_REGEX no puede permitir todos los origenes en produccion")
         return self
 
 @lru_cache()

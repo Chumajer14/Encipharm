@@ -86,7 +86,7 @@ class OpportunityDetailResponse(BaseModel):
 
 class ProposalCreate(BaseModel):
     clienteId: str = Field(min_length=1, max_length=128)
-    oportunidadId: Optional[str] = Field(default=None, max_length=128)
+    oportunidadId: str = Field(min_length=1, max_length=128)
     titulo: str = Field(min_length=1, max_length=160)
     montoNeto: float = Field(ge=0, le=1_000_000_000)
     descuentoPct: float = Field(default=0, ge=0, le=100)

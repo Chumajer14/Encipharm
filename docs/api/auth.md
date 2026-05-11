@@ -21,7 +21,7 @@ Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil 
 ```json
 {
   "uid": "string",
-  "email": "usuario@encipharm.cl",
+  "email": "usuario@enci.cl",
   "nombre": "Juan Perez",
   "rol": "vendedor",
   "activo": true,
@@ -32,6 +32,26 @@ Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil 
 
 Si el usuario no existe en Firestore, se crea con rol inicial `vendedor`.
 Si el usuario existe con `activo = false`, la API rechaza el login y los endpoints protegidos con `403`.
+
+## PATCH `/auth/temporary-role`
+
+Cambia el rol de la propia cuenta autenticada para pruebas de interfaz y permisos.
+
+**TEMPORAL - TEMPORAL:** este endpoint existe solo para validacion funcional durante desarrollo y debe eliminarse antes de entregar el sistema final. En `APP_ENV=production` responde `403`.
+
+**Autenticacion:** requerida.
+
+**Body:**
+
+```json
+{
+  "rol": "admin"
+}
+```
+
+Valores permitidos: `vendedor`, `supervisor`, `admin`.
+
+**Respuesta exitosa `200 OK`:** retorna el `UserResponse` actualizado.
 
 ## GET `/me`
 
@@ -44,7 +64,7 @@ Retorna los datos basicos del usuario autenticado a partir del token JWT.
 ```json
 {
   "uid": "string",
-  "email": "usuario@encipharm.cl",
+  "email": "usuario@enci.cl",
   "rol": "vendedor",
   "activo": true,
   "message": "Token valido"

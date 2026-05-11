@@ -10,6 +10,7 @@ import Interacciones from "./pages/Interacciones";
 import Oportunidades from "./pages/Oportunidades";
 import OportunidadDetalle from "./pages/OportunidadDetalle";
 import Propuestas from "./pages/Propuestas";
+import NotFound from "./pages/NotFound";
 import "./App.css";
 
 function App() {
@@ -93,7 +94,7 @@ function App() {
             }
           />
 
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

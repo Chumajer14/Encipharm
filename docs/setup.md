@@ -1,4 +1,4 @@
-# Setup - Encipharm Ventas
+# Setup - Enci Ventas
 
 ## Requisitos previos
 
@@ -11,8 +11,8 @@
 ## Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-org/Encipharm.git
-cd Encipharm
+git clone https://github.com/tu-org/Enci.git
+cd Enci
 ```
 
 ## Backend
@@ -33,7 +33,7 @@ El servidor queda disponible en:
 Crea `Backend/.env` basado en estos valores:
 
 ```env
-APP_NAME=Encipharm Ventas API
+APP_NAME=Enci Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]

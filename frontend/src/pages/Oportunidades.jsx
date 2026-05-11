@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import ClienteSelect from "../components/ClienteSelect";
 import { createOportunidad, getClientes, getOportunidades, updateOportunidad } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -14,6 +15,11 @@ const initialForm = {
   descripcion: "",
 };
 
+function formatAmount(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits ? Number(digits).toLocaleString("es-CL") : "";
+}
+
 function Oportunidades() {
   const { idToken } = useAuth();
   const [clientes, setClientes] = useState([]);
@@ -23,11 +29,13 @@ function Oportunidades() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
+  const [loadingClientes, setLoadingClientes] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       if (!idToken) return;
       try {
+        setLoadingClientes(true);
         const [clientesData, oportunidadesData] = await Promise.all([
           getClientes(idToken),
           getOportunidades(idToken, { etapa: filtroEtapa }),
@@ -36,6 +44,8 @@ function Oportunidades() {
         setOportunidades(oportunidadesData);
       } catch (loadError) {
         setError(getFriendlyApiError(loadError));
+      } finally {
+        setLoadingClientes(false);
       }
     }
 
@@ -43,7 +53,12 @@ function Oportunidades() {
   }, [idToken, filtroEtapa]);
 
   const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    const { name, value } = event.target;
+    if (name === "valorEstimado") {
+      setForm({ ...form, valorEstimado: value.replace(/\D/g, "") });
+      return;
+    }
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (event) => {
@@ -109,19 +124,32 @@ function Oportunidades() {
 
       <form className="form form-card" onSubmit={handleSubmit}>
         <label>Cliente
-          <select name="clienteId" value={form.clienteId} onChange={handleChange} required>
-            <option value="">Selecciona cliente</option>
-            {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.empresa}</option>)}
-          </select>
+          <ClienteSelect
+            clientes={clientes}
+            loading={loadingClientes}
+            onChange={handleChange}
+            value={form.clienteId}
+          />
         </label>
         <label>Titulo
           <input name="titulo" maxLength={160} value={form.titulo} onChange={handleChange} required />
         </label>
         <label>Valor estimado
-          <input name="valorEstimado" type="number" min="0" value={form.valorEstimado} onChange={handleChange} />
+          <div className="currency-input">
+            <span>$</span>
+            <input
+              name="valorEstimado"
+              inputMode="numeric"
+              value={formatAmount(form.valorEstimado)}
+              onChange={handleChange}
+            />
+          </div>
         </label>
         <label>Probabilidad
-          <input name="probabilidad" type="number" min="0" max="100" value={form.probabilidad} onChange={handleChange} />
+          <div className="suffix-input">
+            <input name="probabilidad" type="number" min="0" max="100" value={form.probabilidad} onChange={handleChange} />
+            <span>%</span>
+          </div>
         </label>
         <label>Descripcion
           <textarea name="descripcion" maxLength={1000} value={form.descripcion} onChange={handleChange} />

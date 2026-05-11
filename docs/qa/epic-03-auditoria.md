@@ -2,21 +2,20 @@
 
 Fecha: 2026-05-08  
 Rama: `feature-epic-3-flujo-comercial`  
-Alcance: EPIC 1, EPIC 2 y EPIC 3 del MVP Encipharm Ventas.
+Alcance: EPIC 1, EPIC 2 y EPIC 3 del MVP Enci Ventas.
 
 ## A. Resumen ejecutivo
 
-Estado general: estable para Development con observaciones. La API FastAPI centraliza autenticacion, autorizacion por rol y control de propiedad; el frontend usa Firebase Auth solo para identidad y consume la API con ID token. La suite backend cubre permisos base, CSV, hardening y flujo comercial; el frontend compila y no tiene hallazgos de ESLint.
+Estado general: estable para Development. La API FastAPI centraliza autenticacion, autorizacion por rol y control de propiedad; el frontend usa Firebase Auth solo para identidad y consume la API con ID token. La suite backend cubre permisos base, CSV, hardening y flujo comercial; el frontend compila y no tiene hallazgos de ESLint.
 
-Estado EPIC 3: aprobado con observaciones. Interacciones, oportunidades, propuestas y dashboard supervisor existen y funcionan a nivel tecnico. Se corrigieron brechas de duplicados CSV, asociacion de propuestas a oportunidades no visibles, reglas Firestore versionadas y manejo de errores/doble accion en cambios de estado.
+Estado EPIC 3: cerrado para Development. Interacciones, oportunidades, propuestas y dashboard supervisor existen y funcionan a nivel tecnico. Se corrigieron brechas de duplicados CSV, asociacion de propuestas a oportunidades no visibles, propuestas sin oportunidad asociada, reglas Firestore versionadas y manejo de errores/doble accion en cambios de estado.
 
 Principales riesgos residuales:
 - No hay pruebas automatizadas frontend/E2E configuradas.
 - No se pudo validar login real con Firebase ni flujos manuales en navegador con usuarios reales.
 - Las consultas Firestore se filtran en memoria; sirve para MVP, pero requiere indices/consultas server-side antes de escalar.
-- Las propuestas aun pueden existir sin oportunidad asociada porque el modelo actual lo permite.
 
-Recomendacion final: cerrar EPIC 3 en Development como aprobado con observaciones, crear pruebas E2E antes de producción y mantener Firestore cerrado a clientes directos.
+Recomendacion final: cerrar EPIC 3 en Development, crear pruebas E2E antes de produccion y mantener Firestore cerrado a clientes directos.
 
 ## B. Checklist de validacion
 
@@ -31,8 +30,8 @@ Recomendacion final: cerrar EPIC 3 en Development como aprobado con observacione
 | EPIC 2 dashboards | Aprobado | `/dashboard/vendedor`, `/dashboard/supervisor` | Consultas en memoria para MVP |
 | EPIC 3 interacciones | Aprobado | validacion cliente visible, tipo, fecha, resumen | Falta E2E |
 | EPIC 3 Kanban | Aprobado con parche | estados tipados y PATCH protegido | No hay drag and drop, usa select |
-| EPIC 3 propuestas | Aprobado con obs. | calculo server-side, estados tipados | Oportunidad opcional por modelo actual |
-| Seguridad frontend | Aprobado con obs. | tokens en memoria, sin localStorage | Hay mensajes en consola no sensibles |
+| EPIC 3 propuestas | Aprobado | calculo server-side, estados tipados, oportunidad obligatoria | Falta E2E |
+| Seguridad frontend | Aprobado | tokens en memoria, refresh por evento Firebase, sin localStorage | Hay mensajes en consola no sensibles |
 | Seguridad backend | Aprobado con parche | roles, propiedad, rate limit, size limit | Falta validacion deploy de reglas |
 
 ## C. Matriz de pruebas manuales
@@ -79,9 +78,9 @@ Recomendacion final: cerrar EPIC 3 en Development como aprobado con observacione
 |---|---|---|---|---|---|---|---|
 | Firestore sin reglas versionadas | Repo raiz | Despliegue accidental abierto | Critico | No existia `firestore.rules` | Versionar reglas cerradas | `allow read, write: if false` | Revisar deploy Firebase |
 | Asociacion cruzada propuesta-oportunidad | Servicio comercial | Datos comerciales ajenos vinculados | Alto | `create_proposal` no llamaba `_visible_by_user` | Validar oportunidad visible | Parche aplicado | `test_seller_cannot_link_proposal_to_other_seller_opportunity` |
+| Propuestas sin oportunidad | Modelo comercial | Trazabilidad comercial incompleta | Medio | `oportunidadId` era opcional | Exigir oportunidad visible del mismo cliente | Parche aplicado | `test_proposal_requires_opportunity` |
 | Duplicados CSV | Importacion clientes | Corrupcion logica de CRM | Medio | Sin set de emails | Validacion atomica | Parche aplicado | tests duplicados CSV |
 | Confianza en frontend para navegacion | Rutas React | Acceso visual por URL | Medio | `ProtectedRoute` solo auth, no rol | Mantener bloqueo backend, ocultar enlaces por rol en siguiente hardening | Pendiente | E2E por rol |
-| Token expirado sin refresh proactivo | Auth frontend | Errores 401 hasta relogin | Medio | Token se guarda en estado tras `getIdToken()` inicial | Obtener token fresco por request o interceptor | Pendiente | Test sesion expirada |
 | Consultas en memoria | Servicios list/dashboard | Exposicion operacional/rendimiento | Medio | `.stream()` y filtro local | Migrar a consultas Firestore con indices | Pendiente EPIC 4 | Prueba carga |
 
 ## F. Parches de codigo
@@ -90,11 +89,13 @@ Recomendacion final: cerrar EPIC 3 en Development como aprobado con observacione
 |---|---|---|---|
 | `Backend/app/services/clientes.py` | CSV aceptaba duplicados | Validacion por email dentro del archivo y contra CRM antes de escribir | `uv run pytest` |
 | `Backend/app/services/comercial.py` | Propuesta podia vincular oportunidad no visible | Validacion `_visible_by_user` antes de aceptar `oportunidadId` | `uv run pytest` |
+| `Backend/app/models/comercial.py` | Propuesta podia existir sin oportunidad | `oportunidadId` obligatorio en payload de creacion | `uv run pytest` |
 | `Backend/tests/test_clientes_permissions.py` | Cobertura incompleta CSV | Tests de duplicado interno y existente | `uv run pytest` |
 | `Backend/tests/test_comercial_flow.py` | Cobertura incompleta relacion propuesta-oportunidad | Test 403 con oportunidad ajena | `uv run pytest` |
 | `frontend/src/pages/Oportunidades.jsx` | Cambio etapa sin manejo de error/doble accion | `saving`, `updatingId`, `try/catch` | `npm.cmd run build`, `npm.cmd run lint` |
-| `frontend/src/pages/Propuestas.jsx` | Cambio estado sin manejo de error/doble accion | `saving`, `updatingId`, `try/catch` | `npm.cmd run build`, `npm.cmd run lint` |
+| `frontend/src/pages/Propuestas.jsx` | Cambio estado sin manejo de error/doble accion y oportunidad opcional | `saving`, `updatingId`, `try/catch`, selector de oportunidad requerido | `npm.cmd run build`, `npm.cmd run lint` |
 | `frontend/src/pages/OportunidadDetalle.jsx` | Updates silenciosos | Estados de update y errores visibles | `npm.cmd run build`, `npm.cmd run lint` |
+| `frontend/src/auth/AuthProvider.jsx` | Token no reaccionaba a refresh Firebase | Suscripcion a `onIdTokenChanged` | `npm.cmd run build`, `npm.cmd run lint` |
 | `firestore.rules` | Reglas no versionadas | Denegacion total de acceso directo cliente | Revision manual deploy |
 | `firebase.json` | Reglas no enlazadas | Configuracion de reglas Firestore | Revision manual deploy |
 | `docs/qa/hardening-seguridad.md` | Documentacion desactualizada | Hardening actualizado | Revision docs |
@@ -102,7 +103,7 @@ Recomendacion final: cerrar EPIC 3 en Development como aprobado con observacione
 ## G. Pruebas automatizadas
 
 Ejecutadas:
-- Backend: `uv run pytest` en `Backend` -> 31 passed.
+- Backend: `uv run pytest` en `Backend` -> 32 passed.
 - Frontend build: `npm.cmd run build` en `frontend` -> passed.
 - Frontend lint: `npm.cmd run lint` en `frontend` -> passed.
 - Dependencias frontend: `npm.cmd audit --audit-level=moderate` -> 0 vulnerabilities.
@@ -125,7 +126,6 @@ Critico:
 - Validar manualmente usuarios reales vendedor/supervisor/admin contra rutas y endpoints.
 
 Alto:
-- Implementar token fresco por request o manejo global de 401 con logout/redireccion.
 - Ocultar/segmentar acciones frontend por rol, manteniendo backend como control obligatorio.
 - Agregar pruebas E2E de acceso indebido por URL y manipulacion de IDs.
 
@@ -144,13 +144,13 @@ Bajo:
 | Criterio | Estado | Evidencia |
 |---|---|---|
 | Codigo en rama correspondiente | Aprobado | `feature-epic-3-flujo-comercial` |
-| Tests sin errores criticos | Aprobado | 31 backend passed, build/lint frontend passed |
-| QA Development | Aprobado parcial | Auditoria tecnica local; manual real pendiente |
+| Tests sin errores criticos | Aprobado | 32 backend passed, build/lint frontend passed |
+| QA Development | Aprobado | Auditoria tecnica local; manual real pendiente antes de produccion |
 | Documentacion actualizada | Aprobado | `docs/qa/hardening-seguridad.md`, este reporte |
 | Sin bugs criticos abiertos | Aprobado | No quedan criticos detectados en codigo |
-| Sin vulnerabilidades criticas abiertas | Aprobado parcial | `npm audit` 0; reglas Firestore agregadas; backend deps sin audit especializado |
+| Sin vulnerabilidades criticas abiertas | Aprobado parcial | reglas Firestore agregadas; backend deps sin audit especializado |
 | Roles y permisos | Aprobado | Backend valida rol/propiedad |
-| Cliente-oportunidad-propuesta | Aprobado con obs. | Relacion validada; propuesta permite oportunidad opcional |
+| Cliente-oportunidad-propuesta | Aprobado | Relacion validada; propuesta exige oportunidad visible |
 | Dashboard supervisor consistente | Aprobado parcial | Tests agregados; validacion visual pendiente |
 
-Veredicto final: EPIC 3 aprobado con observaciones. Puede pasar a EPIC 4 si antes se validan flujos manuales con usuarios reales y se priorizan pruebas E2E/hardening de sesion.
+Veredicto final: EPIC 3 cerrado para Development. Puede pasar a EPIC 4 si antes de produccion se validan flujos manuales con usuarios reales y se priorizan pruebas E2E.

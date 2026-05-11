@@ -1,5 +1,29 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const DEFAULT_API_BASE_URL = "http://localhost:8000";
+
+/**
+ * Resolves the backend base URL from Vite environment variables.
+ * The trailing slash is removed to keep endpoint composition stable in Vercel.
+ */
+function getApiBaseUrl() {
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL;
+  return configuredUrl.replace(/\/+$/, "");
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+function notifyAuthExpired(status) {
+  if (status === 401) {
+    window.dispatchEvent(new CustomEvent("enci:auth-expired"));
+  }
+}
 
 export async function apiFetch(path, { token, ...options } = {}) {
   const headers = {
@@ -22,7 +46,8 @@ export async function apiFetch(path, { token, ...options } = {}) {
       ? errorBody.detail.map((item) => item.msg).join(" ")
       : errorBody.detail;
     const message = detail || `Error ${response.status}`;
-    throw new Error(message);
+    notifyAuthExpired(response.status);
+    throw new ApiError(message, response.status);
   }
 
   return response.json();
@@ -32,6 +57,14 @@ export function loginWithBackend(token) {
   return apiFetch("/auth/login", {
     method: "POST",
     token,
+  });
+}
+
+export function updateCurrentUserTemporaryRole(token, rol) {
+  return apiFetch("/auth/temporary-role", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ rol }),
   });
 }
 
@@ -69,7 +102,8 @@ export async function deleteCliente(token, clienteId) {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.detail || `Error ${response.status}`);
+    notifyAuthExpired(response.status);
+    throw new ApiError(errorBody.detail || `Error ${response.status}`, response.status);
   }
 }
 

@@ -4,7 +4,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| Proyecto | Encipharm Ventas MVP |
+| Proyecto | Enci Ventas MVP |
 | Curso | GPI — UTEM 2026-I |
 | Sprint | Sprint 01 — EPIC 1 |
 | Fecha de corte | 25 abril 2026 |
