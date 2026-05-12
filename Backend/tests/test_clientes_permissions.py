@@ -6,7 +6,7 @@ from app.api.auth import patch_temporary_own_role, upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
 from app.core.auth import require_role
 from app.core.config import Settings
-from app.models.cliente import ClienteCreate
+from app.models.cliente import ClienteCreate, ClienteResponse
 from app.models.user import UserRoleUpdate
 from app.services.dashboard import build_dashboard
 from app.services.clientes import (
@@ -139,6 +139,33 @@ def test_list_clientes_limits_large_responses():
         )
 
     assert len(list_clientes(db, limit=10)) == 10
+
+
+def test_list_clientes_normalizes_legacy_records_for_api_response():
+    db = FakeDb()
+    db.collection("clientes").document("legacy-1").set({
+        "id": 123,
+        "nombre": "",
+        "empresa": None,
+        "email": "correo-invalido",
+        "telefono": {"raw": "+56"},
+        "rubro": 42,
+        "region": [],
+        "estado": "estado viejo",
+        "vendedorUid": {"uid": "seller-1"},
+        "ownerUid": None,
+        "createdAt": "ayer",
+        "updatedAt": object(),
+    })
+
+    clientes = list_clientes(db)
+
+    assert len(clientes) == 1
+    ClienteResponse.model_validate(clientes[0])
+    assert clientes[0]["id"] == "legacy-1"
+    assert clientes[0]["nombre"] == "Sin nombre"
+    assert clientes[0]["empresa"] == "Sin empresa"
+    assert clientes[0]["estado"] == "En proceso"
 
 
 def test_dashboard_counts_all_clients_without_api_limit():
