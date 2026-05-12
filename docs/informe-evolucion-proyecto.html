@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Informe de evolucion del proyecto Enci Ventas</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #1f2933;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 10.4pt;
+      line-height: 1.42;
+      background: #ffffff;
+    }
+
+    .cover {
+      min-height: 255mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 8px solid #0f766e;
+      padding-left: 28px;
+      page-break-after: always;
+    }
+
+    .eyebrow {
+      color: #0f766e;
+      font-size: 11pt;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 14px;
+      color: #102a43;
+      font-size: 31pt;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 28px 0 10px;
+      padding-bottom: 5px;
+      color: #102a43;
+      font-size: 17pt;
+      border-bottom: 2px solid #d9e2ec;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      color: #243b53;
+      font-size: 12.5pt;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 9px;
+    }
+
+    ul {
+      margin: 6px 0 12px 19px;
+      padding: 0;
+    }
+
+    li {
+      margin: 0 0 4px;
+    }
+
+    table {
+      width: 100%;
+      margin: 10px 0 16px;
+      border-collapse: collapse;
+      page-break-inside: auto;
+    }
+
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+
+    th,
+    td {
+      padding: 6px 7px;
+      vertical-align: top;
+      border: 1px solid #d9e2ec;
+    }
+
+    th {
+      color: #102a43;
+      font-weight: 700;
+      text-align: left;
+      background: #f0f4f8;
+    }
+
+    .meta {
+      color: #52606d;
+      font-size: 10.5pt;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .metric {
+      min-height: 78px;
+      padding: 12px;
+      border: 1px solid #d9e2ec;
+      border-radius: 6px;
+      background: #fbfcfd;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #0f766e;
+      font-size: 15pt;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 4px 4px 0;
+      padding: 2px 6px;
+      color: #0f5132;
+      font-size: 8.8pt;
+      border: 1px solid #badbcc;
+      border-radius: 999px;
+      background: #eefaf3;
+      white-space: nowrap;
+    }
+
+    .note {
+      margin: 12px 0 16px;
+      padding: 10px 12px;
+      border-left: 4px solid #0f766e;
+      background: #f0fdfa;
+    }
+
+    .muted {
+      color: #627d98;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="eyebrow">Informe de avance y evolucion</div>
+    <h1>Enci Ventas<br>MiniCRM comercial</h1>
+    <p class="meta">
+      Fecha de corte tecnica: 11 de mayo de 2026.<br>
+      Ultimo commit analizado: d36e84e, rama feature/frontend-vercel-preview.<br>
+      Repositorio: Chumajer14/Encipharm.
+    </p>
+    <p>
+      Este documento resume que se ha construido, que aporta cada pull request,
+      como evoluciono el sistema en el tiempo, que se agrego o retiro del alcance,
+      y que funcionalidades estan disponibles actualmente.
+    </p>
+  </section>
+
+  <h2>1. Resumen ejecutivo</h2>
+  <p>
+    Enci Ventas evoluciono desde un repositorio inicial hacia un MVP web de gestion comercial
+    con backend FastAPI, frontend React/Vite, autenticacion Firebase, persistencia en Firestore,
+    control de roles, CRM de clientes, flujo comercial y preparacion de despliegue frontend.
+  </p>
+  <div class="summary-grid">
+    <div class="metric">
+      <strong>EPIC 1 cerrado</strong>
+      Base backend, Firebase Auth, JWT, usuario autenticado y documentacion inicial.
+    </div>
+    <div class="metric">
+      <strong>EPIC 2 cerrado</strong>
+      CRM clientes, usuarios/roles, Firestore, CSV, dashboards base e integracion frontend.
+    </div>
+    <div class="metric">
+      <strong>EPIC 3 cerrado</strong>
+      Interacciones, oportunidades, propuestas, detalle comercial y metricas de pipeline.
+    </div>
+    <div class="metric">
+      <strong>EPIC 4 iniciado</strong>
+      Hardening de sesion, pagina 404, estados vacios y estabilidad de previews.
+    </div>
+  </div>
+  <p>
+    La direccion del proyecto se mantuvo como MVP web primero. Se dejaron fuera de la fase actual:
+    IA/RAG, Flutter nativo, ERP SAP, Google Calendar, inteligencia competitiva avanzada,
+    reportes extendidos y migracion historica de datos.
+  </p>
+
+  <h2>2. Linea de tiempo del desarrollo</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Etapa</th>
+        <th>Resultado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>20 abr 2026</td>
+        <td>Inicio del repositorio</td>
+        <td>Se crea la base del proyecto y se prepara la organizacion inicial.</td>
+      </tr>
+      <tr>
+        <td>24 abr 2026</td>
+        <td>Backend base</td>
+        <td>FastAPI, uv, configuracion, Firebase Admin, JWT, CORS y endpoints de salud.</td>
+      </tr>
+      <tr>
+        <td>24-25 abr 2026</td>
+        <td>EPIC 1</td>
+        <td>Autenticacion, modelo de usuarios, Firestore y endpoint de registro.</td>
+      </tr>
+      <tr>
+        <td>25 abr - 2 may 2026</td>
+        <td>EPIC 2 inicial</td>
+        <td>CRM clientes, CRUD, documentacion, frontend React, limpieza de node_modules.</td>
+      </tr>
+      <tr>
+        <td>1-3 may 2026</td>
+        <td>EPIC 2 backend y frontend</td>
+        <td>Roles, permisos, importacion CSV, dashboard base, login Firebase y CRM conectado.</td>
+      </tr>
+      <tr>
+        <td>2-3 may 2026</td>
+        <td>Testing y presentacion</td>
+        <td>Consola personalizada en /docs, guia PDF de presentacion y documentacion viva.</td>
+      </tr>
+      <tr>
+        <td>5-10 may 2026</td>
+        <td>EPIC 3</td>
+        <td>Interacciones, oportunidades, propuestas, detalle comercial, filtros y metricas.</td>
+      </tr>
+      <tr>
+        <td>10 may 2026</td>
+        <td>EPIC 4</td>
+        <td>Hardening frontend: sesion expirada, 404 real, estados vacios y QA inicial.</td>
+      </tr>
+      <tr>
+        <td>11 may 2026</td>
+        <td>Preview y estabilizacion</td>
+        <td>Configuracion Vercel, CORS para previews, rol temporal, layouts moviles y normalizacion de datos legacy.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Pull requests y objetivo de cada uno</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>PR</th>
+        <th>Titulo</th>
+        <th>Que hace</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>#1</td><td>Refactor .gitignore</td><td>Ordena .gitignore y mejora exclusiones del repositorio.</td></tr>
+      <tr><td>#2</td><td>Inicializa backend con FastAPI y uv</td><td>Crea estructura base, dependencias, README y entorno backend ejecutable.</td></tr>
+      <tr><td>#3</td><td>Config, Firebase Admin y JWT</td><td>Agrega configuracion por entorno, Firebase Admin, validacion de token y roles base.</td></tr>
+      <tr><td>#4</td><td>EPIC 1 autenticacion y usuarios</td><td>Implementa modelos de usuario, Firestore y POST /auth/register.</td></tr>
+      <tr><td>#5</td><td>Documentacion inicial</td><td>Agrega setup, arquitectura, API auth, sprint 01 y EVM semana 01.</td></tr>
+      <tr><td>#6</td><td>Documentacion inicial</td><td>Duplica/consolida estructura documental de la etapa de autenticacion.</td></tr>
+      <tr><td>#7</td><td>Feature CRM clientes</td><td>Implementa CRUD backend de clientes, modelos, servicio Firestore y docs de API.</td></tr>
+      <tr><td>#25</td><td>CRM clientes + roles + Firestore</td><td>Conecta CRM con control de acceso por vendedor, supervisor y admin.</td></tr>
+      <tr><td>#26</td><td>Alinea documentacion y pruebas base</td><td>Actualiza docs al stack real, elimina node_modules versionado y agrega pruebas base.</td></tr>
+      <tr><td>#27</td><td>EPIC 2 backend complete</td><td>Completa usuarios/roles, clientes, CSV, dashboard y pruebas backend.</td></tr>
+      <tr><td>#28</td><td>Login Firebase y CRM Firestore</td><td>Integra login web Google SSO, /auth/login y CRM frontend con API protegida.</td></tr>
+      <tr><td>#29</td><td>Consola de pruebas en docs</td><td>Reemplaza Swagger estandar por consola con login Google y token automatico.</td></tr>
+      <tr><td>#30</td><td>Feature docs testing console</td><td>Consolida la consola /docs, limpia codigo legacy y documenta flujo de testing.</td></tr>
+      <tr><td>#31</td><td>Guia de presentacion frontend</td><td>Agrega PDF de guia de presentacion y enlace desde la consola del backend.</td></tr>
+      <tr><td>#32</td><td>Cierre CRM EPIC 2</td><td>Cierra funcionalmente el CRM web con dashboard, navegacion y clientes reales.</td></tr>
+      <tr><td>#33</td><td>Flujo comercial EPIC 3</td><td>Inicia interacciones, oportunidades y propuestas en backend/frontend.</td></tr>
+      <tr><td>#34</td><td>EPIC 3 avanzado</td><td>Agrega filtros, detalle de oportunidad, historial de cliente y metricas comerciales.</td></tr>
+      <tr><td>#35</td><td>Cierre EPIC 3</td><td>Exige relacion propuesta-oportunidad, mejora refresh token y normaliza marca visible.</td></tr>
+      <tr><td>#36</td><td>Hardening EPIC 4</td><td>Agrega manejo de 401, pagina 404, estados vacios y documentacion de Sprint 04.</td></tr>
+      <tr><td>#37</td><td>Vercel preview deployment</td><td>Configura despliegue frontend en Vercel y documenta variables, CORS y Firebase Auth.</td></tr>
+      <tr><td>#38</td><td>Preview stability and mobile layout</td><td>Mejora estabilidad visual del preview y experiencia responsive en moviles.</td></tr>
+      <tr><td>#39</td><td>Normalize legacy client records</td><td>Normaliza clientes antiguos para evitar errores de validacion al listar.</td></tr>
+      <tr><td>#40</td><td>Sanitize legacy client phones</td><td>Sanitiza telefonos legacy y cubre el caso con pruebas especificas.</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">
+    No se observan PRs #8 a #24 en la busqueda disponible. La numeracion continua desde #25 por actividad historica del repositorio o PRs no listados por la consulta.
+  </p>
+
+  <h2>4. Funcionalidades actuales del sistema</h2>
+  <h3>Autenticacion y sesion</h3>
+  <ul>
+    <li>Login web con Firebase Auth y Google SSO.</li>
+    <li>Validacion de ID Token/JWT en FastAPI mediante Firebase Admin.</li>
+    <li>Sincronizacion del usuario autenticado en Firestore mediante /auth/login y /auth/register.</li>
+    <li>Endpoint /me para retornar uid, email, rol y estado activo.</li>
+    <li>Manejo frontend de sesion expirada ante respuestas 401.</li>
+  </ul>
+
+  <h3>Usuarios y roles</h3>
+  <ul>
+    <li>Roles disponibles: admin, supervisor y vendedor.</li>
+    <li>Administracion backend de usuarios, roles y estado.</li>
+    <li>Permisos diferenciados para clientes, usuarios, dashboards y flujo comercial.</li>
+    <li>Selector temporal de rol para facilitar revision del MVP durante previews.</li>
+  </ul>
+
+  <h3>CRM de clientes</h3>
+  <ul>
+    <li>Listado, busqueda, filtros, creacion, detalle, edicion y baja logica de clientes.</li>
+    <li>Persistencia real en Cloud Firestore.</li>
+    <li>Restriccion por vendedor: cada vendedor ve y opera sus propios clientes.</li>
+    <li>Supervisor y admin pueden consultar el consolidado.</li>
+    <li>Importacion CSV backend con validacion all-or-nothing, limite de tamano y reporte por fila.</li>
+    <li>Normalizacion defensiva de clientes antiguos y telefonos legacy.</li>
+  </ul>
+
+  <h3>Flujo comercial</h3>
+  <ul>
+    <li>Interacciones de cliente: llamada, visita, correo y reunion.</li>
+    <li>Pipeline de oportunidades con etapas nuevo, contactado, cotizacion, negociacion, ganado y perdido.</li>
+    <li>Propuestas con estados borrador, enviada, aceptada y rechazada.</li>
+    <li>Calculo automatico de descuento y monto total en propuestas.</li>
+    <li>Relacion obligatoria entre propuesta, oportunidad y cliente.</li>
+    <li>Detalle de oportunidad con interacciones y propuestas vinculadas.</li>
+    <li>Historial comercial embebido en el detalle de cliente.</li>
+  </ul>
+
+  <h3>Dashboards y metricas</h3>
+  <ul>
+    <li>Dashboard vendedor con metricas de clientes visibles.</li>
+    <li>Dashboard supervisor/admin con consolidado de clientes, estados, rubros y regiones.</li>
+    <li>Metricas comerciales: total de oportunidades, valor de pipeline, total de propuestas y valor aceptado.</li>
+    <li>Conteos por etapa de oportunidad y por estado de propuesta.</li>
+    <li>Estados vacios explicitos para evitar paneles ambiguos.</li>
+  </ul>
+
+  <h3>Testing, documentacion y despliegue</h3>
+  <ul>
+    <li>Consola personalizada en /docs con login Google y uso del token en Swagger.</li>
+    <li>OpenAPI disponible en /openapi.json.</li>
+    <li>Documentacion viva en README y docs/api, docs/sprints, docs/qa y docs/evm.</li>
+    <li>Pruebas backend para permisos, CRM, seguridad y flujo comercial.</li>
+    <li>Lint y build frontend documentados como parte de QA.</li>
+    <li>Configuracion Vercel para preview del frontend React/Vite.</li>
+  </ul>
+
+  <h2 class="page-break">5. Cambios agregados, quitados y modificados</h2>
+  <h3>Agregado</h3>
+  <ul>
+    <li>Monorepo con Backend, frontend y docs.</li>
+    <li>Backend FastAPI con uv, Pydantic, Firebase Admin y Firestore.</li>
+    <li>Frontend React/Vite con rutas protegidas y pantallas comerciales.</li>
+    <li>Autenticacion Google SSO, JWT y autorizacion por rol.</li>
+    <li>CRM completo de clientes y API documentada.</li>
+    <li>Gestion backend de usuarios y roles.</li>
+    <li>Importacion CSV de clientes con validacion previa.</li>
+    <li>Interacciones, oportunidades, propuestas y dashboards comerciales.</li>
+    <li>Rate limiting, limite de tamano de request y headers de seguridad.</li>
+    <li>Configuracion de Vercel y documentacion de CORS para previews.</li>
+  </ul>
+
+  <h3>Quitado o diferido</h3>
+  <ul>
+    <li>node_modules versionado fue removido del repositorio.</li>
+    <li>Swagger UI estandar fue reemplazado por una consola personalizada en /docs.</li>
+    <li>Routers legacy, servicios duplicados, mocks antiguos, assets de plantilla y tests locales obsoletos fueron limpiados.</li>
+    <li>La migracion de datos historicos quedo fuera de EPIC 4.</li>
+    <li>IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos quedaron fuera del MVP web.</li>
+  </ul>
+
+  <h3>Modificado o endurecido</h3>
+  <ul>
+    <li>CORS paso a soportar origenes locales, previews remotos y expresion regular acotada.</li>
+    <li>Clientes legacy se normalizan antes de responder para evitar ResponseValidationError.</li>
+    <li>Telefonos chilenos y legacy se sanitizan para mantener compatibilidad con datos existentes.</li>
+    <li>Frontend muestra errores reales de API en la pantalla de clientes.</li>
+    <li>Se agregaron validaciones contra formula injection en campos exportables.</li>
+    <li>Se reforzo el manejo de token expirado y rutas inexistentes.</li>
+    <li>Propuestas ahora requieren oportunidad asociada y validan consistencia con cliente.</li>
+  </ul>
+
+  <h2>6. Arquitectura actual</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Capa</th>
+        <th>Tecnologia</th>
+        <th>Responsabilidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Frontend</td><td>React + Vite</td><td>Experiencia web, login, CRM, dashboard y flujo comercial.</td></tr>
+      <tr><td>Backend</td><td>FastAPI + Python 3.12</td><td>API protegida, reglas de negocio, validaciones, permisos y documentacion OpenAPI.</td></tr>
+      <tr><td>Auth</td><td>Firebase Auth + Firebase Admin</td><td>Google SSO, emision y validacion de ID Token.</td></tr>
+      <tr><td>Datos</td><td>Cloud Firestore</td><td>Usuarios, clientes, interacciones, oportunidades y propuestas.</td></tr>
+      <tr><td>Preview</td><td>Vercel</td><td>Despliegue y revision del frontend web.</td></tr>
+      <tr><td>QA</td><td>pytest, lint, build</td><td>Validacion backend, seguridad, permisos y estabilidad frontend.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    El backend concentra las reglas de autorizacion y consistencia. El frontend consume la API con Bearer token,
+    por lo que los datos visibles dependen del rol y del usuario autenticado.
+  </p>
+
+  <h2>7. Estado actual y pendientes</h2>
+  <p>
+    Al corte del 11 de mayo de 2026, el sistema ya cubre los flujos principales del MVP comercial:
+    autenticacion, CRM, roles, clientes, dashboards, interacciones, oportunidades y propuestas.
+    La linea activa de trabajo esta enfocada en estabilizar previews, normalizar registros antiguos y cerrar hardening.
+  </p>
+  <p>
+    Pendientes tecnicos declarados en la documentacion: hardening final de navegacion por rol,
+    plan QA/E2E de flujos criticos, validacion visual manual de dashboards y UAT. La migracion historica
+    de datos no forma parte del alcance inmediato.
+  </p>
+</body>
+</html>
