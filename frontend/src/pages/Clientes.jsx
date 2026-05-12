@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { getClientes } from "../services/api";
+import { getFriendlyApiError } from "../utils/apiErrors";
 
 function Clientes() {
   const [busqueda, setBusqueda] = useState("");
@@ -23,7 +24,7 @@ function Clientes() {
         setClientes(data);
       } catch (loadError) {
         console.error("Error al cargar clientes", loadError);
-        setError("No se pudieron cargar los clientes");
+        setError(`No se pudieron cargar los clientes: ${getFriendlyApiError(loadError)}`);
       } finally {
         setLoading(false);
       }

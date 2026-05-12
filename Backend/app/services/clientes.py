@@ -5,7 +5,7 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import HTTPException, status
-from pydantic import ValidationError
+from pydantic import EmailStr, TypeAdapter, ValidationError
 
 from app.models.cliente import ClienteCreate
 
@@ -26,17 +26,35 @@ CSV_FIELDS = {
     "ownerUid",
 }
 
+EMAIL_ADAPTER = TypeAdapter(EmailStr)
 
-def _safe_text(value: Any, fallback: str) -> str:
+
+def _safe_text(value: Any, fallback: str, max_length: int | None = None) -> str:
     if isinstance(value, str) and value.strip():
-        return value.strip()
-    return fallback
+        text = value.strip()
+    else:
+        text = fallback
+    return text[:max_length] if max_length else text
+
+
+def _safe_optional_text(value: Any, max_length: int) -> str | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    return value.strip()[:max_length]
+
+
+def _safe_optional_uid(value: Any) -> str | None:
+    return _safe_optional_text(value, 128)
 
 
 def _safe_email(value: Any, cliente_id: str) -> str:
-    if isinstance(value, str) and "@" in value:
-        return value.strip()
-    clean_id = "".join(ch for ch in cliente_id.lower() if ch.isalnum()) or "legacy"
+    if isinstance(value, str):
+        try:
+            return str(EMAIL_ADAPTER.validate_python(value.strip()))
+        except ValidationError:
+            pass
+
+    clean_id = "".join(ch for ch in str(cliente_id).lower() if ch.isalnum()) or "legacy"
     return f"sin-correo-{clean_id[:48]}@encipharm.cl"
 
 
@@ -44,21 +62,30 @@ def _safe_estado(value: Any) -> str:
     return value if value in {"En proceso", "Completado", "Inactivo"} else "En proceso"
 
 
+def _safe_datetime(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value
+    return None
+
+
 def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
-    vendedor_uid = data.get("vendedorUid") or data.get("ownerUid")
+    raw_id = data.get("id") if isinstance(data.get("id"), str) else cliente_id
+    safe_id = _safe_text(raw_id, cliente_id)
+    vendedor_uid = _safe_optional_uid(data.get("vendedorUid") or data.get("ownerUid"))
+    owner_uid = _safe_optional_uid(data.get("ownerUid")) or vendedor_uid
     return {
-        "id": data.get("id", cliente_id),
-        "nombre": _safe_text(data.get("nombre"), "Sin nombre"),
-        "empresa": _safe_text(data.get("empresa"), "Sin empresa"),
-        "email": _safe_email(data.get("email"), cliente_id),
-        "telefono": data.get("telefono"),
-        "rubro": data.get("rubro"),
-        "region": data.get("region"),
+        "id": safe_id,
+        "nombre": _safe_text(data.get("nombre"), "Sin nombre", 120),
+        "empresa": _safe_text(data.get("empresa"), "Sin empresa", 160),
+        "email": _safe_email(data.get("email"), safe_id),
+        "telefono": _safe_optional_text(data.get("telefono"), 32),
+        "rubro": _safe_optional_text(data.get("rubro"), 120),
+        "region": _safe_optional_text(data.get("region"), 80),
         "estado": _safe_estado(data.get("estado")),
         "vendedorUid": vendedor_uid,
-        "ownerUid": data.get("ownerUid") or vendedor_uid,
-        "createdAt": data.get("createdAt"),
-        "updatedAt": data.get("updatedAt"),
+        "ownerUid": owner_uid,
+        "createdAt": _safe_datetime(data.get("createdAt")),
+        "updatedAt": _safe_datetime(data.get("updatedAt")),
     }
 
 
@@ -71,11 +98,12 @@ def list_clientes(
 ) -> list[dict[str, Any]]:
     if limit is not None:
         limit = min(max(limit, 1), MAX_CLIENTES_RESPONSE)
-    clientes = [
-        normalize_cliente(doc.id, doc.to_dict())
-        for doc in db.collection(CLIENTES_COLLECTION).stream()
-        if not doc.to_dict().get("deletedAt")
-    ]
+    clientes = []
+    for doc in db.collection(CLIENTES_COLLECTION).stream():
+        data = doc.to_dict() or {}
+        if data.get("deletedAt"):
+            continue
+        clientes.append(normalize_cliente(doc.id, data))
 
     if vendedor_uid:
         clientes = [
@@ -112,12 +140,13 @@ def list_clientes(
 def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
     """Return a normalized cliente or raise 404 when the document does not exist."""
     doc = db.collection(CLIENTES_COLLECTION).document(cliente_id).get()
-    if not doc.exists or doc.to_dict().get("deletedAt"):
+    data = doc.to_dict() or {}
+    if not doc.exists or data.get("deletedAt"):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cliente no encontrado",
         )
-    return normalize_cliente(cliente_id, doc.to_dict())
+    return normalize_cliente(cliente_id, data)
 
 
 def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
