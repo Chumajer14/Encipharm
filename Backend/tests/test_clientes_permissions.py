@@ -148,7 +148,7 @@ def test_list_clientes_normalizes_legacy_records_for_api_response():
         "nombre": "",
         "empresa": None,
         "email": "correo-invalido",
-        "telefono": {"raw": "+56"},
+        "telefono": "+569499593",
         "rubro": 42,
         "region": [],
         "estado": "estado viejo",
@@ -165,6 +165,7 @@ def test_list_clientes_normalizes_legacy_records_for_api_response():
     assert clientes[0]["id"] == "legacy-1"
     assert clientes[0]["nombre"] == "Sin nombre"
     assert clientes[0]["empresa"] == "Sin empresa"
+    assert clientes[0]["telefono"] == "569499593"
     assert clientes[0]["estado"] == "En proceso"
 
 

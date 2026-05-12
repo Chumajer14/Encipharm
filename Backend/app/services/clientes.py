@@ -43,6 +43,15 @@ def _safe_optional_text(value: Any, max_length: int) -> str | None:
     return value.strip()[:max_length]
 
 
+def _safe_phone(value: Any) -> str | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    digits = "".join(ch for ch in value if ch.isdigit())
+    if not digits:
+        return None
+    return digits[:32]
+
+
 def _safe_optional_uid(value: Any) -> str | None:
     return _safe_optional_text(value, 128)
 
@@ -78,7 +87,7 @@ def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
         "nombre": _safe_text(data.get("nombre"), "Sin nombre", 120),
         "empresa": _safe_text(data.get("empresa"), "Sin empresa", 160),
         "email": _safe_email(data.get("email"), safe_id),
-        "telefono": _safe_optional_text(data.get("telefono"), 32),
+        "telefono": _safe_phone(data.get("telefono")),
         "rubro": _safe_optional_text(data.get("rubro"), 120),
         "region": _safe_optional_text(data.get("region"), 80),
         "estado": _safe_estado(data.get("estado")),
