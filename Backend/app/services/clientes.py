@@ -49,7 +49,11 @@ def _safe_phone(value: Any) -> str | None:
     digits = "".join(ch for ch in value if ch.isdigit())
     if not digits:
         return None
-    return digits[:32]
+    if digits.startswith("569") and len(digits) >= 11:
+        return digits[3:11]
+    if digits.startswith("9") and len(digits) >= 9:
+        return digits[1:9]
+    return digits[:8] if len(digits) >= 8 else None
 
 
 def _safe_optional_uid(value: Any) -> str | None:

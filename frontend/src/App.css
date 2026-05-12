@@ -383,6 +383,42 @@ body,
   outline: 1px solid white;
 }
 
+.phone-field {
+  display: grid;
+  gap: 8px;
+}
+
+.phone-input {
+  align-items: center;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+}
+
+.phone-input span {
+  background: #0f172a;
+  border-right: 1px solid #334155;
+  color: #cbd5e1;
+  font-weight: 900;
+  padding: 12px;
+}
+
+.phone-input input {
+  background: transparent;
+  border: 0;
+  color: white;
+  flex: 1;
+  font: inherit;
+  min-width: 0;
+  padding: 12px;
+}
+
+.phone-input:focus-within {
+  outline: 1px solid white;
+}
+
 .date-time-grid {
   display: grid;
   gap: 12px;

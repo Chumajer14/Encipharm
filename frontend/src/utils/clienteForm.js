@@ -11,12 +11,11 @@ export const clienteInitialForm = {
 };
 
 const textPattern = /^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ .,&'-]+$/;
-const phonePattern = /^(\+?56)?9?\d{8}$/;
 const formulaPrefixes = ["=", "+", "-", "@"];
 const fieldLimits = {
   nombre: 120,
   empresa: 160,
-  telefono: 32,
+  telefono: 8,
   rubro: 120,
   region: 80,
 };
@@ -25,12 +24,23 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+export function normalizeTelefono(value) {
+  const digits = normalizeText(value).replace(/\D/g, "");
+  if (digits.startsWith("569") && digits.length >= 11) {
+    return digits.slice(3, 11);
+  }
+  if (digits.startsWith("9") && digits.length >= 9) {
+    return digits.slice(1, 9);
+  }
+  return digits;
+}
+
 export function buildClientePayload(form) {
   return {
     nombre: normalizeText(form.nombre),
     empresa: normalizeText(form.empresa),
     email: normalizeText(form.email).toLowerCase(),
-    telefono: normalizeText(form.telefono) || null,
+    telefono: normalizeTelefono(form.telefono).slice(0, 8) || null,
     rubro: normalizeText(form.rubro),
     region: normalizeText(form.region),
     estado: form.estado || "En proceso",
@@ -59,14 +69,10 @@ export function validateClienteForm(form) {
     errors.email = "Ingresa un correo valido.";
   }
 
-  const normalizedPhone = payload.telefono?.replace(/\s+/g, "");
+  const normalizedPhone = normalizeTelefono(form.telefono);
   if (normalizedPhone) {
-    if (normalizedPhone.length > fieldLimits.telefono) {
-      errors.telefono = `Maximo ${fieldLimits.telefono} caracteres.`;
-    } else if (formulaPrefixes.some((prefix) => normalizedPhone.startsWith(prefix))) {
-      errors.telefono = "No puede iniciar con caracteres de formula.";
-    } else if (!phonePattern.test(normalizedPhone)) {
-      errors.telefono = "Usa formato chileno, por ejemplo +56912345678.";
+    if (normalizedPhone.length < fieldLimits.telefono) {
+      errors.telefono = "Ingresa exactamente 8 digitos despues de +569.";
     }
   }
 
@@ -75,7 +81,7 @@ export function validateClienteForm(form) {
     isValid: Object.keys(errors).length === 0,
     payload: {
       ...payload,
-      telefono: normalizedPhone || null,
+      telefono: normalizedPhone.slice(0, 8) || null,
     },
   };
 }
