@@ -44,6 +44,12 @@ def _safe_estado(value: Any) -> str:
     return value if value in {"En proceso", "Completado", "Inactivo"} else "En proceso"
 
 
+def _safe_datetime(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value
+    return None
+
+
 def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
     vendedor_uid = data.get("vendedorUid") or data.get("ownerUid")
     return {
@@ -51,14 +57,14 @@ def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
         "nombre": _safe_text(data.get("nombre"), "Sin nombre"),
         "empresa": _safe_text(data.get("empresa"), "Sin empresa"),
         "email": _safe_email(data.get("email"), cliente_id),
-        "telefono": data.get("telefono"),
-        "rubro": data.get("rubro"),
-        "region": data.get("region"),
+        "telefono": data.get("telefono") if isinstance(data.get("telefono"), str) else None,
+        "rubro": data.get("rubro") if isinstance(data.get("rubro"), str) else None,
+        "region": data.get("region") if isinstance(data.get("region"), str) else None,
         "estado": _safe_estado(data.get("estado")),
-        "vendedorUid": vendedor_uid,
-        "ownerUid": data.get("ownerUid") or vendedor_uid,
-        "createdAt": data.get("createdAt"),
-        "updatedAt": data.get("updatedAt"),
+        "vendedorUid": vendedor_uid if isinstance(vendedor_uid, str) else None,
+        "ownerUid": data.get("ownerUid") if isinstance(data.get("ownerUid"), str) else vendedor_uid,
+        "createdAt": _safe_datetime(data.get("createdAt")),
+        "updatedAt": _safe_datetime(data.get("updatedAt")),
     }
 
 
