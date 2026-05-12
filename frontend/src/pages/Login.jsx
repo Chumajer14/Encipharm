@@ -16,6 +16,8 @@ function Login() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const isVercelPreview = window.location.hostname.endsWith(".vercel.app");
+
   return (
     <main className="login-page">
       <section className="login-panel">
@@ -34,6 +36,15 @@ function Login() {
         >
           {loading ? "Validando sesion..." : "Login con Google"}
         </button>
+
+        {loading && isVercelPreview && (
+          <p className="status-message backend-wakeup-note">
+            El backend gratuito puede estar encendiendo. Este primer acceso puede
+            tardar cerca de 40 segundos por el uso de infraestructura sin costo,
+            no por un problema de la app. Si no redirecciona, actualiza la pagina
+            e intenta nuevamente.
+          </p>
+        )}
 
         {!isFirebaseConfigured && (
           <p className="status-message error">

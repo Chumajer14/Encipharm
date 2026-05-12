@@ -78,4 +78,4 @@ async def patch_temporary_own_role(
         )
 
     db = get_db()
-    return update_user(db, user["uid"], {"rol": payload.rol})
+    return UserResponse(**update_user(db, user["uid"], {"rol": payload.rol}))

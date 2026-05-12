@@ -2,7 +2,7 @@ export function getFriendlyApiError(error) {
   const message = error?.message || "";
 
   if (message.includes("Failed to fetch")) {
-    return "No se pudo conectar con la API. Revisa que el backend este corriendo en el puerto configurado.";
+    return "No se pudo conectar con la API. Si estas en Vercel, el backend gratuito puede estar encendiendo; espera cerca de 40 segundos y actualiza la pagina.";
   }
 
   if (message.includes("401") || message.toLowerCase().includes("token")) {

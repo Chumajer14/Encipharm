@@ -17,6 +17,86 @@ PROPOSALS_COLLECTION = "propuestas"
 MAX_RESPONSE = 500
 
 
+def _safe_text(value: Any, fallback: str) -> str:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return fallback
+
+
+def _safe_stage(value: Any) -> str:
+    return value if value in {"nuevo", "contactado", "cotizacion", "negociacion", "ganado", "perdido"} else "nuevo"
+
+
+def _safe_proposal_status(value: Any) -> str:
+    return value if value in {"borrador", "enviada", "aceptada", "rechazada"} else "borrador"
+
+
+def _safe_interaction_type(value: Any) -> str:
+    return value if value in {"llamada", "visita", "correo", "reunion"} else "visita"
+
+
+def _safe_datetime(value: Any) -> Any:
+    return value or _now()
+
+
+def _safe_float(value: Any, fallback: float = 0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _safe_int(value: Any, fallback: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def normalize_interaction(document_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **data,
+        "id": data.get("id") or document_id,
+        "clienteId": _safe_text(data.get("clienteId"), "legacy-cliente"),
+        "tipo": _safe_interaction_type(data.get("tipo")),
+        "fecha": _safe_datetime(data.get("fecha") or data.get("createdAt")),
+        "resumen": _safe_text(data.get("resumen"), "Sin resumen"),
+        "vendedorUid": _safe_text(data.get("vendedorUid"), "legacy-vendedor"),
+    }
+
+
+def normalize_opportunity(document_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **data,
+        "id": data.get("id") or document_id,
+        "clienteId": _safe_text(data.get("clienteId"), "legacy-cliente"),
+        "titulo": _safe_text(data.get("titulo"), "Oportunidad sin titulo"),
+        "etapa": _safe_stage(data.get("etapa")),
+        "valorEstimado": _safe_float(data.get("valorEstimado")),
+        "probabilidad": _safe_int(data.get("probabilidad")),
+        "vendedorUid": _safe_text(data.get("vendedorUid"), "legacy-vendedor"),
+    }
+
+
+def normalize_proposal(document_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    monto_neto = _safe_float(data.get("montoNeto"))
+    descuento_pct = _safe_float(data.get("descuentoPct"))
+    monto_descuento, monto_total = _proposal_amounts(monto_neto, descuento_pct)
+    return {
+        **data,
+        "id": data.get("id") or document_id,
+        "clienteId": _safe_text(data.get("clienteId"), "legacy-cliente"),
+        "oportunidadId": _safe_text(data.get("oportunidadId"), "legacy-oportunidad"),
+        "titulo": _safe_text(data.get("titulo"), "Propuesta sin titulo"),
+        "montoNeto": monto_neto,
+        "descuentoPct": descuento_pct,
+        "estado": _safe_proposal_status(data.get("estado")),
+        "vendedorUid": _safe_text(data.get("vendedorUid"), "legacy-vendedor"),
+        "montoDescuento": _safe_float(data.get("montoDescuento"), monto_descuento),
+        "montoTotal": _safe_float(data.get("montoTotal"), monto_total),
+    }
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -72,7 +152,7 @@ def list_interactions(db, user: dict, cliente_id: str | None = None, limit: int 
     """List interactions visible for the current user, optionally scoped to one cliente."""
     interactions = []
     for doc in db.collection(INTERACTIONS_COLLECTION).stream():
-        data = {"id": doc.id, **doc.to_dict()}
+        data = normalize_interaction(doc.id, doc.to_dict() or {})
         if cliente_id and data.get("clienteId") != cliente_id:
             continue
         if _visible_by_user(data, user):
@@ -106,7 +186,7 @@ def list_opportunities(
     """List opportunities visible for the user with optional cliente and stage filters."""
     opportunities = []
     for doc in db.collection(OPPORTUNITIES_COLLECTION).stream():
-        data = {"id": doc.id, **doc.to_dict()}
+        data = normalize_opportunity(doc.id, doc.to_dict() or {})
         if cliente_id and data.get("clienteId") != cliente_id:
             continue
         if etapa and data.get("etapa") != etapa:
@@ -147,7 +227,7 @@ def update_opportunity(db, opportunity_id: str, changes: dict[str, Any], user: d
 def get_opportunity_detail(db, opportunity_id: str, user: dict) -> dict[str, Any]:
     """Return one opportunity with its cliente interactions and linked proposals."""
     doc = _doc_or_404(db, OPPORTUNITIES_COLLECTION, opportunity_id, "Oportunidad no encontrada")
-    opportunity = {"id": doc.id, **doc.to_dict()}
+    opportunity = normalize_opportunity(doc.id, doc.to_dict() or {})
     if not _visible_by_user(opportunity, user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos para esta oportunidad")
 
@@ -174,7 +254,7 @@ def list_proposals(
     """List proposals visible for the user with optional cliente, opportunity and status filters."""
     proposals = []
     for doc in db.collection(PROPOSALS_COLLECTION).stream():
-        data = {"id": doc.id, **doc.to_dict()}
+        data = normalize_proposal(doc.id, doc.to_dict() or {})
         if cliente_id and data.get("clienteId") != cliente_id:
             continue
         if estado and data.get("estado") != estado:

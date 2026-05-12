@@ -27,17 +27,34 @@ CSV_FIELDS = {
 }
 
 
+def _safe_text(value: Any, fallback: str) -> str:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return fallback
+
+
+def _safe_email(value: Any, cliente_id: str) -> str:
+    if isinstance(value, str) and "@" in value:
+        return value.strip()
+    clean_id = "".join(ch for ch in cliente_id.lower() if ch.isalnum()) or "legacy"
+    return f"sin-correo-{clean_id[:48]}@encipharm.cl"
+
+
+def _safe_estado(value: Any) -> str:
+    return value if value in {"En proceso", "Completado", "Inactivo"} else "En proceso"
+
+
 def normalize_cliente(cliente_id: str, data: dict[str, Any]) -> dict[str, Any]:
     vendedor_uid = data.get("vendedorUid") or data.get("ownerUid")
     return {
         "id": data.get("id", cliente_id),
-        "nombre": data.get("nombre"),
-        "empresa": data.get("empresa"),
-        "email": data.get("email"),
+        "nombre": _safe_text(data.get("nombre"), "Sin nombre"),
+        "empresa": _safe_text(data.get("empresa"), "Sin empresa"),
+        "email": _safe_email(data.get("email"), cliente_id),
         "telefono": data.get("telefono"),
         "rubro": data.get("rubro"),
         "region": data.get("region"),
-        "estado": data.get("estado", "En proceso"),
+        "estado": _safe_estado(data.get("estado")),
         "vendedorUid": vendedor_uid,
         "ownerUid": data.get("ownerUid") or vendedor_uid,
         "createdAt": data.get("createdAt"),
