@@ -29,7 +29,7 @@ function friendlyAuthError(authError) {
   }
 
   if (authError?.message?.includes("Failed to fetch")) {
-    return "Firebase autentico, pero el frontend no pudo conectar con el backend. Revisa que la API este corriendo y que CORS permita el origen actual.";
+    return "Firebase autentico, pero el backend aun no respondio. En el ambiente gratuito puede tardar cerca de 40 segundos en encender; actualiza la pagina e intenta nuevamente.";
   }
 
   return authError?.message || "No se pudo iniciar sesion.";
