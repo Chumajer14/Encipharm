@@ -148,7 +148,7 @@ def test_list_clientes_normalizes_legacy_records_for_api_response():
         "nombre": "",
         "empresa": None,
         "email": "correo-invalido",
-        "telefono": {"raw": "+56"},
+        "telefono": "+569499593",
         "rubro": 42,
         "region": [],
         "estado": "estado viejo",
@@ -165,6 +165,7 @@ def test_list_clientes_normalizes_legacy_records_for_api_response():
     assert clientes[0]["id"] == "legacy-1"
     assert clientes[0]["nombre"] == "Sin nombre"
     assert clientes[0]["empresa"] == "Sin empresa"
+    assert clientes[0]["telefono"] == "56949959"
     assert clientes[0]["estado"] == "En proceso"
 
 
@@ -246,6 +247,44 @@ def test_cliente_rejects_formula_injection_payloads():
             empresa="Empresa",
             email="cliente@enci.cl",
             rubro="Cerdos",
+            region="Maule",
+        )
+
+
+def test_cliente_phone_accepts_chilean_mobile_local_digits():
+    cliente = ClienteCreate(
+        nombre="Cliente Telefono",
+        empresa="Empresa Telefono",
+        email="telefono@enci.cl",
+        telefono="12345678",
+        rubro="Aves",
+        region="Maule",
+    )
+
+    assert cliente.telefono == "12345678"
+
+
+def test_cliente_phone_normalizes_full_chilean_mobile():
+    cliente = ClienteCreate(
+        nombre="Cliente Telefono",
+        empresa="Empresa Telefono",
+        email="telefono.full@enci.cl",
+        telefono="+56912345678",
+        rubro="Aves",
+        region="Maule",
+    )
+
+    assert cliente.telefono == "12345678"
+
+
+def test_cliente_phone_rejects_incomplete_local_digits():
+    with pytest.raises(ValidationError):
+        ClienteCreate(
+            nombre="Cliente Telefono",
+            empresa="Empresa Telefono",
+            email="telefono.bad@enci.cl",
+            telefono="1234567",
+            rubro="Aves",
             region="Maule",
         )
 

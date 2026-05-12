@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import PhoneInput from "../components/PhoneInput";
 import { regionesChile } from "../data/regionesChile";
 import { createCliente } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
@@ -124,15 +125,12 @@ function CrearCliente() {
 
         <label>
           Telefono
-          <input
-            name="telefono"
-            placeholder="+56912345678"
-            maxLength={32}
+          <PhoneInput
+            disabled={formDisabled}
+            error={fieldErrors.telefono}
             value={form.telefono}
             onChange={handleChange}
-            disabled={formDisabled}
           />
-          {fieldErrors.telefono && <small className="field-error">{fieldErrors.telefono}</small>}
         </label>
 
         <label>

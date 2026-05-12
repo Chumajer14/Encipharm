@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import PhoneInput from "../components/PhoneInput";
 import { regionesChile } from "../data/regionesChile";
 import { deleteCliente, getCliente, getInteracciones, getOportunidades, getPropuestas, updateCliente } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
@@ -158,8 +159,12 @@ function ClienteDetalle() {
 
         <label>
           Telefono
-          <input name="telefono" maxLength={32} value={form.telefono} onChange={handleChange} disabled={disabled} />
-          {fieldErrors.telefono && <small className="field-error">{fieldErrors.telefono}</small>}
+          <PhoneInput
+            disabled={disabled}
+            error={fieldErrors.telefono}
+            value={form.telefono}
+            onChange={handleChange}
+          />
         </label>
 
         <label>
