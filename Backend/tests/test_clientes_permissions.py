@@ -382,6 +382,43 @@ async def test_inactive_user_cannot_pass_role_checker(monkeypatch):
 
 
 @pytest.mark.anyio
+async def test_admin_can_pass_supervisor_role_checker(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("admin-1").set({
+        "uid": "admin-1",
+        "email": "admin@enci.cl",
+        "nombre": "Admin",
+        "rol": "admin",
+        "activo": True,
+    })
+    monkeypatch.setattr("app.core.auth.get_db", lambda: db)
+
+    checker = require_role("supervisor")
+    user = await checker({"uid": "admin-1", "rol": "admin"})
+
+    assert user["rol"] == "admin"
+
+
+@pytest.mark.anyio
+async def test_vendedor_cannot_pass_supervisor_role_checker(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("seller-1").set({
+        "uid": "seller-1",
+        "email": "seller@enci.cl",
+        "nombre": "Seller",
+        "rol": "vendedor",
+        "activo": True,
+    })
+    monkeypatch.setattr("app.core.auth.get_db", lambda: db)
+
+    checker = require_role("supervisor")
+    with pytest.raises(HTTPException) as exc_info:
+        await checker({"uid": "seller-1", "rol": "vendedor"})
+
+    assert exc_info.value.status_code == 403
+
+
+@pytest.mark.anyio
 async def test_inactive_user_cannot_login(monkeypatch):
     db = FakeDb()
     db.collection("users").document("seller-1").set({

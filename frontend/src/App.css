@@ -629,12 +629,14 @@ body,
   justify-content: center;
 }
 
-.not-found-panel {
+.not-found-panel,
+.access-denied-panel {
   max-width: 460px;
   width: 100%;
 }
 
-.not-found-panel button {
+.not-found-panel button,
+.access-denied-panel button {
   background: #22c55e;
   border: 0;
   border-radius: 8px;
@@ -643,6 +645,12 @@ body,
   font-weight: 800;
   margin-top: 18px;
   padding: 12px 16px;
+}
+
+.access-denied-page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
 }
 
 .dashboard-grid {

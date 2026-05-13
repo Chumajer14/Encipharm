@@ -52,7 +52,7 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute minimumRole="vendedor">
                 <Dashboard />
               </ProtectedRoute>
             }

@@ -311,5 +311,5 @@ Un ticket se considera completo solo si:
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
 - EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
-- EPIC 4: iniciado con hardening de sesion, 404 real y estados vacios en dashboards. Migracion fuera de alcance por ahora.
-- Pendiente MVP: hardening final, pruebas E2E y UAT.
+- EPIC 4: cerrado para Development con hardening de sesion, 404/403 controlados, navegacion por rol, estados vacios en dashboards y plan QA/E2E documentado. Migracion fuera de alcance por ahora.
+- Pendiente MVP: UAT, ajustes finales y go-live.
