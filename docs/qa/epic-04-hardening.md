@@ -21,6 +21,18 @@ La migracion de datos historicos se mantiene fuera de alcance por decision de sp
 | EV-044 | Completado | `ProtectedRoute` valida rol minimo antes de renderizar rutas privadas. |
 | EV-045 | Completado | Checklist visual manual definido para dashboards vendedor y supervisor. |
 
+## Definition of Done EPIC 4
+
+| Criterio | Estado | Evidencia |
+|----------|--------|-----------|
+| Codigo en rama correspondiente | Aprobado | `feature-epic-4-hardening-qa` |
+| PR abierto contra `main` | Aprobado | PR `#41` |
+| Tests backend | Aprobado | `uv run pytest` -> `38 passed` |
+| Lint frontend | Aprobado | `npm.cmd run lint` |
+| Build frontend | Aprobado | `npm.cmd run build` |
+| Documentacion actualizada | Aprobado | README, `docs/README.md`, `docs/estado-proyecto.md`, EVM Semana 04 |
+| Migracion historica | Fuera de alcance | Decision documentada en Sprint 04 |
+
 ## Controles implementados
 
 ### Sesion expirada
@@ -106,3 +118,4 @@ npm.cmd run build
 - Firebase real debe validarse en ambiente UAT con dominios autorizados.
 - E2E completo requiere estrategia de login mockeado o proyecto Firebase de pruebas.
 - Migracion historica no forma parte del EPIC 4 y debe planificarse con archivos fuente definidos.
+- El selector temporal de rol debe mantenerse desactivado fuera de desarrollo local.

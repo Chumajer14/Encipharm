@@ -1,11 +1,10 @@
 # Enci Ventas
 
-Sistema de gestion de ventas y MiniCRM para Enci, desarrollado bajo metodologia Scrumban.
-El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos.
+Sistema de gestion de ventas y MiniCRM para Enci, desarrollado bajo metodologia Scrumban. El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos.
 
 ## Objetivo
 
-Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboard supervisor desde una solucion web.
+Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboards desde una solucion web.
 
 ## Alcance del MVP
 
@@ -14,14 +13,16 @@ Incluye las capacidades bloqueantes para operar el sistema:
 - Autenticacion web con Firebase Auth y Google SSO.
 - Validacion de ID Token/JWT en backend con Firebase Admin.
 - CRM de clientes conectado a Firestore.
-- Creacion, listado, busqueda, filtros, detalle, edicion y eliminacion de clientes reales.
+- Creacion, listado, busqueda, filtros, detalle, edicion y baja logica de clientes reales.
 - Registro de usuarios autenticados en Firestore.
 - Gestion base de usuarios y roles.
-- Base tecnica para dashboard vendedor/supervisor.
-- Base tecnica para importacion CSV y validaciones futuras.
+- Importacion CSV atomica para supervisores/admin.
 - Interacciones comerciales.
 - Pipeline de oportunidades.
-- Propuestas basicas con estados y calculos.
+- Propuestas basicas con estados, oportunidad obligatoria y calculos server-side.
+- Dashboards vendedor/supervisor con metricas comerciales.
+- Hardening de sesion, rutas 404/403 y navegacion por rol.
+- Preview frontend preparado para Vercel.
 
 Quedan fuera de esta fase:
 
@@ -31,6 +32,7 @@ Quedan fuera de esta fase:
 - Google Calendar.
 - Inteligencia competitiva avanzada.
 - Reportes extendidos.
+- Migracion de datos historicos.
 
 ## Stack tecnologico
 
@@ -39,20 +41,21 @@ Quedan fuera de esta fase:
 - **Base de datos:** Cloud Firestore.
 - **Autenticacion:** Firebase Auth con Google SSO.
 - **Autorizacion:** Bearer token validado con Firebase Admin.
-- **Infraestructura prevista:** GCP Cloud Run, Cloud Build, Artifact Registry.
+- **Dependencias backend:** uv.
+- **Infraestructura prevista backend:** GCP Cloud Run, Cloud Build, Artifact Registry.
 - **Preview frontend:** Vercel para publicar la app web React/Vite de forma independiente.
-- **Documentacion y despliegue:** README vivo y variables seguras fuera del repositorio.
+- **Documentacion y despliegue:** README vivo, documentos en `docs/` y variables seguras fuera del repositorio.
 
 ## Estructura del repositorio
 
 ```text
 /
-├── Backend/
-├── frontend/
-├── mobile/
-├── docs/
-├── .gitignore
-└── README.md
+|-- Backend/
+|-- frontend/
+|-- mobile/
+|-- docs/
+|-- .gitignore
+`-- README.md
 ```
 
 > Nota: `mobile/` queda reservado para Fase 2. Actualmente el MVP se concentra en la web.
@@ -71,45 +74,33 @@ Authorization: Bearer <firebase-id-token>
 5. FastAPI valida el token con Firebase Admin.
 6. El backend crea o actualiza el usuario en la coleccion `users`.
 7. La sesion queda autorizada para consumir endpoints protegidos.
+8. Si la API responde `401`, el frontend cierra sesion y muestra mensaje de reingreso.
 
-## Flujo de clientes
+## Roles y navegacion
 
-La pantalla `CRM Clientes` ya no usa datos mock como fuente principal.
-Los clientes se leen y escriben mediante API protegida:
+Jerarquia aplicada en backend y reforzada en frontend:
 
-- `GET /clientes`: lista clientes visibles para el usuario autenticado.
-- `GET /clientes/{cliente_id}`: consulta un cliente visible para el usuario.
-- `POST /clientes`: crea un cliente en Firestore.
-- `PATCH /clientes/{cliente_id}`: actualiza un cliente visible para el usuario.
-- `DELETE /clientes/{cliente_id}`: da de baja logicamente un cliente visible para el usuario.
+```text
+admin > supervisor > vendedor
+```
 
-Cada cliente queda almacenado en la coleccion `clientes` con:
+Reglas principales:
 
-- `nombre`
-- `empresa`
-- `email`
-- `telefono`
-- `rubro`
-- `region`
-- `estado`
-- `vendedorUid`
-- `createdAt`
-- `updatedAt`
-
-Regla funcional aplicada en backend:
-
-- `vendedor`: ve los clientes asociados a su `vendedorUid`.
-- `supervisor` y `admin`: pueden ver todos los clientes.
+- `vendedor`: gestiona clientes, interacciones, oportunidades y propuestas propias.
+- `supervisor`: consulta consolidado, opera sobre clientes/equipo y accede a dashboard supervisor.
+- `admin`: hereda permisos de supervisor y puede administrar usuarios/roles.
+- Rutas privadas sin sesion redirigen a `/login`.
+- Rutas privadas con rol insuficiente muestran una pagina 403 controlada.
+- Rutas inexistentes muestran una pagina 404 real.
 
 ## Endpoints implementados
 
 ### Salud
 
 ```http
+GET /
 GET /health
 ```
-
-Verifica que la API este activa.
 
 ### Usuario autenticado
 
@@ -117,26 +108,26 @@ Verifica que la API este activa.
 GET /me
 ```
 
-Valida el token y retorna datos basicos del usuario autenticado.
-
 ### Autenticacion
 
 ```http
 POST /auth/login
 POST /auth/register
+PATCH /auth/temporary-role
 ```
 
-Ambos endpoints validan el token Firebase y sincronizan el usuario en Firestore.
-`/auth/login` es el flujo usado por el frontend.
+`/auth/login` es el flujo usado por el frontend. `/auth/temporary-role` es un endpoint temporal para desarrollo, bloqueado con `APP_ENV=production`.
 
 ### Clientes
 
 ```http
 GET /clientes
+GET /clientes/{cliente_id}
 POST /clientes
+PATCH /clientes/{cliente_id}
+DELETE /clientes/{cliente_id}
+POST /clientes/import-csv
 ```
-
-Ambos requieren `Authorization: Bearer <token>`.
 
 ### Flujo comercial
 
@@ -152,12 +143,18 @@ POST /propuestas
 PATCH /propuestas/{id}
 ```
 
-Todos requieren `Authorization: Bearer <token>`.
+### Dashboard
+
+```http
+GET /dashboard/vendedor
+GET /dashboard/supervisor
+```
+
+Todos los endpoints de negocio requieren `Authorization: Bearer <token>`.
 
 ## Variables de entorno
 
-Cada proyecto debe tener su propio archivo `.env.example`.
-Los archivos `.env`, service accounts y credenciales reales no deben versionarse.
+Cada proyecto debe tener su propio archivo `.env.example`. Los archivos `.env`, service accounts y credenciales reales no deben versionarse.
 
 ### Backend
 
@@ -166,8 +163,15 @@ APP_NAME=Enci Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"]
+CORS_ORIGIN_REGEX=
 FIREBASE_PROJECT_ID=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
+FIREBASE_WEB_API_KEY=your-firebase-api-key
+FIREBASE_WEB_AUTH_DOMAIN=your-auth-domain
+FIREBASE_WEB_STORAGE_BUCKET=your-storage-bucket
+FIREBASE_WEB_MESSAGING_SENDER_ID=your-sender-id
+FIREBASE_WEB_APP_ID=your-app-id
+FIREBASE_WEB_MEASUREMENT_ID=your-measurement-id
 ```
 
 ### Frontend
@@ -182,7 +186,10 @@ VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
+VITE_ENABLE_TEMP_ROLE_SWITCHER=false
 ```
+
+`VITE_ENABLE_TEMP_ROLE_SWITCHER=true` habilita un selector visual de rol solo durante desarrollo local. Debe permanecer desactivado para previews, UAT y produccion.
 
 Para publicar el frontend en Vercel, configurar el proyecto con Root Directory = `frontend` y cargar las mismas variables `VITE_*` en Preview/Production. `VITE_API_BASE_URL` debe apuntar a una API publica HTTPS; `localhost` solo sirve para desarrollo local. Guia detallada: `docs/deploy-vercel-frontend.md`.
 
@@ -204,41 +211,26 @@ npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Con esto, el backend queda disponible en `http://localhost:8000`.
-La consola definitiva de pruebas esta en `http://localhost:8000/docs`.
-El frontend web, si se requiere para revisar navegacion de usuario, queda en `http://127.0.0.1:5173`.
-
-## Consola de testing y verificacion
-
-La ruta principal para testing y presentacion es:
-
-```text
-http://localhost:8000/docs
-```
-
-Esta consola incluye:
-
-- Login con Google desde Firebase Auth.
-- Obtencion de ID Token Firebase.
-- Aplicacion automatica del token al esquema `HTTPBearer`.
-- Uso del boton `Authorize` de Swagger con el token precargado.
-- Pruebas de endpoints protegidos con respuestas reales de API.
+Con esto, el backend queda disponible en `http://localhost:8000`, la consola de pruebas en `http://localhost:8000/docs` y el frontend en `http://127.0.0.1:5173`.
 
 ## QA tecnica local
-
-Comandos tecnicos usados para validar la integracion durante desarrollo:
-
-```bash
-cd frontend
-npm test
-npm run lint
-npm run build
-```
 
 ```bash
 cd Backend
 uv run pytest
 ```
+
+```bash
+cd frontend
+npm.cmd run lint
+npm.cmd run build
+```
+
+Resultado de cierre EPIC 4:
+
+- Backend: `38 passed`.
+- Frontend lint: exitoso.
+- Frontend build: exitoso.
 
 Checklist funcional:
 
@@ -252,55 +244,27 @@ Checklist funcional:
 - `POST /clientes` guarda clientes nuevos en Firestore.
 - `PATCH /clientes/{cliente_id}` edita clientes.
 - `DELETE /clientes/{cliente_id}` da de baja clientes sin perdida irreversible.
-- El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
 - `POST /interacciones` registra llamadas, visitas, correos y reuniones.
 - `POST /oportunidades` crea oportunidades y `PATCH /oportunidades/{id}` cambia etapa.
 - `POST /propuestas` exige oportunidad asociada, calcula descuento y monto total.
-
-## Convenciones de trabajo
-
-- Trabajar con ramas por feature.
-- Abrir Pull Request antes de mergear.
-- Mantener lint, build y tests limpios.
-- Actualizar documentacion si cambia un endpoint o flujo.
-- Seguir la definicion de Done del proyecto.
+- Token expirado por respuesta `401` cierra sesion y vuelve al login.
+- Ruta inexistente muestra 404 con retorno al flujo principal.
+- Rol insuficiente muestra 403 antes de renderizar contenido privado.
 
 ## Roadmap general
 
-### Ciclo 1
-
-Definicion de alcance, arquitectura base y setup tecnico.
-
-### Ciclo 2
-
-CRM, autenticacion, roles y datos base.
-
-### Ciclo 3
-
-Interacciones, pipeline y propuestas basicas.
-
-### Ciclo 4
-
-Dashboards, hardening y QA. La migracion de datos queda diferida.
-
-### Ciclo 5
-
-UAT, correcciones, documentacion y salida.
-
-## Definition of Done
-
-Un ticket se considera completo solo si:
-
-- El codigo esta en la rama correspondiente.
-- Existe PR aprobado.
-- Los tests pasan.
-- QA valida la funcionalidad.
-- Los criterios de aceptacion se cumplen.
-- La documentacion queda actualizada si aplica.
+| Ciclo | Alcance | Estado |
+|-------|---------|--------|
+| Ciclo 1 | Definicion de alcance, arquitectura base y setup tecnico | Cerrado |
+| Ciclo 2 | CRM, autenticacion, roles y datos base | Cerrado |
+| Ciclo 3 | Interacciones, pipeline y propuestas basicas | Cerrado Development |
+| Ciclo 4 | Dashboards, hardening y QA | Cerrado Development |
+| Ciclo 5 | UAT, correcciones, documentacion y salida | Pendiente |
 
 ## Riesgos principales
 
 - El alcance debe mantenerse acotado para cumplir el plazo.
+- Firebase real debe validarse en UAT con dominios autorizados.
 - La integracion con ERP SAP puede diferirse si falta informacion tecnica.
 - La migracion de datos historicos queda diferida hasta definir archivos fuente y reglas de limpieza.
 - Flutter y las capacidades avanzadas quedan para Fase 2.
@@ -311,5 +275,14 @@ Un ticket se considera completo solo si:
 - EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
 - EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
-- EPIC 4: cerrado para Development con hardening de sesion, 404/403 controlados, navegacion por rol, estados vacios en dashboards y plan QA/E2E documentado. Migracion fuera de alcance por ahora.
-- Pendiente MVP: UAT, ajustes finales y go-live.
+- EPIC 4: cerrado para Development con hardening de sesion, 404/403 controlados, navegacion por rol, estados vacios en dashboards y plan QA/E2E documentado.
+- Pendiente MVP: EPIC 5, UAT, ajustes finales y go-live.
+
+## Documentacion clave
+
+- `docs/README.md`: indice documental.
+- `docs/estado-proyecto.md`: estado consolidado del MVP.
+- `docs/architecture.md`: arquitectura del monorepo y roles.
+- `docs/setup.md`: setup local y comandos de verificacion.
+- `docs/qa/epic-04-hardening.md`: cierre QA del EPIC 4.
+- `docs/evm/semana-04.md`: reporte semanal de cierre EPIC 4.

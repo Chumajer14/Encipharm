@@ -5,7 +5,7 @@ Frontend web del MVP comercial Enci Ventas. La app usa React, Vite, Firebase Aut
 ## Desarrollo local
 
 ```bash
-npm ci
+npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
@@ -23,7 +23,25 @@ VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
+VITE_ENABLE_TEMP_ROLE_SWITCHER=false
 ```
+
+`VITE_ENABLE_TEMP_ROLE_SWITCHER=true` muestra un selector de rol solo durante desarrollo local. El endpoint backend equivalente esta bloqueado con `APP_ENV=production`.
+
+## Rutas principales
+
+| Ruta | Uso |
+|------|-----|
+| `/login` | Inicio de sesion Google/Firebase |
+| `/dashboard` | Dashboard vendedor o supervisor segun rol |
+| `/clientes` | CRM clientes |
+| `/crear` | Alta de cliente |
+| `/interacciones` | Registro de interacciones |
+| `/oportunidades` | Pipeline comercial |
+| `/oportunidades/:id` | Detalle comercial de oportunidad |
+| `/propuestas` | Gestion de propuestas |
+
+Rutas sin sesion redirigen a login. Rutas con rol insuficiente muestran 403 controlado. Rutas inexistentes muestran 404.
 
 ## Vercel
 
@@ -39,6 +57,8 @@ Guia operativa: `../docs/deploy-vercel-frontend.md`.
 ## QA tecnica
 
 ```bash
-npm run lint
-npm run build
+npm.cmd run lint
+npm.cmd run build
 ```
+
+Resultado de cierre EPIC 4: lint y build exitosos.

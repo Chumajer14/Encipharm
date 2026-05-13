@@ -80,8 +80,8 @@ Recomendacion final: cerrar EPIC 3 en Development, crear pruebas E2E antes de pr
 | Asociacion cruzada propuesta-oportunidad | Servicio comercial | Datos comerciales ajenos vinculados | Alto | `create_proposal` no llamaba `_visible_by_user` | Validar oportunidad visible | Parche aplicado | `test_seller_cannot_link_proposal_to_other_seller_opportunity` |
 | Propuestas sin oportunidad | Modelo comercial | Trazabilidad comercial incompleta | Medio | `oportunidadId` era opcional | Exigir oportunidad visible del mismo cliente | Parche aplicado | `test_proposal_requires_opportunity` |
 | Duplicados CSV | Importacion clientes | Corrupcion logica de CRM | Medio | Sin set de emails | Validacion atomica | Parche aplicado | tests duplicados CSV |
-| Confianza en frontend para navegacion | Rutas React | Acceso visual por URL | Medio | `ProtectedRoute` solo auth, no rol | Mantener bloqueo backend, ocultar enlaces por rol en siguiente hardening | Pendiente | E2E por rol |
-| Consultas en memoria | Servicios list/dashboard | Exposicion operacional/rendimiento | Medio | `.stream()` y filtro local | Migrar a consultas Firestore con indices | Pendiente EPIC 4 | Prueba carga |
+| Confianza en frontend para navegacion | Rutas React | Acceso visual por URL | Medio | `ProtectedRoute` solo auth, no rol | Cerrado en EPIC 4 con guard de rol y pagina 403 | Cerrado EPIC 4 | E2E por rol pendiente |
+| Consultas en memoria | Servicios list/dashboard | Exposicion operacional/rendimiento | Medio | `.stream()` y filtro local | Migrar a consultas Firestore con indices antes de escalar | Pendiente futuro | Prueba carga |
 
 ## F. Parches de codigo
 
@@ -154,3 +154,7 @@ Bajo:
 | Dashboard supervisor consistente | Aprobado parcial | Tests agregados; validacion visual pendiente |
 
 Veredicto final: EPIC 3 cerrado para Development. Puede pasar a EPIC 4 si antes de produccion se validan flujos manuales con usuarios reales y se priorizan pruebas E2E.
+
+## Actualizacion post EPIC 4
+
+El hardening de navegacion por rol, pagina 404, pagina 403 y estados vacios de dashboards fue cerrado en `docs/qa/epic-04-hardening.md`. La deuda E2E frontend permanece como recomendacion para EPIC 5/UAT.

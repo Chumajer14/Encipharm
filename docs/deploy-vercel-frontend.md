@@ -30,6 +30,7 @@ VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
+VITE_ENABLE_TEMP_ROLE_SWITCHER=false
 ```
 
 `VITE_API_BASE_URL` debe apuntar a una API publica con HTTPS. Un backend local en `localhost` no sera accesible desde Vercel.
@@ -76,4 +77,12 @@ En produccion no usar `*` como origen permitido.
 3. Cargar variables `VITE_*`.
 4. Agregar el dominio Vercel en Firebase Auth.
 5. Agregar el mismo dominio en `CORS_ORIGINS` del backend desplegado.
-6. Ejecutar un deploy Preview y compartir la URL con Max.
+6. Ejecutar un deploy Preview y compartir la URL de validacion.
+
+## Verificaciones post-deploy
+
+- `/login` carga sin errores de variables Firebase.
+- Login Google permite llegar a `/dashboard`.
+- Una ruta inexistente muestra 404.
+- Un usuario sin rol suficiente muestra 403 en rutas protegidas por rol.
+- `VITE_ENABLE_TEMP_ROLE_SWITCHER` permanece en `false` o sin configurar.

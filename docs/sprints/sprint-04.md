@@ -42,15 +42,22 @@ cd Backend
 uv run pytest
 ```
 
+Resultado: `38 passed`.
+
 ```bash
 cd frontend
 npm.cmd run build
 npm.cmd run lint
 ```
 
+Resultado: build y lint exitosos.
+
 ## Documentacion
 
 - `docs/qa/epic-04-hardening.md`: cierre QA, matriz de tickets, plan E2E y checklist visual.
+- `docs/evm/semana-04.md`: reporte EVM de cierre semanal.
+- `docs/estado-proyecto.md`: estado consolidado del MVP.
+- `docs/README.md`: indice documental.
 
 ## Cierre
 

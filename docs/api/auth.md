@@ -37,7 +37,7 @@ Si el usuario existe con `activo = false`, la API rechaza el login y los endpoin
 
 Cambia el rol de la propia cuenta autenticada para pruebas de interfaz y permisos.
 
-**TEMPORAL - TEMPORAL:** este endpoint existe solo para validacion funcional durante desarrollo y debe eliminarse antes de entregar el sistema final. En `APP_ENV=production` responde `403`.
+**TEMPORAL - TEMPORAL:** este endpoint existe solo para validacion funcional durante desarrollo y debe eliminarse antes de entregar el sistema final. En `APP_ENV=production` responde `403`. El frontend solo muestra el control asociado cuando `import.meta.env.DEV` y `VITE_ENABLE_TEMP_ROLE_SWITCHER=true`.
 
 **Autenticacion:** requerida.
 
@@ -52,6 +52,11 @@ Cambia el rol de la propia cuenta autenticada para pruebas de interfaz y permiso
 Valores permitidos: `vendedor`, `supervisor`, `admin`.
 
 **Respuesta exitosa `200 OK`:** retorna el `UserResponse` actualizado.
+
+**Errores esperados:**
+
+- `403`: entorno productivo o usuario sin acceso al sistema.
+- `422`: rol fuera de `vendedor`, `supervisor`, `admin`.
 
 ## GET `/me`
 

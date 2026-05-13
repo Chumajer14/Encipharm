@@ -146,4 +146,4 @@ Respuesta con errores de validacion:
 - `Backend/app/api/clientes.py`
 - `Backend/app/models/cliente.py`
 - `Backend/app/services/clientes.py`
-- `Backend/tests/test_clientes_api.py`
+- `Backend/tests/test_clientes_permissions.py`
