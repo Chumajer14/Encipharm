@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   onIdTokenChanged,
   signInWithPopup,
@@ -6,10 +6,11 @@ import {
 } from "firebase/auth";
 import {
   auth,
+  getFirebaseConfigHelpMessage,
   googleProvider,
   isFirebaseConfigured,
 } from "../services/firebase";
-import { loginWithBackend } from "../services/api";
+import { loginWithBackend, updateCurrentUserTemporaryRole } from "../services/api";
 import { AuthContext } from "./authContext";
 
 function friendlyAuthError(authError) {
@@ -90,7 +91,7 @@ export function AuthProvider({ children }) {
 
   const login = async () => {
     if (!auth) {
-      setError("Firebase no esta configurado en frontend/.env");
+      setError(getFirebaseConfigHelpMessage());
       return;
     }
 
@@ -108,6 +109,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateTemporaryRole = useCallback(async (rol) => {
+    if (!idToken) {
+      throw new Error("No hay sesion activa para cambiar el rol temporal.");
+    }
+
+    const updatedUser = await updateCurrentUserTemporaryRole(idToken, rol);
+    setBackendUser(updatedUser);
+    return updatedUser;
+  }, [idToken]);
+
   const value = useMemo(
     () => ({
       backendUser,
@@ -119,8 +130,9 @@ export function AuthProvider({ children }) {
       loading,
       login,
       logout,
+      updateTemporaryRole,
     }),
-    [backendUser, error, firebaseUser, idToken, loading],
+    [backendUser, error, firebaseUser, idToken, loading, updateTemporaryRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

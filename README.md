@@ -40,6 +40,7 @@ Quedan fuera de esta fase:
 - **Autenticacion:** Firebase Auth con Google SSO.
 - **Autorizacion:** Bearer token validado con Firebase Admin.
 - **Infraestructura prevista:** GCP Cloud Run, Cloud Build, Artifact Registry.
+- **Preview frontend:** Vercel para publicar la app web React/Vite de forma independiente.
 - **Documentacion y despliegue:** README vivo y variables seguras fuera del repositorio.
 
 ## Estructura del repositorio
@@ -182,6 +183,8 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 ```
+
+Para publicar el frontend en Vercel, configurar el proyecto con Root Directory = `frontend` y cargar las mismas variables `VITE_*` en Preview/Production. `VITE_API_BASE_URL` debe apuntar a una API publica HTTPS; `localhost` solo sirve para desarrollo local. Guia detallada: `docs/deploy-vercel-frontend.md`.
 
 ## Instalacion local
 

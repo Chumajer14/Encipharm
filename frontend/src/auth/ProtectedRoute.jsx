@@ -1,7 +1,11 @@
 import { Navigate } from "react-router-dom";
+import TemporaryRoleSwitcher from "../components/TemporaryRoleSwitcher";
 import AccessDenied from "../pages/AccessDenied";
 import { hasMinimumRole } from "./roles";
 import { useAuth } from "./authContext";
+
+const showTemporaryRoleSwitcher =
+  import.meta.env.DEV && import.meta.env.VITE_ENABLE_TEMP_ROLE_SWITCHER === "true";
 
 function ProtectedRoute({ children, minimumRole = "vendedor" }) {
   const { backendUser, isAuthenticated, loading } = useAuth();
@@ -24,7 +28,12 @@ function ProtectedRoute({ children, minimumRole = "vendedor" }) {
     return <AccessDenied minimumRole={minimumRole} userRole={backendUser?.rol} />;
   }
 
-  return children;
+  return (
+    <>
+      {showTemporaryRoleSwitcher && <TemporaryRoleSwitcher />}
+      {children}
+    </>
+  );
 }
 
 export default ProtectedRoute;
