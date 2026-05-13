@@ -52,7 +52,7 @@ JWT -> FastAPI valida token -> Firestore guarda/consulta perfil
 - EPIC 1: autenticacion y modelo de usuarios.
 - EPIC 2: CRM, login web, usuarios/roles, dashboard base e importacion CSV.
 - EPIC 3: interacciones, pipeline y propuestas basicas.
-- EPIC 4: dashboards, hardening y QA; migracion diferida.
+- EPIC 4: dashboards, hardening, QA y navegacion por rol cerrados para Development; migracion diferida.
 - EPIC 5: UAT, documentacion y go-live.
 
 ## Estado actual

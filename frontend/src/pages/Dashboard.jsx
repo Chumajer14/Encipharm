@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { getRoleLabel, isSupervisorRole } from "../auth/roles";
 import { getDashboardVendedor, getDashboardSupervisor } from "../services/api";
 
 function getCount(items = [], key) {
@@ -27,7 +28,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const rol = backendUser?.rol || "vendedor";
-  const isSupervisorView = rol === "supervisor" || rol === "admin";
+  const isSupervisorView = isSupervisorRole(rol);
 
   useEffect(() => {
     async function cargarDashboard() {
@@ -57,7 +58,7 @@ function Dashboard() {
         <div>
           <h1>Enci Ventas</h1>
           <p>
-            Dashboard {isSupervisorView ? "supervisor" : "vendedor"} / {backendUser?.email}
+            Dashboard {getRoleLabel(rol)} / {backendUser?.email}
           </p>
         </div>
 
