@@ -17,6 +17,38 @@ def _reject_formula_injection(value: str | None) -> str | None:
     return value
 
 
+def normalize_opportunity_stage(value: str | None) -> str | None:
+    if value is None:
+        return value
+    normalized = value.strip().lower()
+    aliases = {
+        "prospecto": "nuevo",
+        "prospeccion": "nuevo",
+        "calificado": "contactado",
+        "calificacion": "contactado",
+        "propuesta": "cotizacion",
+        "propuesta enviada": "cotizacion",
+        "cotización": "cotizacion",
+        "negociación": "negociacion",
+        "cerrado ganado": "ganado",
+        "cerrado perdido": "perdido",
+    }
+    return aliases.get(normalized, normalized)
+
+
+def normalize_proposal_status(value: str | None) -> str | None:
+    if value is None:
+        return value
+    normalized = value.strip().lower()
+    aliases = {
+        "en negociación": "enviada",
+        "en negociacion": "enviada",
+        "ganada": "aceptada",
+        "perdida": "rechazada",
+    }
+    return aliases.get(normalized, normalized)
+
+
 class InteractionCreate(BaseModel):
     clienteId: str = Field(min_length=1, max_length=128)
     tipo: InteractionType
@@ -53,6 +85,11 @@ class OpportunityCreate(BaseModel):
     def reject_formula_values(cls, value: str | None) -> str | None:
         return _reject_formula_injection(value)
 
+    @field_validator("etapa", mode="before")
+    @classmethod
+    def normalize_stage_aliases(cls, value: str | None) -> str | None:
+        return normalize_opportunity_stage(value)
+
 
 class OpportunityUpdate(BaseModel):
     titulo: Optional[str] = Field(default=None, min_length=1, max_length=160)
@@ -65,6 +102,11 @@ class OpportunityUpdate(BaseModel):
     @classmethod
     def reject_formula_values(cls, value: str | None) -> str | None:
         return _reject_formula_injection(value)
+
+    @field_validator("etapa", mode="before")
+    @classmethod
+    def normalize_stage_aliases(cls, value: str | None) -> str | None:
+        return normalize_opportunity_stage(value)
 
 
 class OpportunityResponse(OpportunityCreate):
@@ -98,6 +140,11 @@ class ProposalCreate(BaseModel):
     def reject_formula_values(cls, value: str | None) -> str | None:
         return _reject_formula_injection(value)
 
+    @field_validator("estado", mode="before")
+    @classmethod
+    def normalize_status_aliases(cls, value: str | None) -> str | None:
+        return normalize_proposal_status(value)
+
 
 class ProposalUpdate(BaseModel):
     titulo: Optional[str] = Field(default=None, min_length=1, max_length=160)
@@ -110,6 +157,11 @@ class ProposalUpdate(BaseModel):
     @classmethod
     def reject_formula_values(cls, value: str | None) -> str | None:
         return _reject_formula_injection(value)
+
+    @field_validator("estado", mode="before")
+    @classmethod
+    def normalize_status_aliases(cls, value: str | None) -> str | None:
+        return normalize_proposal_status(value)
 
 
 class ProposalResponse(ProposalCreate):

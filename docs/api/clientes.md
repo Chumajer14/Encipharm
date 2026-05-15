@@ -17,10 +17,11 @@ Authorization: Bearer <firebase_id_token>
 | `POST /clientes/` | `admin`, `supervisor`, `vendedor` |
 | `PATCH /clientes/{cliente_id}` | `admin`, `supervisor`, `vendedor` |
 | `DELETE /clientes/{cliente_id}` | `admin`, `supervisor`, `vendedor` |
-| `POST /clientes/import-csv` | `admin`, `supervisor` |
+| `POST /clientes/import-csv` | `admin` |
 
 Los vendedores solo listan, consultan, modifican y eliminan clientes asignados a su `vendedorUid` u `ownerUid`.
 Supervisores y administradores pueden operar sobre todos los clientes y filtrar por `vendedorUid`.
+La importacion masiva queda restringida a `admin`, alineada a la matriz funcional del cliente.
 
 ## GET `/clientes/`
 
@@ -91,7 +92,7 @@ Reglas:
 
 ## POST `/clientes/import-csv`
 
-Importa clientes desde un archivo CSV. Requiere `multipart/form-data` con campo `file`.
+Importa clientes desde un archivo CSV. Requiere `multipart/form-data` con campo `file` y rol `admin`.
 
 Columnas soportadas:
 
@@ -113,6 +114,7 @@ Comportamiento:
 - Rechaza archivos sobre 1 MB.
 - Rechaza archivos sobre 1000 filas.
 - Rechaza archivos que no esten codificados en UTF-8.
+- Registra evento tecnico de auditoria con total de filas, importados y fallidos.
 
 Respuesta exitosa:
 

@@ -8,6 +8,34 @@ Los endpoints protegidos requieren header:
 Authorization: Bearer <firebase_id_token>
 ```
 
+## Errores estandar
+
+Los errores HTTP se normalizan con el siguiente contrato JSON:
+
+```json
+{
+  "error": "No tienes permisos para esta accion",
+  "codigo": "ERR_FORBIDDEN",
+  "detalles": null,
+  "timestamp": "2026-05-15T12:00:00+00:00"
+}
+```
+
+Codigos usados:
+
+| HTTP | Codigo |
+|------|--------|
+| 400 | `ERR_BAD_REQUEST` |
+| 401 | `ERR_UNAUTHORIZED` |
+| 403 | `ERR_FORBIDDEN` |
+| 404 | `ERR_NOT_FOUND` |
+| 409 | `ERR_CONFLICT` |
+| 413 | `ERR_PAYLOAD_TOO_LARGE` |
+| 422 | `ERR_VALIDATION` |
+| 429 | `ERR_RATE_LIMIT` |
+| 500 | `ERR_INTERNAL` |
+| 503 | `ERR_SERVICE_UNAVAILABLE` |
+
 ## POST `/auth/register`
 
 Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil existente.

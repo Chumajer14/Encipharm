@@ -86,7 +86,7 @@ async def post_cliente(
     db = get_db()
     if user["rol"] == "vendedor" or payload.vendedorUid is None:
         payload = payload.model_copy(update={"vendedorUid": user["uid"]})
-    return create_cliente(db, payload)
+    return create_cliente(db, payload, user=user)
 
 
 @router.patch("/{cliente_id}", response_model=ClienteResponse)
@@ -102,7 +102,7 @@ async def patch_cliente(
         payload = payload.model_copy(
             update={"vendedorUid": user["uid"], "ownerUid": user["uid"]}
         )
-    return update_cliente(db, cliente_id, payload.model_dump(exclude_unset=True))
+    return update_cliente(db, cliente_id, payload.model_dump(exclude_unset=True), user=user)
 
 
 @router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -113,15 +113,15 @@ async def remove_cliente(
     db = get_db()
     cliente = get_cliente_or_404(db, cliente_id)
     _ensure_cliente_access(cliente, user)
-    delete_cliente(db, cliente_id)
+    delete_cliente(db, cliente_id, user=user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/import-csv", response_model=CsvImportResult)
 async def post_import_clientes_csv(
     file: UploadFile = File(...),
-    _: dict = Depends(require_role("supervisor")),
+    user: dict = Depends(require_role("admin")),
 ):
     content = await file.read()
     db = get_db()
-    return import_clientes_csv(db, content)
+    return import_clientes_csv(db, content, user=user)

@@ -6,7 +6,9 @@ from app.models.cliente import ClienteCreate
 from app.models.comercial import (
     InteractionCreate,
     OpportunityCreate,
+    OpportunityUpdate,
     ProposalCreate,
+    ProposalUpdate,
 )
 from app.services.clientes import create_cliente
 from app.services.comercial import (
@@ -68,6 +70,7 @@ class FakeDb:
             "interacciones": FakeCollection(),
             "oportunidades": FakeCollection(),
             "propuestas": FakeCollection(),
+            "audit_logs": FakeCollection(),
         }
 
     def collection(self, name):
@@ -106,6 +109,7 @@ def test_create_interaction_for_visible_cliente():
 
     assert interaction["clienteId"] == cliente["id"]
     assert list_interactions(db, user)[0]["id"] == interaction["id"]
+    assert len(db.collection("audit_logs").rows) == 1
 
 
 def test_seller_cannot_create_interaction_for_other_seller_cliente():
@@ -170,6 +174,37 @@ def test_opportunities_can_be_filtered_by_stage():
     assert [item["id"] for item in filtered] == [cotizacion["id"]]
 
 
+def test_opportunity_stage_accepts_client_aliases():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Pipeline propuesta", etapa="Propuesta enviada"),
+        user,
+    )
+
+    assert opportunity["etapa"] == "cotizacion"
+    assert list_opportunities(db, user, etapa="Propuesta enviada")[0]["id"] == opportunity["id"]
+
+
+def test_opportunity_update_accepts_client_aliases():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Pipeline"),
+        user,
+    )
+    payload = OpportunityUpdate(etapa="Cerrado ganado")
+
+    updated = update_opportunity(db, opportunity["id"], payload.model_dump(exclude_unset=True), user)
+
+    assert updated["etapa"] == "ganado"
+
+
 def test_proposal_calculates_discount_and_total():
     db = FakeDb()
     cliente = _cliente(db)
@@ -221,6 +256,94 @@ def test_proposal_update_recalculates_total():
 
     assert updated["montoDescuento"] == 25000
     assert updated["montoTotal"] == 75000
+
+
+def test_proposal_status_accepts_client_aliases():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Venta anual"),
+        user,
+    )
+
+    proposal = create_proposal(
+        db,
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta ganada",
+            montoNeto=100000,
+            estado="Ganada",
+        ),
+        user,
+    )
+
+    assert proposal["estado"] == "aceptada"
+    assert list_proposals(db, user, estado="Ganada")[0]["id"] == proposal["id"]
+
+
+def test_supervisor_cannot_create_proposal():
+    db = FakeDb()
+    cliente = _cliente(db)
+    seller = {"uid": "seller-1", "rol": "vendedor"}
+    supervisor = {"uid": "supervisor-1", "rol": "supervisor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Venta anual"),
+        seller,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        create_proposal(
+            db,
+            ProposalCreate(
+                clienteId=cliente["id"],
+                oportunidadId=opportunity["id"],
+                titulo="Propuesta supervisor",
+                montoNeto=100000,
+            ),
+            supervisor,
+        )
+
+    assert exc_info.value.status_code == 403
+
+
+def test_supervisor_can_only_approve_proposal():
+    db = FakeDb()
+    cliente = _cliente(db)
+    seller = {"uid": "seller-1", "rol": "vendedor"}
+    supervisor = {"uid": "supervisor-1", "rol": "supervisor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente["id"], titulo="Venta anual"),
+        seller,
+    )
+    proposal = create_proposal(
+        db,
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta",
+            montoNeto=100000,
+        ),
+        seller,
+    )
+
+    approved = update_proposal(
+        db,
+        proposal["id"],
+        ProposalUpdate(estado="Ganada").model_dump(exclude_unset=True),
+        supervisor,
+    )
+
+    assert approved["estado"] == "aceptada"
+
+    with pytest.raises(HTTPException) as exc_info:
+        update_proposal(db, proposal["id"], {"titulo": "Cambio supervisor"}, supervisor)
+
+    assert exc_info.value.status_code == 403
 
 
 def test_proposals_can_be_filtered_by_status_and_opportunity():
