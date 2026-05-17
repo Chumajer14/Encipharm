@@ -16,6 +16,7 @@ from app.core.errors import (
     validation_exception_handler,
 )
 from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
+from app.core.readiness import ReadinessReport, build_readiness_report
 from app.docs import router as docs_router
 from app.services.firebase import init_firebase
 
@@ -70,6 +71,11 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok", "env": settings.APP_ENV}
+
+
+@app.get("/readiness", response_model=ReadinessReport)
+def readiness():
+    return build_readiness_report(settings)
 
 
 @app.get("/me")

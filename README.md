@@ -107,9 +107,11 @@ Regla funcional aplicada en backend:
 
 ```http
 GET /health
+GET /readiness
 ```
 
 Verifica que la API este activa.
+`/readiness` valida condiciones minimas de UAT/go-live sin exponer secretos.
 
 ### Usuario autenticado
 
@@ -312,4 +314,5 @@ Un ticket se considera completo solo si:
 - EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
 - EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
 - EPIC 4: cerrado para Development con hardening de sesion, 404/403 controlados, navegacion por rol, estados vacios en dashboards y plan QA/E2E documentado. Migracion fuera de alcance por ahora.
-- Pendiente MVP: UAT, ajustes finales y go-live.
+- EPIC 5: iniciado con readiness backend, checklist UAT, runbook de go-live y matriz de defectos.
+- Pendiente MVP: ejecucion UAT, ajustes finales aprobados y salida productiva.
