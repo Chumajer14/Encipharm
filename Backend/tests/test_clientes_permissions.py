@@ -74,6 +74,7 @@ class FakeDb:
             "oportunidades": FakeCollection(),
             "propuestas": FakeCollection(),
             "users": FakeCollection(),
+            "audit_logs": FakeCollection(),
         }
 
     def collection(self, name):
@@ -121,6 +122,29 @@ def test_delete_cliente_hides_existing_document_without_physical_delete():
     assert stored["estado"] == "Inactivo"
     assert stored["deletedAt"] is not None
     assert list_clientes(db) == []
+
+
+def test_cliente_changes_write_audit_event():
+    db = FakeDb()
+    user = {"uid": "admin-1", "rol": "admin"}
+    created = create_cliente(
+        db,
+        ClienteCreate(
+            nombre="Audit Cliente",
+            empresa="Audit Empresa",
+            email="audit@enci.cl",
+            rubro="Aves",
+            region="Maule",
+            vendedorUid="seller-1",
+        ),
+        user=user,
+    )
+
+    delete_cliente(db, created["id"], user=user)
+
+    events = list(db.collection("audit_logs").rows.values())
+    assert [event["action"] for event in events] == ["create", "delete"]
+    assert all(event["userUid"] == "admin-1" for event in events)
 
 
 def test_list_clientes_limits_large_responses():
@@ -360,6 +384,23 @@ def test_csv_import_rejects_existing_email_without_partial_writes():
     assert result["fallidos"] == 1
     assert result["errores"][0]["fila"] == 2
     assert len(list_clientes(db)) == 1
+
+
+def test_csv_import_records_audit_result():
+    db = FakeDb()
+    user = {"uid": "admin-1", "rol": "admin"}
+    content = "\n".join([
+        "nombre,empresa,email",
+        "Cliente Nuevo,Empresa Nueva,nuevo@enci.cl",
+    ]).encode("utf-8")
+
+    result = import_clientes_csv(db, content, user=user)
+
+    assert result["importados"] == 1
+    assert any(
+        event["action"] == "import_csv" and event["userUid"] == "admin-1"
+        for event in db.collection("audit_logs").rows.values()
+    )
 
 
 @pytest.mark.anyio

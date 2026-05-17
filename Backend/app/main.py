@@ -1,5 +1,7 @@
 from fastapi import Depends, FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.auth import router as auth_router
 from app.api.clientes import router as clientes_router
@@ -8,6 +10,11 @@ from app.api.dashboard import router as dashboard_router
 from app.api.users import router as users_router
 from app.core.auth import get_current_user
 from app.core.config import get_settings
+from app.core.errors import (
+    http_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
 from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
 from app.docs import router as docs_router
 from app.services.firebase import init_firebase
@@ -25,6 +32,9 @@ app = FastAPI(
 
 app.add_middleware(InMemoryRateLimitMiddleware, requests_per_minute=120)
 app.add_middleware(RequestSizeLimitMiddleware, max_body_bytes=1_000_000)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.add_middleware(
     CORSMiddleware,

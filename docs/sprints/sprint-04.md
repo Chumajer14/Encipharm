@@ -51,6 +51,7 @@ npm.cmd run lint
 ## Documentacion
 
 - `docs/qa/epic-04-hardening.md`: cierre QA, matriz de tickets, plan E2E y checklist visual.
+- Ajustes backend de alineacion cliente: propuestas con supervisor lectura/aprobacion, CSV solo admin, errores API estandar, alias de estados comerciales, auditoria tecnica y riesgo de performance Firestore documentado.
 
 ## Cierre
 

@@ -6,9 +6,12 @@ from fastapi import HTTPException, status
 
 from app.models.comercial import (
     InteractionCreate,
+    normalize_opportunity_stage,
+    normalize_proposal_status,
     OpportunityCreate,
     ProposalCreate,
 )
+from app.services.audit import record_audit_event
 
 
 INTERACTIONS_COLLECTION = "interacciones"
@@ -129,6 +132,35 @@ def _visible_by_user(item: dict[str, Any], user: dict) -> bool:
     return user["rol"] != "vendedor" or item.get("vendedorUid") == user["uid"]
 
 
+def _can_write_owned_record(item: dict[str, Any], user: dict) -> bool:
+    return user["rol"] == "admin" or item.get("vendedorUid") == user["uid"]
+
+
+def _ensure_proposal_create_allowed(user: dict) -> None:
+    if user["rol"] == "supervisor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Supervisor solo puede consultar y aprobar propuestas",
+        )
+
+
+def _ensure_proposal_update_allowed(data: dict[str, Any], changes: dict[str, Any], user: dict) -> None:
+    if user["rol"] == "admin":
+        return
+    if user["rol"] == "supervisor":
+        if set(changes.keys()) == {"estado"} and changes.get("estado") == "aceptada":
+            return
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Supervisor solo puede aprobar propuestas",
+        )
+    if data.get("vendedorUid") != user["uid"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos para esta propuesta",
+        )
+
+
 def _proposal_amounts(monto_neto: float, descuento_pct: float) -> tuple[float, float]:
     monto_descuento = round(monto_neto * (descuento_pct / 100), 2)
     monto_total = round(monto_neto - monto_descuento, 2)
@@ -173,6 +205,13 @@ def create_interaction(db, payload: InteractionCreate, user: dict) -> dict[str, 
         "updatedAt": now,
     }
     db.collection(INTERACTIONS_COLLECTION).document(interaction_id).set(data)
+    record_audit_event(
+        db,
+        user=user,
+        action="create",
+        resource=INTERACTIONS_COLLECTION,
+        resource_id=interaction_id,
+    )
     return data
 
 
@@ -184,6 +223,7 @@ def list_opportunities(
     limit: int = 100,
 ) -> list[dict[str, Any]]:
     """List opportunities visible for the user with optional cliente and stage filters."""
+    etapa = normalize_opportunity_stage(etapa)
     opportunities = []
     for doc in db.collection(OPPORTUNITIES_COLLECTION).stream():
         data = normalize_opportunity(doc.id, doc.to_dict() or {})
@@ -209,6 +249,13 @@ def create_opportunity(db, payload: OpportunityCreate, user: dict) -> dict[str, 
         "updatedAt": now,
     }
     db.collection(OPPORTUNITIES_COLLECTION).document(opportunity_id).set(data)
+    record_audit_event(
+        db,
+        user=user,
+        action="create",
+        resource=OPPORTUNITIES_COLLECTION,
+        resource_id=opportunity_id,
+    )
     return data
 
 
@@ -216,11 +263,19 @@ def update_opportunity(db, opportunity_id: str, changes: dict[str, Any], user: d
     """Apply partial opportunity changes after record-level authorization."""
     doc = _doc_or_404(db, OPPORTUNITIES_COLLECTION, opportunity_id, "Oportunidad no encontrada")
     data = doc.to_dict()
-    if not _visible_by_user(data, user):
+    if not _can_write_owned_record(data, user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos para esta oportunidad")
     clean_changes = {key: value for key, value in changes.items() if value is not None}
     clean_changes["updatedAt"] = _now()
     db.collection(OPPORTUNITIES_COLLECTION).document(opportunity_id).update(clean_changes)
+    record_audit_event(
+        db,
+        user=user,
+        action="update",
+        resource=OPPORTUNITIES_COLLECTION,
+        resource_id=opportunity_id,
+        metadata={"fields": sorted(clean_changes.keys())},
+    )
     return {**data, **clean_changes, "id": opportunity_id}
 
 
@@ -252,6 +307,7 @@ def list_proposals(
     limit: int = 100,
 ) -> list[dict[str, Any]]:
     """List proposals visible for the user with optional cliente, opportunity and status filters."""
+    estado = normalize_proposal_status(estado)
     proposals = []
     for doc in db.collection(PROPOSALS_COLLECTION).stream():
         data = normalize_proposal(doc.id, doc.to_dict() or {})
@@ -268,6 +324,7 @@ def list_proposals(
 
 def create_proposal(db, payload: ProposalCreate, user: dict) -> dict[str, Any]:
     """Create a proposal and calculate monetary totals server-side."""
+    _ensure_proposal_create_allowed(user)
     assert_cliente_visible(db, payload.clienteId, user)
     opportunity = _doc_or_404(db, OPPORTUNITIES_COLLECTION, payload.oportunidadId, "Oportunidad no encontrada")
     opportunity_data = opportunity.to_dict()
@@ -294,6 +351,13 @@ def create_proposal(db, payload: ProposalCreate, user: dict) -> dict[str, Any]:
         "updatedAt": now,
     }
     db.collection(PROPOSALS_COLLECTION).document(proposal_id).set(data)
+    record_audit_event(
+        db,
+        user=user,
+        action="create",
+        resource=PROPOSALS_COLLECTION,
+        resource_id=proposal_id,
+    )
     return data
 
 
@@ -301,9 +365,8 @@ def update_proposal(db, proposal_id: str, changes: dict[str, Any], user: dict) -
     """Apply proposal changes and recalculate monetary totals when needed."""
     doc = _doc_or_404(db, PROPOSALS_COLLECTION, proposal_id, "Propuesta no encontrada")
     data = doc.to_dict()
-    if not _visible_by_user(data, user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos para esta propuesta")
     clean_changes = {key: value for key, value in changes.items() if value is not None}
+    _ensure_proposal_update_allowed(data, clean_changes, user)
     monto_neto = clean_changes.get("montoNeto", data["montoNeto"])
     descuento_pct = clean_changes.get("descuentoPct", data.get("descuentoPct", 0))
     monto_descuento, monto_total = _proposal_amounts(monto_neto, descuento_pct)
@@ -313,4 +376,12 @@ def update_proposal(db, proposal_id: str, changes: dict[str, Any], user: dict) -
         "updatedAt": _now(),
     })
     db.collection(PROPOSALS_COLLECTION).document(proposal_id).update(clean_changes)
+    record_audit_event(
+        db,
+        user=user,
+        action="update",
+        resource=PROPOSALS_COLLECTION,
+        resource_id=proposal_id,
+        metadata={"fields": sorted(clean_changes.keys())},
+    )
     return {**data, **clean_changes, "id": proposal_id}

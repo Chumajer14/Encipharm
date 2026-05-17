@@ -23,6 +23,15 @@ La migracion de datos historicos se mantiene fuera de alcance por decision de sp
 
 ## Controles implementados
 
+### Ajustes backend post revision cliente
+
+- Propuestas: `supervisor` conserva lectura y aprobacion; no puede crear ni modificar contenido comercial.
+- Importacion CSV: restringida a `admin`, segun matriz funcional del cliente.
+- Errores API: contrato estandar con `error`, `codigo`, `detalles` y `timestamp`.
+- Estados comerciales: se aceptan alias de cliente y se normalizan a estados canonicos usados por el MVP.
+- Auditoria tecnica: cambios criticos en clientes, importacion, interacciones, oportunidades y propuestas registran evento en `audit_logs`.
+- Performance Firestore: filtros en memoria siguen aceptados para MVP; antes de escalar datos reales deben migrarse a queries/indexes y paginacion persistente.
+
 ### Sesion expirada
 
 El cliente HTTP dispara `enci:auth-expired` cuando la API responde 401. `AuthProvider` escucha el evento, limpia la sesion Firebase y deja mensaje visible en login.
@@ -106,3 +115,4 @@ npm.cmd run build
 - Firebase real debe validarse en ambiente UAT con dominios autorizados.
 - E2E completo requiere estrategia de login mockeado o proyecto Firebase de pruebas.
 - Migracion historica no forma parte del EPIC 4 y debe planificarse con archivos fuente definidos.
+- Los listados actuales usan lectura completa de colecciones y filtros en memoria; es aceptable para Development, pero no para alto volumen productivo.

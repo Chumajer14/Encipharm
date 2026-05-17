@@ -7,11 +7,9 @@ from app.models.comercial import (
     OpportunityCreate,
     OpportunityDetailResponse,
     OpportunityResponse,
-    OpportunityStage,
     OpportunityUpdate,
     ProposalCreate,
     ProposalResponse,
-    ProposalStatus,
     ProposalUpdate,
 )
 from app.services.comercial import (
@@ -51,7 +49,7 @@ async def post_interaccion(
 @router.get("/oportunidades", response_model=list[OpportunityResponse])
 async def get_oportunidades(
     cliente_id: str | None = Query(default=None, alias="clienteId", max_length=128),
-    etapa: OpportunityStage | None = Query(default=None),
+    etapa: str | None = Query(default=None, max_length=64),
     limit: int = Query(default=100, ge=1, le=500),
     user: dict = Depends(require_role("vendedor")),
 ):
@@ -91,7 +89,7 @@ async def patch_oportunidad(
 @router.get("/propuestas", response_model=list[ProposalResponse])
 async def get_propuestas(
     cliente_id: str | None = Query(default=None, alias="clienteId", max_length=128),
-    estado: ProposalStatus | None = Query(default=None),
+    estado: str | None = Query(default=None, max_length=64),
     oportunidad_id: str | None = Query(default=None, alias="oportunidadId", max_length=128),
     limit: int = Query(default=100, ge=1, le=500),
     user: dict = Depends(require_role("vendedor")),

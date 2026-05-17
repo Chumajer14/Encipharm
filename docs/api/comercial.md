@@ -17,6 +17,7 @@ Authorization: Bearer <firebase_id_token>
 | Propuestas | `admin`, `supervisor`, `vendedor` |
 
 Los vendedores solo operan registros asociados a sus propios clientes. Supervisores y administradores pueden consultar el consolidado.
+En propuestas, el `supervisor` tiene lectura y aprobacion; no crea propuestas ni modifica montos, titulos o notas. `admin` mantiene control administrativo completo.
 
 ## Interacciones
 
@@ -71,7 +72,18 @@ Query params:
 }
 ```
 
-Etapas validas: `nuevo`, `contactado`, `cotizacion`, `negociacion`, `ganado`, `perdido`.
+Etapas canonicas: `nuevo`, `contactado`, `cotizacion`, `negociacion`, `ganado`, `perdido`.
+
+Alias aceptados desde la terminologia del cliente:
+
+| Cliente | Canonico API |
+|---------|--------------|
+| `Prospecto`, `Prospeccion` | `nuevo` |
+| `Calificado`, `Calificacion` | `contactado` |
+| `Propuesta`, `Propuesta enviada` | `cotizacion` |
+| `Negociacion` | `negociacion` |
+| `Cerrado ganado` | `ganado` |
+| `Cerrado perdido` | `perdido` |
 
 ### PATCH `/oportunidades/{oportunidad_id}`
 
@@ -115,7 +127,15 @@ Query params:
 }
 ```
 
-Estados validos: `borrador`, `enviada`, `aceptada`, `rechazada`.
+Estados canonicos: `borrador`, `enviada`, `aceptada`, `rechazada`.
+
+Alias aceptados desde la terminologia del cliente:
+
+| Cliente | Canonico API |
+|---------|--------------|
+| `En negociacion` | `enviada` |
+| `Ganada` | `aceptada` |
+| `Perdida` | `rechazada` |
 
 La API calcula:
 
@@ -126,6 +146,12 @@ La API calcula:
 
 Actualiza parcialmente titulo, monto, descuento, estado o notas. Si cambia monto o descuento, recalcula totales.
 
+Reglas por rol:
+
+- `vendedor`: puede modificar propuestas propias.
+- `supervisor`: solo puede aprobar cambiando `estado` a `aceptada` o usando alias `Ganada`.
+- `admin`: puede modificar cualquier propuesta.
+
 ## Validaciones defensivas
 
 - Campos de texto tienen largos maximos.
@@ -134,3 +160,7 @@ Actualiza parcialmente titulo, monto, descuento, estado o notas. Si cambia monto
 - Probabilidad acepta rango 0-100.
 - Toda propuesta debe asociarse a una oportunidad existente y visible.
 - Una propuesta no puede asociarse a una oportunidad de otro cliente.
+
+## Auditoria
+
+Las altas y cambios criticos de interacciones, oportunidades y propuestas escriben eventos tecnicos en `audit_logs` con usuario, rol, accion, recurso, resultado y timestamp.

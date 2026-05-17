@@ -1,9 +1,11 @@
 import pytest
+from fastapi import HTTPException
 from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.config import Settings
+from app.core.errors import http_exception_handler
 from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
 
 
@@ -142,3 +144,28 @@ async def test_request_size_limiter_rejects_invalid_content_length():
     response = await middleware.dispatch(Request(scope), call_next)
 
     assert response.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_http_errors_use_standard_contract():
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/clientes/nope",
+        "headers": [],
+        "client": ("127.0.0.1", 12345),
+        "server": ("testserver", 80),
+        "scheme": "http",
+        "query_string": b"",
+    }
+
+    response = await http_exception_handler(
+        Request(scope),
+        HTTPException(status_code=403, detail="Sin permisos"),
+    )
+
+    assert response.status_code == 403
+    assert response.body
+    assert b'"error":"Sin permisos"' in response.body
+    assert b'"codigo":"ERR_FORBIDDEN"' in response.body
+    assert b'"timestamp"' in response.body

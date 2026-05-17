@@ -8,6 +8,7 @@ from fastapi import HTTPException, status
 from pydantic import EmailStr, TypeAdapter, ValidationError
 
 from app.models.cliente import ClienteCreate
+from app.services.audit import record_audit_event
 
 
 CLIENTES_COLLECTION = "clientes"
@@ -162,7 +163,7 @@ def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
     return normalize_cliente(cliente_id, data)
 
 
-def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
+def create_cliente(db, payload: ClienteCreate, user: dict[str, Any] | None = None) -> dict[str, Any]:
     """Create a cliente document with mirrored owner and vendedor identifiers."""
     now = datetime.now(timezone.utc)
     cliente_id = str(uuid4())
@@ -177,10 +178,23 @@ def create_cliente(db, payload: ClienteCreate) -> dict[str, Any]:
     if data.get("ownerUid") and not data.get("vendedorUid"):
         data["vendedorUid"] = data["ownerUid"]
     db.collection(CLIENTES_COLLECTION).document(cliente_id).set(data)
+    if user:
+        record_audit_event(
+            db,
+            user=user,
+            action="create",
+            resource=CLIENTES_COLLECTION,
+            resource_id=cliente_id,
+        )
     return normalize_cliente(cliente_id, data)
 
 
-def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, Any]:
+def update_cliente(
+    db,
+    cliente_id: str,
+    changes: dict[str, Any],
+    user: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Apply partial cliente changes while preserving existing values."""
     cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
     cliente_doc = cliente_ref.get()
@@ -199,11 +213,20 @@ def update_cliente(db, cliente_id: str, changes: dict[str, Any]) -> dict[str, An
     clean_changes["updatedAt"] = datetime.now(timezone.utc)
 
     cliente_ref.update(clean_changes)
+    if user:
+        record_audit_event(
+            db,
+            user=user,
+            action="update",
+            resource=CLIENTES_COLLECTION,
+            resource_id=cliente_id,
+            metadata={"fields": sorted(clean_changes.keys())},
+        )
     updated_data = {**cliente_doc.to_dict(), **clean_changes}
     return normalize_cliente(cliente_id, updated_data)
 
 
-def delete_cliente(db, cliente_id: str) -> None:
+def delete_cliente(db, cliente_id: str, user: dict[str, Any] | None = None) -> None:
     """Mark an existing cliente as deleted without losing historical data."""
     cliente_ref = db.collection(CLIENTES_COLLECTION).document(cliente_id)
     cliente_doc = cliente_ref.get()
@@ -219,6 +242,14 @@ def delete_cliente(db, cliente_id: str) -> None:
         "estado": "Inactivo",
         "updatedAt": datetime.now(timezone.utc),
     })
+    if user:
+        record_audit_event(
+            db,
+            user=user,
+            action="delete",
+            resource=CLIENTES_COLLECTION,
+            resource_id=cliente_id,
+        )
 
 
 def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[dict[str, Any]], int]:
@@ -287,7 +318,11 @@ def parse_clientes_csv(raw_content: bytes) -> tuple[list[ClienteCreate], list[di
     return clientes, errores, total_rows
 
 
-def import_clientes_csv(db, raw_content: bytes) -> dict[str, Any]:
+def import_clientes_csv(
+    db,
+    raw_content: bytes,
+    user: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     clientes, errores, total_rows = parse_clientes_csv(raw_content)
 
     seen_emails: set[str] = set()
@@ -314,8 +349,19 @@ def import_clientes_csv(db, raw_content: bytes) -> dict[str, Any]:
     imported_count = 0
     if not errores:
         for cliente in clientes:
-            create_cliente(db, cliente)
+            create_cliente(db, cliente, user=user)
             imported_count += 1
+
+    if user:
+        record_audit_event(
+            db,
+            user=user,
+            action="import_csv",
+            resource=CLIENTES_COLLECTION,
+            resource_id=None,
+            result="success" if not errores else "validation_error",
+            metadata={"totalFilas": total_rows, "importados": imported_count, "fallidos": len(errores)},
+        )
 
     return {
         "totalFilas": total_rows,
