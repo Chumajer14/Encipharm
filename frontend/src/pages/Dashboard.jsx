@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { isSupervisorRole } from "../auth/roles";
-import { getDashboardVendedor, getDashboardSupervisor } from "../services/api";
+import { getDashboardVendedor, getDashboardSupervisor, getOportunidades, getPropuestas, getUsers } from "../services/api";
+import { buildSellerRows, compactMoney } from "../utils/commercialAnalytics";
 
 function getCount(items = [], key) {
   return items.find((item) => item.clave === key)?.total ?? 0;
@@ -179,6 +180,8 @@ function SalesFunnel({ stages = [] }) {
 function Dashboard() {
   const { idToken, backendUser } = useAuth();
   const [data, setData] = useState(null);
+  const [sellerRows, setSellerRows] = useState([]);
+  const [activityAlerts, setActivityAlerts] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -198,11 +201,27 @@ function Dashboard() {
 
       try {
         setLoading(true);
-        const response = isSupervisorView
+        const [response, opportunities, proposals, users] = await Promise.all([
+          isSupervisorView
           ? await getDashboardSupervisor(idToken)
-          : await getDashboardVendedor(idToken);
+          : await getDashboardVendedor(idToken),
+          getOportunidades(idToken),
+          getPropuestas(idToken),
+          getUsers(idToken).catch(() => []),
+        ]);
 
         setData(response);
+        setSellerRows(buildSellerRows({ oportunidades: opportunities, propuestas: proposals, users }).slice(0, 4));
+        setActivityAlerts([
+          ...opportunities
+            .filter((item) => ["negociacion", "perdido"].includes(item.etapa))
+            .slice(0, 3)
+            .map((item) => ({ type: "warning", title: item.etapa === "perdido" ? "Propuesta en Riesgo" : "Negociacion Extendida", body: `${item.titulo} - ${compactMoney(item.valorEstimado)}` })),
+          ...proposals
+            .filter((item) => item.estado === "aceptada")
+            .slice(0, 2)
+            .map((item) => ({ type: "info", title: "Cierre Exitoso", body: `${item.titulo} por ${compactMoney(item.montoTotal)}` })),
+        ]);
       } catch (loadError) {
         console.error("Error dashboard:", loadError);
         setError("No se pudo cargar el dashboard");
@@ -289,6 +308,45 @@ function Dashboard() {
           </article>
         </section>
       )}
+
+      <section className="dashboard-bottom-grid">
+        <article className="card command-card">
+          <div className="card-header">
+            <div className="card-title"><span className="card-title-icon">EQ</span>Rendimiento del Equipo</div>
+            <Link className="panel-filter" to="/equipo">Ver Todos</Link>
+          </div>
+          <table className="team-table">
+            <thead><tr><th>Vendedor</th><th>Estado</th><th>Win Rate</th><th>Pipeline</th></tr></thead>
+            <tbody>
+              {sellerRows.map((row) => (
+                <tr key={row.uid}>
+                  <td><div className="seller-cell"><span className="seller-avatar">{row.name.slice(0, 2).toUpperCase()}</span><div><strong>{row.name}</strong><small>{row.email}</small></div></div></td>
+                  <td><span className={`status-badge ${row.active ? "online" : "offline"}`}>{row.active ? "Online" : "Offline"}</span></td>
+                  <td><div className="win-rate"><span className="win-rate-bar"><i style={{ width: `${row.winRate}%` }} /></span>{row.winRate}%</div></td>
+                  <td><strong>{compactMoney(row.pipeline)}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </article>
+
+        <article className="card command-card">
+          <div className="card-header">
+            <div className="card-title"><span className="card-title-icon">AL</span>Alertas y Actividad</div>
+            <span className="breadcrumb">{activityAlerts.length} sin leer</span>
+          </div>
+          <div className="alerts-list">
+            {activityAlerts.map((alert, index) => (
+              <div className={`alert-item ${alert.type}`} key={`${alert.title}-${index}`}>
+                <span className="alert-icon">{alert.type === "info" ? "OK" : "!"}</span>
+                <div><strong>{alert.title}</strong><p>{alert.body}</p></div>
+                <small>CRM</small>
+              </div>
+            ))}
+            {activityAlerts.length === 0 && <section className="empty-state"><h2>Sin alertas</h2><p>Las alertas apareceran con cierres, riesgos o negociaciones.</p></section>}
+          </div>
+        </article>
+      </section>
 
       <section className="quick-section command-quick-section">
         <h2>Acciones rapidas</h2>

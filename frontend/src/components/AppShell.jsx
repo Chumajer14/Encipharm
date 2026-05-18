@@ -8,21 +8,21 @@ const NAV_SECTIONS = [
     items: [
       { label: "Dashboard", path: "/dashboard", icon: "DB" },
       { label: "Pipeline & Funnels", path: "/oportunidades", icon: "PF" },
-      { label: "Proyecciones", path: "/propuestas", icon: "PY" },
+      { label: "Proyecciones", path: "/proyecciones", icon: "PY" },
     ],
   },
   {
     title: "Gestion",
     items: [
-      { label: "Equipo de Ventas", path: "/clientes", icon: "EV" },
-      { label: "Inteligencia de Mercado", path: "/interacciones", icon: "IM" },
-      { label: "Analisis de Competencia", path: "/crear", icon: "AC" },
+      { label: "Equipo de Ventas", path: "/equipo", icon: "EV" },
+      { label: "Inteligencia de Mercado", path: "/inteligencia", icon: "IM" },
+      { label: "Analisis de Competencia", path: "/competencia", icon: "AC" },
     ],
   },
   {
     title: "Sistema",
     items: [
-      { label: "Configuracion", path: "/dashboard", icon: "CF" },
+      { label: "Configuracion", path: "/configuracion", icon: "CF" },
     ],
   },
 ];

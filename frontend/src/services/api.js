@@ -116,6 +116,26 @@ export function getDashboardSupervisor(token) {
   return apiFetch("/dashboard/supervisor", { token });
 }
 
+export function getUsers(token, params = {}) {
+  return apiFetch(withQuery("/users/", params), { token });
+}
+
+export function updateUserRole(token, uid, rol) {
+  return apiFetch(`/users/${uid}/role`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ rol }),
+  });
+}
+
+export function updateUserStatus(token, uid, activo) {
+  return apiFetch(`/users/${uid}/status`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ activo }),
+  });
+}
+
 function withQuery(path, params = {}) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
