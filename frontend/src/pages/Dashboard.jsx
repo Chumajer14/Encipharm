@@ -56,10 +56,22 @@ function KpiCard({ accent = "violet", helper, icon, label, metaLeft, metaRight, 
   );
 }
 
-function ForecastChart({ pipelineValue = 0, acceptedValue = 0 }) {
-  const projected = [52, 63, 76, 88, 96];
-  const real = [45, 58, 68, 0, 0];
-  const target = formatCompactMoney(Math.max(pipelineValue, acceptedValue, 58000000));
+function ForecastChart({ forecast = [], pipelineValue = 0, acceptedValue = 0 }) {
+  const points = forecast.length > 0
+    ? forecast
+    : Array.from({ length: 5 }, (_, index) => ({
+      etiqueta: `Sem ${index + 1}`,
+      proyeccionPonderada: 0,
+      ventaReal: 0,
+    }));
+  const maxValue = Math.max(
+    pipelineValue,
+    acceptedValue,
+    ...points.flatMap((point) => [point.proyeccionPonderada, point.ventaReal]),
+    1,
+  );
+  const target = formatCompactMoney(Math.max(pipelineValue, acceptedValue));
+  const axisValues = [1, 0.75, 0.5, 0.25, 0].map((factor) => formatCompactMoney(maxValue * factor));
 
   return (
     <article className="command-panel forecast-panel">
@@ -83,37 +95,49 @@ function ForecastChart({ pipelineValue = 0, acceptedValue = 0 }) {
 
       <div className="forecast-chart">
         <div className="chart-axis">
-          <span>$60M</span>
-          <span>$45M</span>
-          <span>$30M</span>
-          <span>$15M</span>
-          <span>$0</span>
+          {axisValues.map((label) => <span key={label}>{label}</span>)}
         </div>
         <div className="chart-area">
           <div className="target-line"><span>Meta: {target}</span></div>
-          {projected.map((height, index) => (
-            <div className="bar-group" key={`week-${index + 1}`}>
+          {points.map((point) => {
+            const projectedHeight = Math.round((Number(point.proyeccionPonderada || 0) / maxValue) * 100);
+            const realHeight = Math.round((Number(point.ventaReal || 0) / maxValue) * 100);
+
+            return (
+            <div className="bar-group" key={point.etiqueta}>
               <div className="bar-pair">
-                <span className="bar projected" style={{ height: `${height}%` }} />
-                {real[index] > 0 && <span className="bar real" style={{ height: `${real[index]}%` }} />}
+                <span
+                  className="bar projected"
+                  title={`Proyeccion: ${formatCompactMoney(point.proyeccionPonderada)}`}
+                  style={{ height: `${projectedHeight}%` }}
+                />
+                <span
+                  className="bar real"
+                  title={`Venta real: ${formatCompactMoney(point.ventaReal)}`}
+                  style={{ height: `${realHeight}%` }}
+                />
               </div>
-              <small>Sem {index + 1}</small>
+              <small>{point.etiqueta}</small>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </article>
   );
 }
 
-function SalesFunnel({ opportunities = 0 }) {
-  const stages = [
-    { name: "Prospeccion", count: Math.max(opportunities * 78, 156), color: "blue", progress: 96, note: "Leads nuevos" },
-    { name: "Calificacion", count: Math.max(opportunities * 49, 97), color: "violet", progress: 62, note: "-38% fuga" },
-    { name: "Propuesta Enviada", count: Math.max(opportunities * 18, 36), color: "warning", progress: 36, note: "-63% fuga" },
-    { name: "En Negociacion", count: Math.max(opportunities * 11, 22), color: "orange", progress: 22, note: "-39% fuga" },
-    { name: "Cierre", count: Math.max(opportunities * 8, 15), color: "success", progress: 10, note: "$18.9M" },
-  ];
+function SalesFunnel({ stages = [] }) {
+  const colors = ["blue", "violet", "warning", "orange", "success"];
+  const fallbackStages = ["Prospeccion", "Calificacion", "Propuesta Enviada", "En Negociacion", "Cierre"]
+    .map((name, index) => ({
+      nombre: name,
+      total: 0,
+      conversionPct: index === 0 ? 100 : 0,
+      fugaPct: 0,
+      valorEstimado: 0,
+    }));
+  const visibleStages = stages.length > 0 ? stages : fallbackStages;
 
   return (
     <article className="command-panel funnel-panel">
@@ -126,18 +150,24 @@ function SalesFunnel({ opportunities = 0 }) {
       </div>
 
       <div className="funnel-list">
-        {stages.map((stage) => (
-          <div className={`funnel-stage ${stage.color}`} key={stage.name}>
-            <span className="funnel-icon">{stage.name.slice(0, 2).toUpperCase()}</span>
+        {visibleStages.map((stage, index) => (
+          <div className={`funnel-stage ${colors[index] || "blue"}`} key={stage.clave || stage.nombre}>
+            <span className="funnel-icon">{stage.nombre.slice(0, 2).toUpperCase()}</span>
             <div className="funnel-info">
-              <strong>{stage.name}</strong>
+              <strong>{stage.nombre}</strong>
               <div className="funnel-bar">
-                <span style={{ width: `${stage.progress}%` }} />
+                <span style={{ width: `${Math.min(stage.conversionPct || 0, 100)}%` }} />
               </div>
             </div>
             <div className="funnel-metric">
-              <strong>{stage.count}</strong>
-              <small>{stage.note}</small>
+              <strong>{stage.total}</strong>
+              <small>
+                {index === 0
+                  ? "Leads nuevos"
+                  : stage.clave === "ganado"
+                    ? formatCompactMoney(stage.valorEstimado)
+                    : `-${Number(stage.fugaPct || 0).toLocaleString("es-CL")}% fuga`}
+              </small>
             </div>
           </div>
         ))}
@@ -154,16 +184,13 @@ function Dashboard() {
 
   const rol = backendUser?.rol || "vendedor";
   const isSupervisorView = isSupervisorRole(rol);
-  const totalClientes = data?.totalClientes ?? 0;
-  const totalOportunidades = data?.totalOportunidades ?? 0;
   const pipelineValue = Number(data?.valorPipeline || 0);
   const acceptedValue = Number(data?.valorPropuestasAceptadas || 0);
-  const conversionRate = totalOportunidades > 0
-    ? Math.round((getCount(data?.clientesPorEstado, "Completado") / Math.max(totalClientes, 1)) * 100)
-    : 42;
-  const averageTicket = totalOportunidades > 0
-    ? pipelineValue / totalOportunidades
-    : 1260000;
+  const conversionRate = Number(data?.tasaConversionGlobal || 0);
+  const averageTicket = Number(data?.ticketPromedio || 0);
+  const weightedForecast = Number(data?.proyeccionPonderada || 0);
+  const sellersToday = Number(data?.vendedoresActivosHoy || 0);
+  const totalSellers = Number(data?.totalVendedores || 0);
 
   useEffect(() => {
     async function cargarDashboard() {
@@ -196,47 +223,47 @@ function Dashboard() {
         <KpiCard
           icon="$"
           label="Proyeccion Ponderada (Mes)"
-          metaLeft={`${Math.min(100, totalClientes * 12 || 78)}% de Meta`}
-          metaRight="Meta: $58M"
-          progress={78}
-          trend="+12.5%"
-          value={formatCompactMoney(Math.max(pipelineValue, 45200000))}
+          metaLeft={`${formatCompactMoney(weightedForecast)} ponderado`}
+          metaRight={`${formatCompactMoney(pipelineValue)} pipeline`}
+          progress={pipelineValue > 0 ? Math.min((weightedForecast / pipelineValue) * 100, 100) : 0}
+          value={formatCompactMoney(weightedForecast)}
         />
         <KpiCard
           accent="success"
           icon="OK"
           label="Tasa de Conversion Global"
-          metaLeft={`${getCount(data?.clientesPorEstado, "Completado")} cierres / ${Math.max(totalClientes, 36)} propuestas`}
+          metaLeft={`${getCount(data?.propuestasPorEstado, "aceptada")} cierres / ${data?.totalPropuestas ?? 0} propuestas`}
           metaRight="Prom. industria: 35%"
           progress={conversionRate}
-          trend="+3.2%"
-          value={`${Math.max(conversionRate, 42)}%`}
+          value={`${conversionRate}%`}
         />
         <KpiCard
           accent="warning"
           icon="TK"
           label="Ticket Promedio"
-          metaLeft="vs $1.33M mes anterior"
+          metaLeft="Propuestas aceptadas"
           metaRight=""
-          progress={62}
-          trend="-5.1%"
-          value={formatCompactMoney(Math.max(averageTicket, 1260000))}
+          progress={acceptedValue > 0 ? Math.min((averageTicket / acceptedValue) * 100, 100) : 0}
+          value={formatCompactMoney(averageTicket)}
         />
         <KpiCard
           accent="danger"
           icon="VG"
           label="Vendedores Activos Hoy"
-          metaLeft="4 sin check-in hoy"
-          metaRight="Ult. sync: 14:32"
-          progress={62}
-          trend="+2"
-          value="8/12"
+          metaLeft={`${Math.max(totalSellers - sellersToday, 0)} sin registros comerciales`}
+          metaRight="Fuente: CRM"
+          progress={totalSellers > 0 ? (sellersToday / totalSellers) * 100 : 0}
+          value={`${sellersToday}/${totalSellers}`}
         />
       </section>
 
       <section className="command-main-grid">
-        <ForecastChart acceptedValue={acceptedValue} pipelineValue={pipelineValue} />
-        <SalesFunnel opportunities={totalOportunidades} />
+        <ForecastChart
+          acceptedValue={acceptedValue}
+          forecast={data?.forecastMensual}
+          pipelineValue={pipelineValue}
+        />
+        <SalesFunnel stages={data?.embudoVentas} />
       </section>
 
       {isSupervisorView && (

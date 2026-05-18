@@ -20,6 +20,38 @@ function formatAmount(value) {
   return digits ? Number(digits).toLocaleString("es-CL") : "";
 }
 
+function money(value) {
+  return `$${Number(value || 0).toLocaleString("es-CL")}`;
+}
+
+function weightedValue(item) {
+  return Number(item.valorEstimado || 0) * (Number(item.probabilidad || 0) / 100);
+}
+
+function buildFunnel(oportunidades) {
+  const labels = {
+    nuevo: "Prospeccion",
+    contactado: "Calificacion",
+    cotizacion: "Propuesta enviada",
+    negociacion: "En negociacion",
+    ganado: "Cierre",
+    perdido: "Perdido",
+  };
+  const total = Math.max(oportunidades.length, 1);
+
+  return etapas.map((etapa) => {
+    const items = oportunidades.filter((item) => item.etapa === etapa);
+    const value = items.reduce((sum, item) => sum + Number(item.valorEstimado || 0), 0);
+    return {
+      etapa,
+      label: labels[etapa],
+      count: items.length,
+      percent: Math.round((items.length / total) * 100),
+      value,
+    };
+  });
+}
+
 function Oportunidades() {
   const { idToken } = useAuth();
   const [clientes, setClientes] = useState([]);
@@ -101,19 +133,24 @@ function Oportunidades() {
     }
   };
 
+  const clientesById = new Map(clientes.map((cliente) => [cliente.id, cliente]));
+  const funnel = buildFunnel(oportunidades);
+  const totalPipeline = oportunidades.reduce((sum, item) => sum + Number(item.valorEstimado || 0), 0);
+  const totalPonderado = oportunidades.reduce((sum, item) => sum + weightedValue(item), 0);
+
   return (
-    <main className="page">
-      <section className="header header-row">
+    <main className="page pipeline-content">
+      <section className="pipeline-header-bar">
         <div>
-          <h1>Oportunidades</h1>
-          <p>Pipeline comercial minimo por etapa</p>
+          <h2>Pipeline & Funnels</h2>
+          <p className="sub">Gestion detallada de oportunidades y proyeccion ponderada con datos reales</p>
         </div>
         <Link to="/dashboard"><button className="btn-secondary" type="button">Volver</button></Link>
       </section>
 
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
 
-      <section className="filters-card compact-filters">
+      <section className="filters-card pipeline-filter-bar">
         <label>Etapa
           <select className="filter-select" value={filtroEtapa} onChange={(event) => setFiltroEtapa(event.target.value)}>
             <option value="">Todas las etapas</option>
@@ -122,7 +159,74 @@ function Oportunidades() {
         </label>
       </section>
 
-      <form className="form form-card" onSubmit={handleSubmit}>
+      <section className="pipeline-grid">
+        <aside className="funnel-summary-card">
+          <h3>Resumen del Funnel</h3>
+          <div className="funnel-summary-stages">
+            {funnel.map((stage) => (
+              <div className={`funnel-summary-stage ${stage.etapa}`} key={stage.etapa}>
+                <div className="fs-bar" style={{ width: `${Math.max(stage.percent, 4)}%` }} />
+                <span className="fs-label">{stage.label}</span>
+                <span className="fs-count">{stage.count}</span>
+              </div>
+            ))}
+          </div>
+          <div className="funnel-summary-totals">
+            <p className="tot-label">Valor pipeline</p>
+            <strong className="tot-value">{money(totalPipeline)}</strong>
+            <p className="tot-label">Proyeccion ponderada</p>
+            <strong className="tot-value green">{money(totalPonderado)}</strong>
+            <p className="tot-note">Calculado con valor estimado x probabilidad por oportunidad.</p>
+          </div>
+        </aside>
+
+        <section className="pipeline-table-wrap">
+          <table className="pipeline-table">
+            <thead>
+              <tr>
+                <th>Oportunidad</th>
+                <th>Cliente</th>
+                <th>Etapa</th>
+                <th className="text-right">Valor</th>
+                <th className="text-right">Prob.</th>
+                <th className="text-right">Ponderado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {oportunidades.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <Link to={`/oportunidades/${item.id}`} className="pipeline-link">{item.titulo}</Link>
+                  </td>
+                  <td>{clientesById.get(item.clienteId)?.empresa || item.clienteId}</td>
+                  <td>
+                    <select
+                      value={item.etapa}
+                      disabled={updatingId === item.id}
+                      onChange={(event) => moveStage(item, event.target.value)}
+                    >
+                      {etapas.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
+                    </select>
+                  </td>
+                  <td className="td-right">{money(item.valorEstimado)}</td>
+                  <td className="td-right">{item.probabilidad}%</td>
+                  <td className="td-right">{money(weightedValue(item))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {!loadingClientes && oportunidades.length === 0 && (
+            <section className="empty-state">
+              <h2>Sin oportunidades para mostrar</h2>
+              <p>Crea una oportunidad o cambia el filtro de etapa.</p>
+            </section>
+          )}
+        </section>
+      </section>
+
+      <form className="form form-card pipeline-create-card" onSubmit={handleSubmit}>
+        <h2>Nueva oportunidad</h2>
         <label>Cliente
           <ClienteSelect
             clientes={clientes}
@@ -158,24 +262,6 @@ function Oportunidades() {
           <button type="submit" disabled={saving}>{saving ? "Creando..." : "Crear oportunidad"}</button>
         </div>
       </form>
-
-      <section className="kanban-board">
-        {etapas.map((etapa) => (
-          <article className="kanban-column" key={etapa}>
-            <h2>{etapa}</h2>
-            {oportunidades.filter((item) => item.etapa === etapa).map((item) => (
-              <div className="kanban-item" key={item.id}>
-                <strong>{item.titulo}</strong>
-                <span>${Number(item.valorEstimado || 0).toLocaleString()} / {item.probabilidad}%</span>
-                <select value={item.etapa} disabled={updatingId === item.id} onChange={(event) => moveStage(item, event.target.value)}>
-                  {etapas.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
-                </select>
-                <Link to={`/oportunidades/${item.id}`}>Ver detalle</Link>
-              </div>
-            ))}
-          </article>
-        ))}
-      </section>
     </main>
   );
 }

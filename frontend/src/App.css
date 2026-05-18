@@ -1285,6 +1285,212 @@ a {
   margin-top: 8px;
 }
 
+.pipeline-content {
+  padding: 32px;
+}
+
+.pipeline-header-bar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.pipeline-header-bar h2 {
+  font-size: 22px;
+  margin: 0 0 6px;
+}
+
+.pipeline-header-bar .sub {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+
+.pipeline-filter-bar {
+  grid-template-columns: minmax(220px, 320px);
+}
+
+.pipeline-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.funnel-summary-card,
+.pipeline-table-wrap {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+}
+
+.funnel-summary-card {
+  padding: 22px;
+}
+
+.funnel-summary-card h3 {
+  font-size: 15px;
+  margin: 0 0 20px;
+}
+
+.funnel-summary-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.funnel-summary-stage {
+  align-items: center;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  min-height: 42px;
+  overflow: hidden;
+  padding: 0 12px;
+  position: relative;
+}
+
+.funnel-summary-stage .fs-bar {
+  background: rgb(139 92 246 / 24%);
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.funnel-summary-stage.nuevo .fs-bar {
+  background: rgb(59 130 246 / 24%);
+}
+
+.funnel-summary-stage.cotizacion .fs-bar {
+  background: rgb(245 158 11 / 24%);
+}
+
+.funnel-summary-stage.negociacion .fs-bar {
+  background: rgb(249 115 22 / 24%);
+}
+
+.funnel-summary-stage.ganado .fs-bar {
+  background: rgb(16 185 129 / 24%);
+}
+
+.funnel-summary-stage.perdido .fs-bar {
+  background: rgb(239 68 68 / 24%);
+}
+
+.funnel-summary-stage .fs-label,
+.funnel-summary-stage .fs-count {
+  position: relative;
+  z-index: 1;
+}
+
+.funnel-summary-stage .fs-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.funnel-summary-stage .fs-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.funnel-summary-totals {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 22px;
+  padding-top: 18px;
+}
+
+.funnel-summary-totals .tot-label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  margin: 0 0 4px;
+}
+
+.funnel-summary-totals .tot-value {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.funnel-summary-totals .tot-value.green {
+  color: var(--success);
+  font-size: 24px;
+}
+
+.funnel-summary-totals .tot-note {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pipeline-table-wrap {
+  overflow: hidden;
+}
+
+.pipeline-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pipeline-table th {
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  letter-spacing: 0;
+  padding: 14px 18px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.pipeline-table th.text-right,
+.pipeline-table .td-right {
+  text-align: right;
+}
+
+.pipeline-table td {
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 15px 18px;
+  vertical-align: middle;
+}
+
+.pipeline-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.pipeline-table tr:hover td {
+  background: rgb(139 92 246 / 4%);
+}
+
+.pipeline-link {
+  color: var(--text-primary);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.pipeline-table select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 8px;
+}
+
+.pipeline-create-card {
+  margin-top: 24px;
+}
+
+.pipeline-create-card h2 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
 .stat-card {
   overflow: hidden;
   padding: 22px;
@@ -1477,7 +1683,8 @@ a {
   }
 
   .command-kpi-grid,
-  .command-main-grid {
+  .command-main-grid,
+  .pipeline-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1562,7 +1769,8 @@ a {
   }
 
   .command-panel-header,
-  .chart-legend {
+  .chart-legend,
+  .pipeline-header-bar {
     align-items: stretch;
     flex-direction: column;
   }
@@ -1583,6 +1791,14 @@ a {
 
   .funnel-metric {
     align-items: flex-start;
+  }
+
+  .pipeline-table-wrap {
+    overflow-x: auto;
+  }
+
+  .pipeline-table {
+    min-width: 760px;
   }
 
   .client-actions {

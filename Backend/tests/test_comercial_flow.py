@@ -22,6 +22,7 @@ from app.services.comercial import (
     update_opportunity,
     update_proposal,
 )
+from app.services.dashboard import build_dashboard
 
 
 class FakeDocumentSnapshot:
@@ -490,3 +491,42 @@ def test_proposal_requires_opportunity():
             titulo="Propuesta sin oportunidad",
             montoNeto=100000,
         )
+
+
+def test_dashboard_builds_real_forecast_and_funnel_metrics():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(
+            clienteId=cliente["id"],
+            titulo="Venta mensual",
+            etapa="cotizacion",
+            valorEstimado=1000000,
+            probabilidad=50,
+        ),
+        user,
+    )
+    create_proposal(
+        db,
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta aceptada",
+            montoNeto=500000,
+            estado="aceptada",
+        ),
+        user,
+    )
+
+    dashboard = build_dashboard(db, vendedor_uid=user["uid"])
+
+    assert dashboard["valorPipeline"] == 1000000
+    assert dashboard["proyeccionPonderada"] == 500000
+    assert dashboard["valorPropuestasAceptadas"] == 500000
+    assert dashboard["ticketPromedio"] == 500000
+    assert dashboard["tasaConversionGlobal"] == 100
+    assert dashboard["forecastMensual"]
+    assert sum(point["proyeccionPonderada"] for point in dashboard["forecastMensual"]) == 500000
+    assert next(stage for stage in dashboard["embudoVentas"] if stage["clave"] == "cotizacion")["total"] == 1
