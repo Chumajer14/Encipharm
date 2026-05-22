@@ -2,6 +2,34 @@
 
 Guia para publicar el frontend React/Vite como proyecto independiente en Vercel y compartir una URL de avance.
 
+## Estado Epic 5.1
+
+La rama de entrega para las sugerencias del cliente es:
+
+```text
+feature/epic-5-1-client-suggestions
+```
+
+El commit base validado para esta entrega es:
+
+```text
+c72a8fe feat(epic-5.1): align client command center experience
+```
+
+Validaciones ejecutadas antes de publicar:
+
+```bash
+cd frontend
+npm.cmd run lint
+npm.cmd run build
+```
+
+```bash
+.\Backend\.venv\Scripts\python.exe -m pytest
+```
+
+Resultado esperado: lint OK, build OK y 67 tests backend pasando.
+
 ## Alcance
 
 - Directorio de app: `frontend/`.
@@ -30,11 +58,14 @@ VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
+VITE_FIREBASE_FREE_TIER_MODE=true
 ```
 
 `VITE_API_BASE_URL` debe apuntar a una API publica con HTTPS. Un backend local en `localhost` no sera accesible desde Vercel.
 
 Si el login muestra un mensaje de variables faltantes, revisar que las variables existan en el mismo ambiente del deploy. Vercel genera un build estatico, por lo que despues de crear o editar variables hay que ejecutar un Redeploy.
+
+`VITE_FIREBASE_FREE_TIER_MODE=true` mantiene activo el modo ahorro para reducir consultas repetitivas en el plan gratuito de Firebase. En entrega final con cuota suficiente se puede dejar en `false` o eliminar la variable para volver al comportamiento de refresco normal.
 
 ## Firebase Auth
 
@@ -77,3 +108,34 @@ En produccion no usar `*` como origen permitido.
 4. Agregar el dominio Vercel en Firebase Auth.
 5. Agregar el mismo dominio en `CORS_ORIGINS` del backend desplegado.
 6. Ejecutar un deploy Preview y compartir la URL con Max.
+
+## Deploy por CLI
+
+Si el proyecto ya esta enlazado a Vercel y el token es valido:
+
+```powershell
+npx vercel --prod --yes
+```
+
+Si se quiere desplegar solo preview:
+
+```powershell
+npx vercel --yes
+```
+
+Si la CLI responde `The specified token is not valid`, renovar la sesion o token:
+
+```powershell
+npx vercel login
+```
+
+Luego repetir el deploy. Este error no corresponde a un problema de build; indica que la credencial local de Vercel expiro, fue revocada o pertenece a otra cuenta/equipo.
+
+## Checklist posterior al deploy
+
+- Abrir la URL Vercel y confirmar que carga la pantalla de login.
+- Confirmar que el dominio Vercel este agregado en Firebase Auth.
+- Confirmar que `VITE_API_BASE_URL` apunta al backend HTTPS correcto.
+- Confirmar que el backend permite el dominio Vercel en CORS.
+- Probar login Google, dashboard, pipeline, proyecciones, equipo y configuracion.
+- Confirmar que las vistas marcadas como `No operativo` o `Datos no determinados` se muestren como corresponde.

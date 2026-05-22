@@ -1,7 +1,7 @@
 # Enci Ventas
 
 Sistema de gestion de ventas y MiniCRM para Enci, desarrollado bajo metodologia Scrumban.
-El enfoque de esta version es **MVP web primero**, dejando para Fase 2 las capacidades de IA/RAG, Flutter, ERP SAP, Google Calendar, inteligencia competitiva avanzada y reportes extendidos.
+El enfoque actual es **MVP web primero con preparacion UAT**, incorporando las sugerencias visuales y funcionales levantadas con el cliente en la Epic 5.1.
 
 ## Objetivo
 
@@ -22,15 +22,24 @@ Incluye las capacidades bloqueantes para operar el sistema:
 - Interacciones comerciales.
 - Pipeline de oportunidades.
 - Propuestas basicas con estados y calculos.
+- Command Center web alineado al HTML de referencia del cliente.
+- Dashboard con forecast, embudo, KPIs, rendimiento de equipo y alertas desde datos reales.
+- Pipeline & Funnels con filtros, resumen, tabla y modal de detalle de oportunidad.
+- Proyecciones por periodo y vendedor, con detalle de ventas cerradas y negociaciones.
+- Equipo de ventas con matriz vendedor x etapa, valores, conteos y zonas.
+- Configuracion de usuarios, rangos laborales, zonas, tema claro/oscuro e idioma.
+- Modo ahorro Firebase para operar temporalmente con plan gratuito.
 
 Quedan fuera de esta fase:
 
-- IA / RAG.
+- IA / RAG operativo.
 - Flutter nativo.
 - ERP SAP.
-- Google Calendar.
-- Inteligencia competitiva avanzada.
+- Google Calendar operativo.
+- Inteligencia competitiva avanzada operativa.
 - Reportes extendidos.
+- Ingreso formal de datos de competencia hasta definicion del cliente.
+- Notificaciones, calendario y mapa operativo hasta definir reglas de negocio.
 
 ## Stack tecnologico
 
@@ -184,9 +193,12 @@ VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
+VITE_FIREBASE_FREE_TIER_MODE=true
 ```
 
 Para publicar el frontend en Vercel, configurar el proyecto con Root Directory = `frontend` y cargar las mismas variables `VITE_*` en Preview/Production. `VITE_API_BASE_URL` debe apuntar a una API publica HTTPS; `localhost` solo sirve para desarrollo local. Guia detallada: `docs/deploy-vercel-frontend.md`.
+
+`VITE_FIREBASE_FREE_TIER_MODE=true` reduce refetches repetitivos mientras el proyecto opera con cuota gratuita de Firebase. En entrega final se puede desactivar para restaurar refrescos automaticos mas frecuentes.
 
 ## Instalacion local
 
@@ -232,7 +244,6 @@ Comandos tecnicos usados para validar la integracion durante desarrollo:
 
 ```bash
 cd frontend
-npm test
 npm run lint
 npm run build
 ```
@@ -240,6 +251,12 @@ npm run build
 ```bash
 cd Backend
 uv run pytest
+```
+
+En Windows, con el entorno virtual local del backend:
+
+```powershell
+.\Backend\.venv\Scripts\python.exe -m pytest
 ```
 
 Checklist funcional:
@@ -307,6 +324,8 @@ Un ticket se considera completo solo si:
 - La migracion de datos historicos queda diferida hasta definir archivos fuente y reglas de limpieza.
 - Flutter y las capacidades avanzadas quedan para Fase 2.
 - Las credenciales Firebase Admin no deben exponerse ni versionarse.
+- El token local de Vercel debe mantenerse vigente para deploy por CLI.
+- Las secciones marcadas como `No operativo` o `Datos no determinados` requieren definicion de negocio antes de habilitarse.
 
 ## Estado actual
 
@@ -315,4 +334,32 @@ Un ticket se considera completo solo si:
 - EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
 - EPIC 4: cerrado para Development con hardening de sesion, 404/403 controlados, navegacion por rol, estados vacios en dashboards y plan QA/E2E documentado. Migracion fuera de alcance por ahora.
 - EPIC 5: iniciado con readiness backend, checklist UAT, runbook de go-live y matriz de defectos.
-- Pendiente MVP: ejecucion UAT, ajustes finales aprobados y salida productiva.
+- EPIC 5.1: cerrado para rama `feature/epic-5-1-client-suggestions` con replica visual del HTML de referencia, datos reales en metricas comerciales, configuracion funcional, modo ahorro Firebase, traduccion global, vistas no operativas controladas y hardening defensivo.
+- Pendiente MVP: renovar token/sesion de Vercel para deploy CLI, ejecucion UAT, ajustes finales aprobados y salida productiva.
+
+## Epic 5.1 - resumen de entrega
+
+La Epic 5.1 concentra las sugerencias del cliente y deja documentado el alcance en:
+
+```text
+docs/sprints/epic-5-1-sugerencias-cliente.md
+```
+
+Validaciones de la entrega:
+
+- Frontend lint: OK.
+- Frontend build: OK.
+- Backend pytest: 67 tests pasando.
+
+El despliegue Vercel por CLI se intento con:
+
+```powershell
+npx vercel --prod --yes
+```
+
+El build no fallo, pero Vercel rechazo el token local configurado. Para publicar, ejecutar:
+
+```powershell
+npx vercel login
+npx vercel --prod --yes
+```

@@ -57,6 +57,15 @@ Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al
 - Backend:
   - `.\Backend\.venv\Scripts\python.exe -m pytest`
 
+## Estado Vercel
+
+- Configuracion Vercel declarada para Vite en `vercel.json` y `frontend/vercel.json`.
+- Guia de despliegue actualizada en `docs/deploy-vercel-frontend.md`.
+- El deploy por CLI requiere una sesion/token Vercel valido:
+  - `npx vercel login`
+  - `npx vercel --prod --yes`
+- En la ultima ejecucion local, Vercel rechazo el token configurado. El build fue validado localmente; el bloqueo corresponde a credenciales de Vercel, no a error de compilacion.
+
 ## Pendiente para UAT
 
 - Confirmar textos finales con cliente.
