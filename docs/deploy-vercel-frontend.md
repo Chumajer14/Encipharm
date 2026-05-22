@@ -22,7 +22,7 @@ Configurar estas variables en Project Settings > Environment Variables para Prev
 
 ```env
 VITE_APP_NAME=Enci Ventas
-VITE_API_BASE_URL=https://api-dev.encipharm.example
+VITE_API_BASE_URL=https://api-dev.enci.example
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
 VITE_FIREBASE_PROJECT_ID=your-project-id
@@ -64,7 +64,7 @@ CORS_ORIGINS=https://<proyecto>.vercel.app,https://<preview>.vercel.app
 Para previews de Vercel generados automaticamente, usar una expresion regular acotada al proyecto:
 
 ```env
-CORS_ORIGIN_REGEX=^https://encipharm(-[a-z0-9-]+)?-chumajer14s-projects\.vercel\.app$
+CORS_ORIGIN_REGEX=^https://enci(-[a-z0-9-]+)?-chumajer14s-projects\.vercel\.app$
 ```
 
 En produccion no usar `*` como origen permitido.

@@ -10,6 +10,11 @@ import Interacciones from "./pages/Interacciones";
 import Oportunidades from "./pages/Oportunidades";
 import OportunidadDetalle from "./pages/OportunidadDetalle";
 import Propuestas from "./pages/Propuestas";
+import Proyecciones from "./pages/Proyecciones";
+import EquipoVentas from "./pages/EquipoVentas";
+import InteligenciaMercado from "./pages/InteligenciaMercado";
+import AnalisisCompetencia from "./pages/AnalisisCompetencia";
+import Configuracion from "./pages/Configuracion";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -90,6 +95,51 @@ function App() {
             element={
               <ProtectedRoute>
                 <Propuestas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/proyecciones"
+            element={
+              <ProtectedRoute>
+                <Proyecciones />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/equipo"
+            element={
+              <ProtectedRoute>
+                <EquipoVentas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inteligencia"
+            element={
+              <ProtectedRoute>
+                <InteligenciaMercado />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/competencia"
+            element={
+              <ProtectedRoute>
+                <AnalisisCompetencia />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/configuracion"
+            element={
+              <ProtectedRoute minimumRole="vendedor">
+                <Configuracion />
               </ProtectedRoute>
             }
           />

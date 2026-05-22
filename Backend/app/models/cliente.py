@@ -50,10 +50,12 @@ class ClienteBase(BaseModel):
 
 
 class ClienteCreate(ClienteBase):
-    pass
+    model_config = ConfigDict(extra="forbid")
 
 
 class ClienteUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     nombre: Optional[str] = Field(default=None, min_length=1, max_length=120)
     empresa: Optional[str] = Field(default=None, min_length=1, max_length=160)
     email: Optional[EmailStr] = None

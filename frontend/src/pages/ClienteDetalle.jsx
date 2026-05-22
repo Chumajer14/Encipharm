@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import LoadingState from "../components/LoadingState";
+import useCachedQuery, { invalidateCachedQuery } from "../hooks/useCachedQuery";
 import PhoneInput from "../components/PhoneInput";
 import { regionesChile } from "../data/regionesChile";
 import { deleteCliente, getCliente, getInteracciones, getOportunidades, getPropuestas, updateCliente } from "../services/api";
@@ -22,43 +24,41 @@ function ClienteDetalle() {
     oportunidades: [],
     propuestas: [],
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const clienteQuery = useCachedQuery(
+    `cliente-detalle:${clienteId}`,
+    async () => {
+      const [cliente, interacciones, oportunidades, propuestas] = await Promise.all([
+        getCliente(idToken, clienteId),
+        getInteracciones(idToken, { clienteId }),
+        getOportunidades(idToken, { clienteId }),
+        getPropuestas(idToken, { clienteId }),
+      ]);
+      return { cliente, interacciones, oportunidades, propuestas };
+    },
+    { enabled: Boolean(idToken && clienteId), initialData: null },
+  );
+  const loading = clienteQuery.loading;
 
   useEffect(() => {
-    async function cargarCliente() {
-      if (!idToken || !clienteId) return;
-
-      try {
-        setLoading(true);
-        const [cliente, interacciones, oportunidades, propuestas] = await Promise.all([
-          getCliente(idToken, clienteId),
-          getInteracciones(idToken, { clienteId }),
-          getOportunidades(idToken, { clienteId }),
-          getPropuestas(idToken, { clienteId }),
-        ]);
-        setForm({
-          nombre: cliente.nombre || "",
-          empresa: cliente.empresa || "",
-          email: cliente.email || "",
-          telefono: cliente.telefono || "",
-          rubro: cliente.rubro || "",
-          region: cliente.region || "",
-          estado: cliente.estado || "En proceso",
-        });
-        setHistorial({ interacciones, oportunidades, propuestas });
-      } catch (loadError) {
-        setError(getFriendlyApiError(loadError));
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    cargarCliente();
-  }, [clienteId, idToken]);
+    if (!clienteQuery.data) return;
+    const { cliente, interacciones, oportunidades, propuestas } = clienteQuery.data;
+    queueMicrotask(() => {
+      setForm({
+        nombre: cliente.nombre || "",
+        empresa: cliente.empresa || "",
+        email: cliente.email || "",
+        telefono: cliente.telefono || "",
+        rubro: cliente.rubro || "",
+        region: cliente.region || "",
+        estado: cliente.estado || "En proceso",
+      });
+      setHistorial({ interacciones, oportunidades, propuestas });
+    });
+  }, [clienteQuery.data]);
 
   const handleChange = (event) => {
     setForm({
@@ -82,6 +82,8 @@ function ClienteDetalle() {
     try {
       setSaving(true);
       const updated = await updateCliente(idToken, clienteId, validation.payload);
+      invalidateCachedQuery("clientes:");
+      invalidateCachedQuery(`cliente-detalle:${clienteId}`);
       setSuccess(`Cliente ${updated.empresa} actualizado correctamente.`);
     } catch (saveError) {
       setError(getFriendlyApiError(saveError));
@@ -124,7 +126,7 @@ function ClienteDetalle() {
         </Link>
       </section>
 
-      {loading && <p className="status-message">Cargando cliente...</p>}
+      {loading && <LoadingState />}
       {error && (
         <section className="notice notice-error" role="alert">
           <strong>Operacion no completada</strong>
@@ -138,7 +140,7 @@ function ClienteDetalle() {
         </section>
       )}
 
-      <form className="form form-card" onSubmit={handleSubmit}>
+      {!loading && <form className="form form-card" onSubmit={handleSubmit}>
         <label>
           Nombre
           <input name="nombre" maxLength={120} value={form.nombre} onChange={handleChange} disabled={disabled} />
@@ -205,9 +207,9 @@ function ClienteDetalle() {
             {saving ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
-      </form>
+      </form>}
 
-      <section className="detail-grid">
+      {!loading && <section className="detail-grid">
         <article className="detail-panel">
           <h2>Oportunidades</h2>
           {historial.oportunidades.length === 0 && <p className="muted-text">Sin oportunidades registradas.</p>}
@@ -229,9 +231,9 @@ function ClienteDetalle() {
             </div>
           ))}
         </article>
-      </section>
+      </section>}
 
-      <section className="detail-panel">
+      {!loading && <section className="detail-panel">
         <h2>Interacciones</h2>
         {historial.interacciones.length === 0 && <p className="muted-text">Sin interacciones registradas.</p>}
         <div className="timeline-list">
@@ -243,7 +245,7 @@ function ClienteDetalle() {
             </article>
           ))}
         </div>
-      </section>
+      </section>}
     </main>
   );
 }

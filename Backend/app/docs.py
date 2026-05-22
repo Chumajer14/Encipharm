@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import FileResponse, HTMLResponse
 
 from app.core.config import get_settings
@@ -26,6 +26,9 @@ def _firebase_web_config() -> dict[str, str | None]:
 
 @router.get("/docs", include_in_schema=False)
 async def testing_docs():
+    settings = get_settings()
+    if settings.APP_ENV == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No encontrado")
     firebase_config = json.dumps(_firebase_web_config())
     return HTMLResponse(f"""
 <!doctype html>
@@ -276,6 +279,9 @@ async def testing_docs():
 
 @router.get("/docs/guia-presentacion-frontend.pdf", include_in_schema=False)
 async def frontend_demo_guide():
+    settings = get_settings()
+    if settings.APP_ENV == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No encontrado")
     return FileResponse(
         GUIDE_PATH,
         media_type="application/pdf",

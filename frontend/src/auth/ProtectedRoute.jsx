@@ -1,11 +1,12 @@
 import { Navigate } from "react-router-dom";
+import AppShell from "../components/AppShell";
 import TemporaryRoleSwitcher from "../components/TemporaryRoleSwitcher";
 import AccessDenied from "../pages/AccessDenied";
 import { hasMinimumRole } from "./roles";
 import { useAuth } from "./authContext";
 
 const showTemporaryRoleSwitcher =
-  import.meta.env.DEV && import.meta.env.VITE_ENABLE_TEMP_ROLE_SWITCHER === "true";
+  import.meta.env.VITE_ENABLE_TEMP_ROLE_SWITCHER !== "false";
 
 function ProtectedRoute({ children, minimumRole = "vendedor" }) {
   const { backendUser, isAuthenticated, loading } = useAuth();
@@ -29,10 +30,11 @@ function ProtectedRoute({ children, minimumRole = "vendedor" }) {
   }
 
   return (
-    <>
-      {showTemporaryRoleSwitcher && <TemporaryRoleSwitcher />}
+    <AppShell
+      roleSwitcher={showTemporaryRoleSwitcher ? <TemporaryRoleSwitcher /> : null}
+    >
       {children}
-    </>
+    </AppShell>
   );
 }
 

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import ClienteSelect from "../components/ClienteSelect";
+import LoadingState from "../components/LoadingState";
+import useCachedQuery, { invalidateCachedQuery } from "../hooks/useCachedQuery";
 import { createPropuesta, getClientes, getOportunidades, getPropuestas, updatePropuesta } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -27,30 +29,28 @@ function Propuestas() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
-  const [loadingClientes, setLoadingClientes] = useState(true);
+  const propuestasQuery = useCachedQuery(
+    `propuestas:dataset:${filtroEstado || "todos"}`,
+    async () => {
+      const [clientesData, oportunidadesData, propuestasData] = await Promise.all([
+        getClientes(idToken),
+        getOportunidades(idToken),
+        getPropuestas(idToken, { estado: filtroEstado }),
+      ]);
+      return { clientes: clientesData, oportunidades: oportunidadesData, propuestas: propuestasData };
+    },
+    { enabled: Boolean(idToken), initialData: null },
+  );
+  const loadingClientes = propuestasQuery.loading;
 
   useEffect(() => {
-    async function loadData() {
-      if (!idToken) return;
-      try {
-        setLoadingClientes(true);
-        const [clientesData, oportunidadesData, propuestasData] = await Promise.all([
-          getClientes(idToken),
-          getOportunidades(idToken),
-          getPropuestas(idToken, { estado: filtroEstado }),
-        ]);
-        setClientes(clientesData);
-        setOportunidades(oportunidadesData);
-        setPropuestas(propuestasData);
-      } catch (loadError) {
-        setError(getFriendlyApiError(loadError));
-      } finally {
-        setLoadingClientes(false);
-      }
-    }
-
-    loadData();
-  }, [idToken, filtroEstado]);
+    if (!propuestasQuery.data) return;
+    queueMicrotask(() => {
+      setClientes(propuestasQuery.data.clientes);
+      setOportunidades(propuestasQuery.data.oportunidades);
+      setPropuestas(propuestasQuery.data.propuestas);
+    });
+  }, [propuestasQuery.data]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -73,6 +73,9 @@ function Propuestas() {
         notas: form.notas || null,
       });
       setPropuestas([created, ...propuestas]);
+      invalidateCachedQuery("propuestas:");
+      invalidateCachedQuery("dashboard:");
+      invalidateCachedQuery("proyecciones:");
       setForm(initialForm);
       if (filtroEstado && created.estado !== filtroEstado) {
         setFiltroEstado("");
@@ -94,6 +97,9 @@ function Propuestas() {
           .map((item) => item.id === updated.id ? updated : item)
           .filter((item) => !filtroEstado || item.estado === filtroEstado)
       );
+      invalidateCachedQuery("propuestas:");
+      invalidateCachedQuery("dashboard:");
+      invalidateCachedQuery("proyecciones:");
     } catch (updateError) {
       setError(getFriendlyApiError(updateError));
     } finally {
@@ -156,7 +162,9 @@ function Propuestas() {
         </div>
       </form>
 
-      <section className="list spaced-list">
+      {loadingClientes && <LoadingState />}
+
+      {!loadingClientes && <section className="list spaced-list">
         {propuestas.map((propuesta) => (
           <article className="client-card" key={propuesta.id}>
             <div>
@@ -171,7 +179,7 @@ function Propuestas() {
             </div>
           </article>
         ))}
-      </section>
+      </section>}
     </main>
   );
 }

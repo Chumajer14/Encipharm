@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 
-from app.core.auth import require_role
+from app.core.auth import get_current_user, require_role
 from app.models.user import (
+    UserPreferencesUpdate,
     UserResponse,
     UserRoleUpdate,
     UserStatusUpdate,
@@ -31,6 +32,15 @@ async def get_user(
 ):
     db = get_db()
     return get_user_or_404(db, uid)
+
+
+@router.patch("/me/preferences", response_model=UserResponse)
+async def patch_own_preferences(
+    payload: UserPreferencesUpdate,
+    user: dict = Depends(get_current_user),
+):
+    db = get_db()
+    return update_user(db, user["uid"], payload.model_dump(exclude_unset=True))
 
 
 @router.patch("/{uid}", response_model=UserResponse)

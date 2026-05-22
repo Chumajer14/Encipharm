@@ -6,8 +6,10 @@ from app.models.cliente import ClienteCreate
 from app.models.comercial import (
     InteractionCreate,
     OpportunityCreate,
+    OpportunityResponse,
     OpportunityUpdate,
     ProposalCreate,
+    ProposalResponse,
     ProposalUpdate,
 )
 from app.services.clientes import create_cliente
@@ -22,6 +24,7 @@ from app.services.comercial import (
     update_opportunity,
     update_proposal,
 )
+from app.services.dashboard import build_dashboard
 
 
 class FakeDocumentSnapshot:
@@ -475,12 +478,91 @@ def test_seller_cannot_link_proposal_to_other_seller_opportunity():
     assert exc_info.value.status_code == 403
 
 
+def test_admin_can_list_other_sellers_commercial_records():
+    db = FakeDb()
+    seller_one = {"uid": "seller-1", "rol": "vendedor"}
+    seller_two = {"uid": "seller-2", "rol": "vendedor"}
+    admin = {"uid": "admin-1", "rol": "admin"}
+    cliente_one = _cliente(db, vendedor_uid="seller-1")
+    cliente_two = _cliente(db, vendedor_uid="seller-2")
+    opportunity_one = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente_one["id"], titulo="Venta seller 1"),
+        seller_one,
+    )
+    opportunity_two = create_opportunity(
+        db,
+        OpportunityCreate(clienteId=cliente_two["id"], titulo="Venta seller 2"),
+        seller_two,
+    )
+    create_proposal(
+        db,
+        ProposalCreate(clienteId=cliente_one["id"], oportunidadId=opportunity_one["id"], titulo="Propuesta 1", montoNeto=100000),
+        seller_one,
+    )
+    create_proposal(
+        db,
+        ProposalCreate(clienteId=cliente_two["id"], oportunidadId=opportunity_two["id"], titulo="Propuesta 2", montoNeto=100000),
+        seller_two,
+    )
+
+    assert {item["vendedorUid"] for item in list_opportunities(db, admin)} == {"seller-1", "seller-2"}
+    assert {item["vendedorUid"] for item in list_proposals(db, admin)} == {"seller-1", "seller-2"}
+
+
 def test_commercial_models_reject_formula_injection():
     with pytest.raises(ValidationError):
         OpportunityCreate(
             clienteId="cliente-1",
             titulo="=HYPERLINK(\"http://attacker\")",
         )
+
+
+def test_commercial_models_reject_mass_assignment_fields():
+    with pytest.raises(ValidationError):
+        OpportunityCreate.model_validate({
+            "clienteId": "cliente-1",
+            "titulo": "Oportunidad",
+            "vendedorUid": "victim-seller",
+            "montoTotal": 1,
+        })
+
+    with pytest.raises(ValidationError):
+        ProposalUpdate.model_validate({
+            "estado": "aceptada",
+            "vendedorUid": "victim-seller",
+            "montoTotal": 1,
+            "createdAt": "2026-01-01T00:00:00Z",
+        })
+
+
+def test_commercial_response_models_ignore_seed_metadata():
+    opportunity = OpportunityResponse.model_validate({
+        "id": "op-1",
+        "clienteId": "cliente-1",
+        "titulo": "Oportunidad demo",
+        "etapa": "nuevo",
+        "valorEstimado": 100000,
+        "probabilidad": 20,
+        "vendedorUid": "seller-1",
+        "seedTag": "demo-20260518",
+    })
+    proposal = ProposalResponse.model_validate({
+        "id": "prop-1",
+        "clienteId": "cliente-1",
+        "oportunidadId": "op-1",
+        "titulo": "Propuesta demo",
+        "montoNeto": 100000,
+        "descuentoPct": 10,
+        "estado": "enviada",
+        "vendedorUid": "seller-1",
+        "montoDescuento": 10000,
+        "montoTotal": 90000,
+        "seedTag": "demo-20260518",
+    })
+
+    assert "seedTag" not in opportunity.model_dump()
+    assert "seedTag" not in proposal.model_dump()
 
 
 def test_proposal_requires_opportunity():
@@ -490,3 +572,42 @@ def test_proposal_requires_opportunity():
             titulo="Propuesta sin oportunidad",
             montoNeto=100000,
         )
+
+
+def test_dashboard_builds_real_forecast_and_funnel_metrics():
+    db = FakeDb()
+    cliente = _cliente(db)
+    user = {"uid": "seller-1", "rol": "vendedor"}
+    opportunity = create_opportunity(
+        db,
+        OpportunityCreate(
+            clienteId=cliente["id"],
+            titulo="Venta mensual",
+            etapa="cotizacion",
+            valorEstimado=1000000,
+            probabilidad=50,
+        ),
+        user,
+    )
+    create_proposal(
+        db,
+        ProposalCreate(
+            clienteId=cliente["id"],
+            oportunidadId=opportunity["id"],
+            titulo="Propuesta aceptada",
+            montoNeto=500000,
+            estado="aceptada",
+        ),
+        user,
+    )
+
+    dashboard = build_dashboard(db, vendedor_uid=user["uid"])
+
+    assert dashboard["valorPipeline"] == 1000000
+    assert dashboard["proyeccionPonderada"] == 500000
+    assert dashboard["valorPropuestasAceptadas"] == 500000
+    assert dashboard["ticketPromedio"] == 500000
+    assert dashboard["tasaConversionGlobal"] == 100
+    assert dashboard["forecastMensual"]
+    assert sum(point["proyeccionPonderada"] for point in dashboard["forecastMensual"]) == 500000
+    assert next(stage for stage in dashboard["embudoVentas"] if stage["clave"] == "cotizacion")["total"] == 1

@@ -102,7 +102,11 @@ async def patch_cliente(
         payload = payload.model_copy(
             update={"vendedorUid": user["uid"], "ownerUid": user["uid"]}
         )
-    return update_cliente(db, cliente_id, payload.model_dump(exclude_unset=True), user=user)
+    changes = payload.model_dump(exclude_unset=True)
+    if user["rol"] != "admin":
+        changes.pop("vendedorUid", None)
+        changes.pop("ownerUid", None)
+    return update_cliente(db, cliente_id, changes, user=user)
 
 
 @router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)

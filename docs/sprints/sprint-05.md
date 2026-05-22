@@ -1,0 +1,54 @@
+# Sprint 05 - EPIC 5: UAT, documentacion y go-live
+
+**Fecha de inicio:** 17 mayo 2026
+
+**Rama:** `feature/epic-5-uat-go-live`
+
+**Estado:** En desarrollo
+
+## Objetivo
+
+Preparar el MVP web para UAT y salida controlada, cerrando criterios operativos de backend, documentacion de validacion, checklist de ambiente y evidencia de go-live sin modificar frontend.
+
+## Alcance inicial
+
+| Ticket | Descripcion | Area | Estado |
+|--------|-------------|------|--------|
+| EV-050 | Checklist UAT funcional por rol | QA | En progreso |
+| EV-051 | Readiness backend para ambiente UAT/go-live | Backend | Completado |
+| EV-052 | Runbook operativo de go-live y rollback | Docs | En progreso |
+| EV-053 | Evidencia de smoke test posterior a despliegue | QA | Pendiente |
+| EV-054 | Matriz de defectos UAT y criterios de aceptacion final | QA | Pendiente |
+
+## Fuera de alcance
+
+- Cambios de frontend.
+- Migracion historica de datos sin fuente aprobada.
+- Integraciones externas nuevas.
+- Automatizacion E2E con credenciales reales no disponibles.
+
+## Criterios de aceptacion
+
+- `/health` responde `status=ok` en el ambiente objetivo.
+- `/readiness` responde `ready` antes de abrir UAT o go-live.
+- Firebase Auth valida login real en el ambiente objetivo.
+- CORS contiene solo dominios autorizados para el ambiente desplegado.
+- Roles `vendedor`, `supervisor` y `admin` completan los flujos UAT definidos.
+- Defectos UAT quedan clasificados por severidad y con decision de salida.
+- Documentacion de rollback y smoke test queda disponible antes de produccion.
+
+## QA ejecutado
+
+```bash
+cd Backend
+uv run pytest
+```
+
+## Documentacion
+
+- `docs/qa/epic-05-uat-go-live.md`: checklist UAT, readiness, smoke test y go-live.
+- `README.md`: estado del roadmap actualizado para inicio de EPIC 5.
+
+## Cierre esperado
+
+EPIC 5 debe cerrar cuando UAT apruebe los flujos criticos, los defectos bloqueantes queden resueltos o aceptados formalmente, y el ambiente productivo tenga checklist de salida y rollback documentados.

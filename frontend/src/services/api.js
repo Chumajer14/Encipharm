@@ -1,4 +1,8 @@
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
+const FIREBASE_FREE_TIER_MODE = import.meta.env.VITE_FIREBASE_FREE_TIER_MODE !== "false";
+const GET_CACHE_PREFIX = "enci-api-get:";
+const GET_CACHE_TTL_MS = FIREBASE_FREE_TIER_MODE ? 10 * 60 * 1000 : 60 * 1000;
+const getCacheMemory = new Map();
 
 /**
  * Resolves the backend base URL from Vite environment variables.
@@ -10,6 +14,66 @@ function getApiBaseUrl() {
 }
 
 const API_BASE_URL = getApiBaseUrl();
+
+function getCacheKey(path) {
+  return `${GET_CACHE_PREFIX}${path}`;
+}
+
+function readGetCache(path) {
+  const key = getCacheKey(path);
+  const now = Date.now();
+  const memoryEntry = getCacheMemory.get(key);
+  if (memoryEntry && memoryEntry.expiresAt > now) {
+    return memoryEntry.data;
+  }
+
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return undefined;
+    const entry = JSON.parse(raw);
+    if (!entry || entry.expiresAt <= now) {
+      sessionStorage.removeItem(key);
+      getCacheMemory.delete(key);
+      return undefined;
+    }
+    getCacheMemory.set(key, entry);
+    return entry.data;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeGetCache(path, data) {
+  const key = getCacheKey(path);
+  const entry = {
+    data,
+    expiresAt: Date.now() + GET_CACHE_TTL_MS,
+  };
+  getCacheMemory.set(key, entry);
+  try {
+    sessionStorage.setItem(key, JSON.stringify(entry));
+  } catch {
+    // Storage can fail in private or quota-limited contexts; memory cache still helps.
+  }
+}
+
+export function clearApiGetCache() {
+  getCacheMemory.clear();
+  try {
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (key?.startsWith(GET_CACHE_PREFIX)) {
+        sessionStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+}
+
+function notifyDataMutated() {
+  window.dispatchEvent(new CustomEvent("enci:data-mutated"));
+}
 
 export class ApiError extends Error {
   constructor(message, status) {
@@ -26,6 +90,15 @@ function notifyAuthExpired(status) {
 }
 
 export async function apiFetch(path, { token, ...options } = {}) {
+  const method = String(options.method || "GET").toUpperCase();
+  const canUseGetCache = FIREBASE_FREE_TIER_MODE && method === "GET";
+  if (canUseGetCache) {
+    const cached = readGetCache(path);
+    if (cached !== undefined) {
+      return cached;
+    }
+  }
+
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
@@ -44,13 +117,21 @@ export async function apiFetch(path, { token, ...options } = {}) {
     const errorBody = await response.json().catch(() => ({}));
     const detail = Array.isArray(errorBody.detail)
       ? errorBody.detail.map((item) => item.msg).join(" ")
-      : errorBody.detail;
+      : errorBody.detail || errorBody.error;
     const message = detail || `Error ${response.status}`;
     notifyAuthExpired(response.status);
     throw new ApiError(message, response.status);
   }
 
-  return response.json();
+  const data = await response.json();
+  if (canUseGetCache) {
+    writeGetCache(path, data);
+  } else if (method !== "GET") {
+    clearApiGetCache();
+    notifyDataMutated();
+  }
+
+  return data;
 }
 
 export function loginWithBackend(token) {
@@ -68,8 +149,16 @@ export function updateCurrentUserTemporaryRole(token, rol) {
   });
 }
 
-export function getClientes(token) {
-  return apiFetch("/clientes", { token });
+export function updateCurrentUserPreferences(token, preferences) {
+  return apiFetch("/users/me/preferences", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(preferences),
+  });
+}
+
+export function getClientes(token, params = {}) {
+  return apiFetch(withQuery("/clientes", { limit: 500, ...params }), { token });
 }
 
 export function getCliente(token, clienteId) {
@@ -103,8 +192,11 @@ export async function deleteCliente(token, clienteId) {
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     notifyAuthExpired(response.status);
-    throw new ApiError(errorBody.detail || `Error ${response.status}`, response.status);
+    throw new ApiError(errorBody.detail || errorBody.error || `Error ${response.status}`, response.status);
   }
+
+  clearApiGetCache();
+  notifyDataMutated();
 }
 
 
@@ -114,6 +206,34 @@ export function getDashboardVendedor(token) {
 
 export function getDashboardSupervisor(token) {
   return apiFetch("/dashboard/supervisor", { token });
+}
+
+export function getUsers(token, params = {}) {
+  return apiFetch(withQuery("/users/", params), { token });
+}
+
+export function updateUserRole(token, uid, rol) {
+  return apiFetch(`/users/${uid}/role`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ rol }),
+  });
+}
+
+export function updateUser(token, uid, changes) {
+  return apiFetch(`/users/${uid}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(changes),
+  });
+}
+
+export function updateUserStatus(token, uid, activo) {
+  return apiFetch(`/users/${uid}/status`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ activo }),
+  });
 }
 
 function withQuery(path, params = {}) {
@@ -140,7 +260,7 @@ export function createInteraccion(token, interaccion) {
 }
 
 export function getOportunidades(token, params = {}) {
-  return apiFetch(withQuery("/oportunidades", params), { token });
+  return apiFetch(withQuery("/oportunidades", { limit: 500, ...params }), { token });
 }
 
 export function getOportunidadDetalle(token, oportunidadId) {
@@ -164,7 +284,11 @@ export function updateOportunidad(token, oportunidadId, oportunidad) {
 }
 
 export function getPropuestas(token, params = {}) {
-  return apiFetch(withQuery("/propuestas", params), { token });
+  return apiFetch(withQuery("/propuestas", { limit: 500, ...params }), { token });
+}
+
+export function getCompetitionRepository(token) {
+  return apiFetch("/competencia/repository", { token });
 }
 
 export function createPropuesta(token, propuesta) {

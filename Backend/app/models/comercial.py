@@ -50,6 +50,8 @@ def normalize_proposal_status(value: str | None) -> str | None:
 
 
 class InteractionCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     clienteId: str = Field(min_length=1, max_length=128)
     tipo: InteractionType
     fecha: datetime
@@ -64,7 +66,7 @@ class InteractionCreate(BaseModel):
 
 
 class InteractionResponse(InteractionCreate):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     id: str
     vendedorUid: str
@@ -73,6 +75,8 @@ class InteractionResponse(InteractionCreate):
 
 
 class OpportunityCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     clienteId: str = Field(min_length=1, max_length=128)
     titulo: str = Field(min_length=1, max_length=160)
     etapa: OpportunityStage = "nuevo"
@@ -92,6 +96,8 @@ class OpportunityCreate(BaseModel):
 
 
 class OpportunityUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     titulo: Optional[str] = Field(default=None, min_length=1, max_length=160)
     etapa: Optional[OpportunityStage] = None
     valorEstimado: Optional[float] = Field(default=None, ge=0, le=1_000_000_000)
@@ -110,7 +116,7 @@ class OpportunityUpdate(BaseModel):
 
 
 class OpportunityResponse(OpportunityCreate):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     id: str
     vendedorUid: str
@@ -119,7 +125,7 @@ class OpportunityResponse(OpportunityCreate):
 
 
 class OpportunityDetailResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     oportunidad: OpportunityResponse
     interacciones: list[InteractionResponse]
@@ -127,6 +133,8 @@ class OpportunityDetailResponse(BaseModel):
 
 
 class ProposalCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     clienteId: str = Field(min_length=1, max_length=128)
     oportunidadId: str = Field(min_length=1, max_length=128)
     titulo: str = Field(min_length=1, max_length=160)
@@ -147,6 +155,8 @@ class ProposalCreate(BaseModel):
 
 
 class ProposalUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     titulo: Optional[str] = Field(default=None, min_length=1, max_length=160)
     montoNeto: Optional[float] = Field(default=None, ge=0, le=1_000_000_000)
     descuentoPct: Optional[float] = Field(default=None, ge=0, le=100)
@@ -165,7 +175,7 @@ class ProposalUpdate(BaseModel):
 
 
 class ProposalResponse(ProposalCreate):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     id: str
     vendedorUid: str

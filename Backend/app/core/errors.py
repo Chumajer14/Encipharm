@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from google.api_core import exceptions as google_exceptions
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
@@ -53,12 +54,20 @@ async def http_exception_handler(_request: Request, exc: StarletteHTTPException)
 
 
 async def validation_exception_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+    safe_details = [
+        {
+            "loc": error.get("loc"),
+            "msg": error.get("msg"),
+            "type": error.get("type"),
+        }
+        for error in exc.errors()
+    ]
     return JSONResponse(
         status_code=422,
         content=error_payload(
             422,
             "Datos de entrada invalidos",
-            details=exc.errors(),
+            details=safe_details,
         ),
     )
 
@@ -73,9 +82,27 @@ async def unhandled_exception_handler(_request: Request, _exc: Exception) -> JSO
     )
 
 
+async def google_api_exception_handler(_request: Request, exc: google_exceptions.GoogleAPICallError) -> JSONResponse:
+    status_code = 503
+    message = "Servicio de datos temporalmente no disponible"
+    code = "ERR_DATA_SERVICE_UNAVAILABLE"
+
+    if isinstance(exc, google_exceptions.ResourceExhausted):
+        status_code = 429
+        message = "Cuota de Firestore excedida. Intenta nuevamente mas tarde."
+        code = "ERR_FIRESTORE_QUOTA_EXCEEDED"
+
+    return JSONResponse(
+        status_code=status_code,
+        content=error_payload(status_code, message, code=code),
+        headers={"Retry-After": "60"},
+    )
+
+
 __all__ = [
     "HTTPException",
     "http_exception_handler",
+    "google_api_exception_handler",
     "validation_exception_handler",
     "unhandled_exception_handler",
 ]

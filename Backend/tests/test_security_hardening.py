@@ -1,12 +1,15 @@
 import pytest
 from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
+from google.api_core import exceptions as google_exceptions
 from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.config import Settings
-from app.core.errors import http_exception_handler
+from app.core.errors import google_api_exception_handler, http_exception_handler
 from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
+from app.docs import testing_docs as render_testing_docs
 
 
 def test_production_rejects_wildcard_cors():
@@ -38,6 +41,17 @@ def test_production_rejects_open_cors_regex():
             APP_ENV="production",
             CORS_ORIGINS="https://enci.cl",
             CORS_ORIGIN_REGEX=".*",
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        )
+
+
+def test_production_rejects_enabled_temporary_role_switcher():
+    with pytest.raises(ValidationError):
+        Settings(
+            APP_ENV="production",
+            CORS_ORIGINS="https://enci.cl",
+            ENABLE_TEMPORARY_ROLE_SWITCHER=True,
             FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         )
@@ -169,3 +183,77 @@ async def test_http_errors_use_standard_contract():
     assert b'"error":"Sin permisos"' in response.body
     assert b'"codigo":"ERR_FORBIDDEN"' in response.body
     assert b'"timestamp"' in response.body
+
+
+@pytest.mark.anyio
+async def test_firestore_quota_errors_return_controlled_429():
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/auth/login",
+        "headers": [],
+        "client": ("127.0.0.1", 12345),
+        "server": ("testserver", 80),
+        "scheme": "http",
+        "query_string": b"",
+    }
+
+    response = await google_api_exception_handler(
+        Request(scope),
+        google_exceptions.ResourceExhausted("Quota exceeded."),
+    )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "60"
+    assert b'"codigo":"ERR_FIRESTORE_QUOTA_EXCEEDED"' in response.body
+    assert b"Quota exceeded" not in response.body
+
+
+@pytest.mark.anyio
+async def test_validation_errors_do_not_echo_rejected_input():
+    from app.core.errors import validation_exception_handler
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/clientes",
+        "headers": [],
+        "client": ("127.0.0.1", 12345),
+        "server": ("testserver", 80),
+        "scheme": "http",
+        "query_string": b"",
+    }
+    errors = [{
+        "loc": ("body", "token"),
+        "msg": "Input should be valid",
+        "type": "value_error",
+        "input": "secret-token-value",
+    }]
+
+    class FakeValidationError(RequestValidationError):
+        def errors(self):
+            return errors
+
+    response = await validation_exception_handler(Request(scope), FakeValidationError([]))
+
+    assert response.status_code == 422
+    assert b"secret-token-value" not in response.body
+
+
+@pytest.mark.anyio
+async def test_custom_docs_are_blocked_in_production(monkeypatch):
+    monkeypatch.setattr(
+        "app.docs.get_settings",
+        lambda: Settings(
+            APP_ENV="production",
+            CORS_ORIGINS="https://enci.cl",
+            ENABLE_TEMPORARY_ROLE_SWITCHER=False,
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await render_testing_docs()
+
+    assert exc_info.value.status_code == 404

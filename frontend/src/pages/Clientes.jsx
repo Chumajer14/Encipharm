@@ -1,37 +1,28 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import LoadingState from "../components/LoadingState";
+import useCachedQuery from "../hooks/useCachedQuery";
 import { getClientes } from "../services/api";
-import { getFriendlyApiError } from "../utils/apiErrors";
 
 function Clientes() {
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState("");
   const [clientes, setClientes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
   const { idToken } = useAuth();
+  const clientesQuery = useCachedQuery(
+    "clientes:list",
+    () => getClientes(idToken),
+    { enabled: Boolean(idToken), initialData: [] },
+  );
+  const loading = clientesQuery.loading;
+  const error = clientesQuery.error ? `No se pudieron cargar los clientes: ${clientesQuery.error}` : "";
 
   useEffect(() => {
-    async function cargarClientes() {
-      if (!idToken) return;
-
-      try {
-        setLoading(true);
-        const data = await getClientes(idToken);
-        setClientes(data);
-      } catch (loadError) {
-        console.error("Error al cargar clientes", loadError);
-        setError(`No se pudieron cargar los clientes: ${getFriendlyApiError(loadError)}`);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    cargarClientes();
-  }, [idToken]);
+    queueMicrotask(() => setClientes(clientesQuery.data || []));
+  }, [clientesQuery.data]);
 
   const clientesFiltrados = clientes.filter((cliente) => {
     const texto = busqueda.trim().toLowerCase();
@@ -83,7 +74,7 @@ function Clientes() {
       )}
 
       {error && <p className="error-text">{error}</p>}
-      {loading && <p className="status-message">Cargando clientes...</p>}
+      {loading && <LoadingState />}
 
       <section className="filters-card">
         <input
@@ -106,7 +97,7 @@ function Clientes() {
         </select>
       </section>
 
-      <section className="list">
+      {!loading && <section className="list">
         {clientesFiltrados.map((cliente) => (
           <article className="client-card" key={cliente.id}>
             <div>
@@ -129,7 +120,7 @@ function Clientes() {
             </div>
           </article>
         ))}
-      </section>
+      </section>}
 
       {!loading && clientesFiltrados.length === 0 && (
         <section className="empty-state">

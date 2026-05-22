@@ -69,7 +69,7 @@ def _safe_email(value: Any, cliente_id: str) -> str:
             pass
 
     clean_id = "".join(ch for ch in str(cliente_id).lower() if ch.isalnum()) or "legacy"
-    return f"sin-correo-{clean_id[:48]}@encipharm.cl"
+    return f"sin-correo-{clean_id[:48]}@enci.cl"
 
 
 def _safe_estado(value: Any) -> str:

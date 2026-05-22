@@ -10,7 +10,8 @@ import {
   googleProvider,
   isFirebaseConfigured,
 } from "../services/firebase";
-import { loginWithBackend, updateCurrentUserTemporaryRole } from "../services/api";
+import { translateStaticDom } from "../i18n/useI18n";
+import { clearApiGetCache, loginWithBackend, updateCurrentUserPreferences, updateCurrentUserTemporaryRole } from "../services/api";
 import { AuthContext } from "./authContext";
 
 function friendlyAuthError(authError) {
@@ -51,6 +52,7 @@ export function AuthProvider({ children }) {
       setLoading(true);
 
       if (!user) {
+        clearApiGetCache();
         setFirebaseUser(null);
         setBackendUser(null);
         setIdToken(null);
@@ -76,6 +78,35 @@ export function AuthProvider({ children }) {
       }
     });
   }, []);
+
+  useEffect(() => {
+    const language = backendUser?.language || "es";
+    let animationFrameId = 0;
+
+    document.documentElement.dataset.theme = backendUser?.theme || "dark";
+    document.documentElement.lang = language;
+
+    const translateCurrentView = () => {
+      window.cancelAnimationFrame(animationFrameId);
+      animationFrameId = window.requestAnimationFrame(() => translateStaticDom(language));
+    };
+
+    translateCurrentView();
+
+    const observer = new MutationObserver(translateCurrentView);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["placeholder", "title", "aria-label"],
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
+    };
+  }, [backendUser?.theme, backendUser?.language]);
 
   useEffect(() => {
     async function handleAuthExpired() {
@@ -104,6 +135,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    clearApiGetCache();
     if (auth) {
       await firebaseSignOut(auth);
     }
@@ -119,6 +151,31 @@ export function AuthProvider({ children }) {
     return updatedUser;
   }, [idToken]);
 
+  const updatePreferences = useCallback(async (preferences) => {
+    if (!idToken) {
+      throw new Error("No hay sesion activa para actualizar preferencias.");
+    }
+
+    const previousUser = backendUser;
+    const optimisticUser = { ...backendUser, ...preferences };
+    setBackendUser(optimisticUser);
+    document.documentElement.dataset.theme = optimisticUser.theme || "dark";
+    document.documentElement.lang = optimisticUser.language || "es";
+    translateStaticDom(optimisticUser.language || "es");
+
+    try {
+      const updatedUser = await updateCurrentUserPreferences(idToken, preferences);
+      setBackendUser(updatedUser);
+      return updatedUser;
+    } catch (preferenceError) {
+      setBackendUser(previousUser);
+      document.documentElement.dataset.theme = previousUser?.theme || "dark";
+      document.documentElement.lang = previousUser?.language || "es";
+      translateStaticDom(previousUser?.language || "es");
+      throw preferenceError;
+    }
+  }, [backendUser, idToken]);
+
   const value = useMemo(
     () => ({
       backendUser,
@@ -130,9 +187,10 @@ export function AuthProvider({ children }) {
       loading,
       login,
       logout,
+      updatePreferences,
       updateTemporaryRole,
     }),
-    [backendUser, error, firebaseUser, idToken, loading, updateTemporaryRole],
+    [backendUser, error, firebaseUser, idToken, loading, updatePreferences, updateTemporaryRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

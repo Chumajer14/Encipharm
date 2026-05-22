@@ -1,11 +1,14 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from google.api_core import exceptions as google_exceptions
 
-from app.core.auth import get_current_user
+from app.core.auth import firestore_unavailable_http_exception, get_current_user
 from app.core.config import get_settings
 from app.models.user import UserResponse, UserRoleUpdate
+from app.models.user import normalize_display_name, normalize_user_language, normalize_user_rank, normalize_user_theme, normalize_user_zone
 from app.services.firestore import get_db
+from app.services.audit import record_audit_event
 from app.services.users import update_user
 
 router = APIRouter(prefix="/auth", tags=["Autenticacion"])
@@ -19,13 +22,25 @@ async def upsert_authenticated_user(user: dict) -> UserResponse:
     db = get_db()
     uid = user.get("uid")
     email = user.get("email")
-    nombre = _display_name_from_firebase_user(user)
+    nombre = normalize_display_name(_display_name_from_firebase_user(user), email)
 
     user_ref = db.collection("users").document(uid)
-    user_doc = user_ref.get()
+    cached_user_exists = user.get("_firestore_user_exists")
+    if cached_user_exists is True:
+        user_exists = True
+        user_data = user.get("_firestore_user") or {}
+    elif cached_user_exists is False:
+        user_exists = False
+        user_data = {}
+    else:
+        try:
+            user_doc = user_ref.get()
+        except google_exceptions.GoogleAPICallError as error:
+            raise firestore_unavailable_http_exception(error) from error
+        user_exists = user_doc.exists
+        user_data = user_doc.to_dict() if user_doc.exists else {}
 
-    if user_doc.exists:
-        user_data = user_doc.to_dict()
+    if user_exists:
         if not user_data.get("activo", True):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -34,9 +49,19 @@ async def upsert_authenticated_user(user: dict) -> UserResponse:
         updated_user = {
             "email": email,
             "nombre": nombre or user_data.get("nombre", email),
+            "cargo": user_data.get("cargo") or "Vendedor",
+            "rango": user_data.get("rango") or normalize_user_rank(user_data.get("cargo"), user_data.get("rol")),
+            "zona": user_data.get("zona") or normalize_user_zone(None),
+            "appMovil": user_data.get("appMovil", True),
+            "webApp": user_data.get("webApp", True),
+            "theme": normalize_user_theme(user_data.get("theme")),
+            "language": normalize_user_language(user_data.get("language")),
             "updatedAt": datetime.now(timezone.utc),
         }
-        user_ref.update(updated_user)
+        try:
+            user_ref.update(updated_user)
+        except google_exceptions.GoogleAPICallError as error:
+            raise firestore_unavailable_http_exception(error) from error
         user_data.update(updated_user)
         return UserResponse(**user_data)
 
@@ -45,12 +70,22 @@ async def upsert_authenticated_user(user: dict) -> UserResponse:
         "email": email,
         "nombre": nombre,
         "rol": "vendedor",
+        "cargo": "Vendedor",
+        "rango": "Vendedor",
+        "zona": "Zona centro",
+        "appMovil": True,
+        "webApp": True,
+        "theme": "dark",
+        "language": "es",
         "activo": True,
         "createdAt": datetime.now(timezone.utc),
         "updatedAt": datetime.now(timezone.utc),
     }
 
-    user_ref.set(new_user)
+    try:
+        user_ref.set(new_user)
+    except google_exceptions.GoogleAPICallError as error:
+        raise firestore_unavailable_http_exception(error) from error
     return UserResponse(**new_user)
 
 
@@ -69,13 +104,26 @@ async def patch_temporary_own_role(
     payload: UserRoleUpdate,
     user: dict = Depends(get_current_user),
 ):
-    """Permite cambiar temporalmente el rol propio solo para pruebas internas."""
+    """Control temporal de desarrollo: cambia solo el rol de la cuenta autenticada.
+
+    Debe retirarse antes de produccion. El endpoint se bloquea fuera de development
+    y no acepta UID, email, activo ni otros campos sensibles en el payload.
+    """
     settings = get_settings()
-    if settings.APP_ENV == "production":
+    if settings.APP_ENV != "development" or not settings.ENABLE_TEMPORARY_ROLE_SWITCHER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Cambio temporal de rol deshabilitado en produccion",
+            detail="Cambio temporal de rol deshabilitado en este ambiente",
         )
 
     db = get_db()
-    return UserResponse(**update_user(db, user["uid"], {"rol": payload.rol}))
+    updated = update_user(db, user["uid"], {"rol": payload.rol})
+    record_audit_event(
+        db,
+        user={**user, "rol": updated["rol"]},
+        action="temporary_role_change",
+        resource="users",
+        resource_id=user["uid"],
+        metadata={"newRole": payload.rol},
+    )
+    return UserResponse(**updated)
