@@ -8,6 +8,7 @@ from app.core.auth import require_role
 from app.core.config import Settings
 from app.models.cliente import ClienteCreate, ClienteResponse
 from app.models.user import UserRoleUpdate
+from app.models.user import UserUpdate
 from app.services.dashboard import build_dashboard
 from app.services.clientes import (
     MAX_CSV_ROWS,
@@ -275,6 +276,25 @@ def test_cliente_rejects_formula_injection_payloads():
         )
 
 
+def test_cliente_rejects_unexpected_sensitive_fields():
+    with pytest.raises(ValidationError):
+        ClienteCreate.model_validate({
+            "nombre": "Cliente",
+            "empresa": "Empresa",
+            "email": "cliente@enci.cl",
+            "rol": "admin",
+        })
+
+
+def test_user_update_rejects_unknown_sensitive_fields():
+    with pytest.raises(ValidationError):
+        UserUpdate.model_validate({
+            "nombre": "Usuario",
+            "uid": "other-user",
+            "email": "other@enci.cl",
+        })
+
+
 def test_cliente_phone_accepts_chilean_mobile_local_digits():
     cliente = ClienteCreate(
         nombre="Cliente Telefono",
@@ -441,6 +461,24 @@ async def test_admin_can_pass_supervisor_role_checker(monkeypatch):
 
 
 @pytest.mark.anyio
+async def test_administrador_alias_can_pass_admin_role_checker(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("admin-1").set({
+        "uid": "admin-1",
+        "email": "admin@enci.cl",
+        "nombre": "Admin",
+        "rol": "administrador",
+        "activo": True,
+    })
+    monkeypatch.setattr("app.core.auth.get_db", lambda: db)
+
+    checker = require_role("admin")
+    user = await checker({"uid": "admin-1", "rol": "administrador"})
+
+    assert user["rol"] == "admin"
+
+
+@pytest.mark.anyio
 async def test_vendedor_cannot_pass_supervisor_role_checker(monkeypatch):
     db = FakeDb()
     db.collection("users").document("seller-1").set({
@@ -496,6 +534,7 @@ async def test_temporary_role_updates_current_user(monkeypatch):
         "app.api.auth.get_settings",
         lambda: Settings(
             APP_ENV="development",
+            ENABLE_TEMPORARY_ROLE_SWITCHER=True,
             FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         ),
@@ -508,6 +547,9 @@ async def test_temporary_role_updates_current_user(monkeypatch):
 
     assert updated.rol == "admin"
     assert db.collection("users").rows["seller-1"]["rol"] == "admin"
+    audit_events = list(db.collection("audit_logs").rows.values())
+    assert audit_events[-1]["action"] == "temporary_role_change"
+    assert audit_events[-1]["resourceId"] == "seller-1"
 
 
 @pytest.mark.anyio
@@ -517,6 +559,7 @@ async def test_temporary_role_is_disabled_in_production(monkeypatch):
         lambda: Settings(
             APP_ENV="production",
             CORS_ORIGINS="https://enci.cl",
+            ENABLE_TEMPORARY_ROLE_SWITCHER=False,
             FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         ),
@@ -529,3 +572,34 @@ async def test_temporary_role_is_disabled_in_production(monkeypatch):
         )
 
     assert exc_info.value.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_temporary_role_is_disabled_when_feature_flag_off(monkeypatch):
+    monkeypatch.setattr(
+        "app.api.auth.get_settings",
+        lambda: Settings(
+            APP_ENV="development",
+            ENABLE_TEMPORARY_ROLE_SWITCHER=False,
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await patch_temporary_own_role(
+            UserRoleUpdate(rol="admin"),
+            {"uid": "seller-1"},
+        )
+
+    assert exc_info.value.status_code == 403
+
+
+def test_temporary_role_rejects_extra_uid_email_and_status_fields():
+    with pytest.raises(ValidationError):
+        UserRoleUpdate.model_validate({
+            "rol": "admin",
+            "uid": "victim-user",
+            "email": "victim@enci.cl",
+            "activo": False,
+        })

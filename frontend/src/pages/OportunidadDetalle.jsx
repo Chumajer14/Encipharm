@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import LoadingState from "../components/LoadingState";
+import useCachedQuery, { invalidateCachedQuery } from "../hooks/useCachedQuery";
 import { getOportunidadDetalle, updateOportunidad, updatePropuesta } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -12,25 +14,20 @@ function OportunidadDetalle() {
   const { idToken } = useAuth();
   const [detalle, setDetalle] = useState(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const [updatingOpportunity, setUpdatingOpportunity] = useState(false);
   const [updatingProposalId, setUpdatingProposalId] = useState("");
+  const detalleQuery = useCachedQuery(
+    `oportunidad-detalle:${oportunidadId}`,
+    () => getOportunidadDetalle(idToken, oportunidadId),
+    { enabled: Boolean(idToken && oportunidadId), initialData: null },
+  );
+  const loading = detalleQuery.loading;
 
   useEffect(() => {
-    async function loadDetalle() {
-      if (!idToken || !oportunidadId) return;
-      try {
-        setLoading(true);
-        setDetalle(await getOportunidadDetalle(idToken, oportunidadId));
-      } catch (loadError) {
-        setError(getFriendlyApiError(loadError));
-      } finally {
-        setLoading(false);
-      }
+    if (detalleQuery.data) {
+      queueMicrotask(() => setDetalle(detalleQuery.data));
     }
-
-    loadDetalle();
-  }, [idToken, oportunidadId]);
+  }, [detalleQuery.data]);
 
   const updateEtapa = async (etapa) => {
     setError("");
@@ -38,6 +35,10 @@ function OportunidadDetalle() {
       setUpdatingOpportunity(true);
       const updated = await updateOportunidad(idToken, oportunidadId, { etapa });
       setDetalle({ ...detalle, oportunidad: updated });
+      invalidateCachedQuery("pipeline:");
+      invalidateCachedQuery("dashboard:");
+      invalidateCachedQuery("proyecciones:");
+      invalidateCachedQuery(`oportunidad-detalle:${oportunidadId}`);
     } catch (updateError) {
       setError(getFriendlyApiError(updateError));
     } finally {
@@ -54,6 +55,10 @@ function OportunidadDetalle() {
         ...detalle,
         propuestas: detalle.propuestas.map((item) => item.id === updated.id ? updated : item),
       });
+      invalidateCachedQuery("propuestas:");
+      invalidateCachedQuery("dashboard:");
+      invalidateCachedQuery("proyecciones:");
+      invalidateCachedQuery(`oportunidad-detalle:${oportunidadId}`);
     } catch (updateError) {
       setError(getFriendlyApiError(updateError));
     } finally {
@@ -73,7 +78,7 @@ function OportunidadDetalle() {
         <Link to="/oportunidades"><button className="btn-secondary" type="button">Volver</button></Link>
       </section>
 
-      {loading && <p className="status-message">Cargando oportunidad...</p>}
+      {loading && <LoadingState />}
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
 
       {oportunidad && (

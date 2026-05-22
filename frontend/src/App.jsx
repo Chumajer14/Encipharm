@@ -138,7 +138,7 @@ function App() {
           <Route
             path="/configuracion"
             element={
-              <ProtectedRoute minimumRole="supervisor">
+              <ProtectedRoute minimumRole="vendedor">
                 <Configuracion />
               </ProtectedRoute>
             }

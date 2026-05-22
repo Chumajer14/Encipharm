@@ -20,6 +20,7 @@ class FunnelStage(BaseModel):
     valorPonderado: float = 0
     conversionPct: float = 0
     fugaPct: float = 0
+    changePct: float = 0
 
 
 class DashboardResponse(BaseModel):

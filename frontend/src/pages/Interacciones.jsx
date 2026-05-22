@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import ClienteSelect from "../components/ClienteSelect";
+import LoadingState from "../components/LoadingState";
+import useCachedQuery, { invalidateCachedQuery } from "../hooks/useCachedQuery";
 import { createInteraccion, getClientes, getInteracciones } from "../services/api";
 import { getFriendlyApiError } from "../utils/apiErrors";
 
@@ -23,28 +25,26 @@ function Interacciones() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
-  const [loadingClientes, setLoadingClientes] = useState(true);
+  const interaccionesQuery = useCachedQuery(
+    "interacciones:dataset",
+    async () => {
+      const [clientesData, interaccionesData] = await Promise.all([
+        getClientes(idToken),
+        getInteracciones(idToken),
+      ]);
+      return { clientes: clientesData, interacciones: interaccionesData };
+    },
+    { enabled: Boolean(idToken), initialData: null },
+  );
+  const loadingClientes = interaccionesQuery.loading;
 
   useEffect(() => {
-    async function loadData() {
-      if (!idToken) return;
-      try {
-        setLoadingClientes(true);
-        const [clientesData, interaccionesData] = await Promise.all([
-          getClientes(idToken),
-          getInteracciones(idToken),
-        ]);
-        setClientes(clientesData);
-        setInteracciones(interaccionesData);
-      } catch (loadError) {
-        setError(getFriendlyApiError(loadError));
-      } finally {
-        setLoadingClientes(false);
-      }
-    }
-
-    loadData();
-  }, [idToken]);
+    if (!interaccionesQuery.data) return;
+    queueMicrotask(() => {
+      setClientes(interaccionesQuery.data.clientes);
+      setInteracciones(interaccionesQuery.data.interacciones);
+    });
+  }, [interaccionesQuery.data]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -65,6 +65,8 @@ function Interacciones() {
       };
       const created = await createInteraccion(idToken, payload);
       setInteracciones([created, ...interacciones]);
+      invalidateCachedQuery("interacciones:");
+      invalidateCachedQuery("inteligencia:");
       setForm(initialForm);
       setSuccess("Interaccion registrada correctamente.");
     } catch (saveError) {
@@ -130,7 +132,9 @@ function Interacciones() {
         </div>
       </form>
 
-      <section className="list spaced-list">
+      {loadingClientes && <LoadingState />}
+
+      {!loadingClientes && <section className="list spaced-list">
         {interacciones.map((item) => (
           <article className="client-card" key={item.id}>
             <div>
@@ -140,7 +144,7 @@ function Interacciones() {
             </div>
           </article>
         ))}
-      </section>
+      </section>}
     </main>
   );
 }

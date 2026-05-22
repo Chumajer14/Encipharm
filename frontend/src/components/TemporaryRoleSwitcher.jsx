@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../auth/authContext";
+import { useI18n } from "../i18n/useI18n";
 
 const TEST_ROLES = [
   { label: "Vendedor", value: "vendedor" },
@@ -8,10 +9,12 @@ const TEST_ROLES = [
 
 function TemporaryRoleSwitcher() {
   const { backendUser, updateTemporaryRole } = useAuth();
+  const { t } = useI18n();
   const [error, setError] = useState("");
   const [savingRole, setSavingRole] = useState("");
 
   const currentRole = backendUser?.rol || "vendedor";
+  const currentRoleLabel = currentRole === "admin" ? t("Administrador") : t("Vendedor");
 
   const handleRoleChange = async (rol) => {
     setError("");
@@ -29,10 +32,9 @@ function TemporaryRoleSwitcher() {
   return (
     <aside className="temporary-role-box" aria-label="Cambio temporal de permisos">
       <div>
-        <strong>TEMPORAL - TEMPORAL</strong>
+        <strong>{t("TEMPORAL - TEMPORAL")}</strong>
         <span>
-          Control solo para pruebas. Cambia los permisos de esta cuenta y debe
-          eliminarse antes de entregar el sistema final.
+          {t("Control solo para pruebas. Cambia los permisos de esta cuenta y debe eliminarse antes de entregar el sistema final.")}
         </span>
       </div>
 
@@ -45,12 +47,12 @@ function TemporaryRoleSwitcher() {
             onClick={() => handleRoleChange(role.value)}
             type="button"
           >
-            {savingRole === role.value ? "Aplicando..." : role.label}
+            {savingRole === role.value ? t("Aplicando...") : t(role.label)}
           </button>
         ))}
       </div>
 
-      <small>Rol actual: {currentRole}</small>
+      <small>{t("Rol actual:")} {currentRoleLabel}</small>
       {error && <small className="temporary-role-error">{error}</small>}
     </aside>
   );

@@ -138,22 +138,24 @@ def _build_funnel(oportunidades: list[dict[str, Any]]) -> list[dict[str, Any]]:
         stage_values[stage] += _safe_float(opportunity.get("valorEstimado"))
         stage_weighted[stage] += _weighted_value(opportunity)
 
-    first_total = max(stage_totals.get(FUNNEL_STAGES[0][0], 0), 1)
+    max_total = max([stage_totals.get(stage, 0) for stage, _label in FUNNEL_STAGES] or [1], default=1)
     previous_total = None
     funnel = []
     for stage, label in FUNNEL_STAGES:
         total = stage_totals.get(stage, 0)
-        fuga_pct = 0
+        change_pct = 0
         if previous_total:
-            fuga_pct = round(max((previous_total - total) / previous_total, 0) * 100, 1)
+            change_pct = round(((total - previous_total) / previous_total) * 100, 1)
+        fuga_pct = abs(change_pct) if change_pct < 0 else 0
         funnel.append({
             "clave": stage,
             "nombre": label,
             "total": total,
             "valorEstimado": round(stage_values[stage], 2),
             "valorPonderado": round(stage_weighted[stage], 2),
-            "conversionPct": round((total / first_total) * 100, 1) if first_total else 0,
+            "conversionPct": round((total / max_total) * 100, 1) if max_total else 0,
             "fugaPct": fuga_pct,
+            "changePct": change_pct,
         })
         previous_total = total
 

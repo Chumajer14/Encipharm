@@ -13,6 +13,14 @@ export function getFriendlyApiError(error) {
     return "No tienes permisos para realizar esta accion.";
   }
 
+  if (message.includes("429") || message.toLowerCase().includes("cuota") || message.toLowerCase().includes("quota")) {
+    return "La cuota de Firestore se alcanzo temporalmente. Espera un momento e intenta nuevamente.";
+  }
+
+  if (message.includes("503") || message.toLowerCase().includes("temporalmente no disponible")) {
+    return "El servicio de datos esta temporalmente no disponible. Intenta nuevamente en unos minutos.";
+  }
+
   if (message.includes("422") || message.toLowerCase().includes("validation")) {
     return "Revisa los campos obligatorios y el formato del correo.";
   }
