@@ -27,7 +27,7 @@ VITE_FIREBASE_APP_ID=
 ```
 
 `VITE_API_BASE_URL` debe apuntar al backend FastAPI publicado con HTTPS o al proxy local de Vercel `/api`.
-El proyecto `enciapp` usa `/api` y `vendedor-app/vercel.json` reescribe `/api/*` hacia `https://encipharm.onrender.com/*`.
+El proyecto `enciapp` usa `/api` y `vendedor-app/api/[...path].js` proxyea `/api/*` hacia `https://encipharm.onrender.com/*`.
 
 ## Backend
 
