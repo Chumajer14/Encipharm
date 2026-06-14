@@ -30,12 +30,12 @@ export default async function handler(request, response) {
     return;
   }
 
+  const requestUrl = new URL(request.url, `https://${request.headers.host}`);
+  const rawPathFromUrl = requestUrl.pathname.replace(/^\/api\/?/, "");
   const rawPath = Array.isArray(request.query.path)
     ? request.query.path.join("/")
-    : request.query.path || "";
-  const query = { ...request.query };
-  delete query.path;
-  const searchParams = new URLSearchParams(query).toString();
+    : request.query.path || rawPathFromUrl;
+  const searchParams = requestUrl.searchParams.toString();
   const backendUrl = `${BACKEND_BASE_URL}/${rawPath}${searchParams ? `?${searchParams}` : ""}`;
 
   try {
