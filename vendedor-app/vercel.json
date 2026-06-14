@@ -3,7 +3,16 @@
   "buildCommand": "npm run build",
   "installCommand": "npm ci",
   "outputDirectory": "dist",
+  "functions": {
+    "api/[...path].js": {
+      "runtime": "nodejs24.x"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/[...path].js"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
