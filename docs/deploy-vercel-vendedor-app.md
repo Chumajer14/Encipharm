@@ -4,6 +4,8 @@
 
 Crear un proyecto separado en Vercel para la PWA de vendedores.
 
+- Proyecto Vercel: `enciapp`
+- URL dashboard: `https://vercel.com/chumajer14s-projects/enciapp`
 - Root Directory: `vendedor-app`
 - Framework Preset: Vite
 - Build Command: `npm run build`
