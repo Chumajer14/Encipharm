@@ -32,6 +32,11 @@ VITE_FIREBASE_APP_ID=
 
 Agregar el dominio final de Vercel al `CORS_ORIGINS` del backend. En ambientes desplegados no usar `localhost`.
 
+```env
+CORS_ORIGINS=["https://enciapp.vercel.app"]
+CORS_ORIGIN_REGEX=^https://enciapp-[a-z0-9-]+-chumajer14s-projects\.vercel\.app$
+```
+
 ## Firebase
 
 Agregar el dominio final de Vercel en Firebase Authentication > Settings > Authorized domains.

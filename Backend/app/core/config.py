@@ -25,9 +25,10 @@ class Settings(BaseSettings):
         "http://localhost:5175,"
         "http://127.0.0.1:5173,"
         "http://127.0.0.1:5174,"
-        "http://127.0.0.1:5175"
+        "http://127.0.0.1:5175,"
+        "https://enciapp.vercel.app"
     )
-    CORS_ORIGIN_REGEX: Optional[str] = None
+    CORS_ORIGIN_REGEX: Optional[str] = r"^https://enciapp-[a-z0-9-]+-chumajer14s-projects\.vercel\.app$"
 
     # Firebase
     FIREBASE_PROJECT_ID: str
