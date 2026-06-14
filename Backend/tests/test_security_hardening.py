@@ -57,6 +57,15 @@ def test_production_rejects_enabled_temporary_role_switcher():
         )
 
 
+def test_temporary_role_switcher_is_disabled_by_default():
+    settings = Settings(
+        FIREBASE_PROJECT_ID="enci-test",
+        GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+    )
+
+    assert settings.ENABLE_TEMPORARY_ROLE_SWITCHER is False
+
+
 @pytest.mark.anyio
 async def test_rate_limiter_blocks_request_bursts():
     async def app(scope, receive, send):

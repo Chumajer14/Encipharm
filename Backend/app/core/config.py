@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Enci API"
     APP_ENV: str = "development"
     APP_VERSION: str = "1.0.0"
-    ENABLE_TEMPORARY_ROLE_SWITCHER: bool = True
+    ENABLE_TEMPORARY_ROLE_SWITCHER: bool = False
 
     # CORS
     CORS_ORIGINS: str = (

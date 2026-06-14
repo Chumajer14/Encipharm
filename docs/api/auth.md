@@ -65,7 +65,7 @@ Si el usuario existe con `activo = false`, la API rechaza el login y los endpoin
 
 Cambia el rol de la propia cuenta autenticada para pruebas de interfaz y permisos.
 
-**TEMPORAL - TEMPORAL:** este endpoint existe solo para validacion funcional durante desarrollo y debe eliminarse antes de entregar el sistema final. Solo funciona cuando `APP_ENV=development` y `ENABLE_TEMPORARY_ROLE_SWITCHER=true`. En `production`, `staging`, `uat` o con el flag apagado responde `403`.
+**TEMPORAL - TEMPORAL:** este endpoint existe solo para validacion funcional durante desarrollo y debe eliminarse antes de entregar el sistema final. Esta deshabilitado por defecto y solo funciona cuando `APP_ENV=development` y `ENABLE_TEMPORARY_ROLE_SWITCHER=true`. En `production`, `staging`, `uat` o con el flag apagado responde `403`.
 
 Controles aplicados:
 

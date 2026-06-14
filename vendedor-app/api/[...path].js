@@ -1,12 +1,21 @@
 import { Buffer } from "node:buffer";
 
 const BACKEND_BASE_URL = "https://encipharm.onrender.com";
+const PRODUCTION_ORIGIN = "https://enciapp.vercel.app";
+const PREVIEW_ORIGIN_REGEX =
+  /^https:\/\/enciapp-[a-z0-9-]+-chumajer14s-projects\.vercel\.app$/;
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
+const BASE_CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
   "Access-Control-Allow-Headers": "Authorization,Content-Type",
 };
+
+function resolveAllowedOrigin(origin = "") {
+  if (origin === PRODUCTION_ORIGIN || PREVIEW_ORIGIN_REGEX.test(origin)) {
+    return origin;
+  }
+  return PRODUCTION_ORIGIN;
+}
 
 function buildHeaders(request) {
   const headers = {};
@@ -21,7 +30,8 @@ function buildHeaders(request) {
 }
 
 export default async function handler(request, response) {
-  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
+  response.setHeader("Access-Control-Allow-Origin", resolveAllowedOrigin(request.headers.origin));
+  Object.entries(BASE_CORS_HEADERS).forEach(([key, value]) => {
     response.setHeader(key, value);
   });
 
