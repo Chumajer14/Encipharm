@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,8 +10,30 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+const requiredFirebaseConfig = {
+  apiKey: "VITE_FIREBASE_API_KEY",
+  authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
+  projectId: "VITE_FIREBASE_PROJECT_ID",
+  appId: "VITE_FIREBASE_APP_ID",
+};
 
-export const auth = getAuth(app);
+export const missingFirebaseConfigKeys = Object.entries(requiredFirebaseConfig)
+  .filter(([key]) => {
+    const value = firebaseConfig[key];
+    return !value || value.startsWith("your-");
+  })
+  .map(([, envName]) => envName);
+
+export const isFirebaseConfigured = missingFirebaseConfigKeys.length === 0;
+
+export function getFirebaseConfigHelpMessage() {
+  return `Faltan variables de Firebase: ${missingFirebaseConfigKeys.join(", ")}.`;
+}
+
+const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
+
+export const auth = app ? getAuth(app) : null;
 export const googleProvider = new GoogleAuthProvider();
-export const firestore = getFirestore(app);
+googleProvider.setCustomParameters({
+  prompt: "select_account",
+});

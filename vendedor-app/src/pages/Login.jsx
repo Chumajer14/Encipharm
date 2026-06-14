@@ -2,32 +2,19 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../services/firebase";
 import { loginBackend } from "../services/api";
 
-function Login() {
+function Login({ authError = "", isFirebaseConfigured = true }) {
   const login = async () => {
-  try {
+    if (!auth) return;
 
-          googleProvider.setCustomParameters({
-        prompt: "select_account",
-      });
-
-    const result = await signInWithPopup(auth, googleProvider);
-
-    const token = await result.user.getIdToken();
-
-    console.log("Token Firebase:", token);
-
-    const backendUser = await loginBackend(token);
-
-    console.log("Usuario backend:", backendUser);
-
-    alert("Login correcto con backend");
-  } catch (error) {
-    console.error("Error login:", error);
-    alert(error.message || "No se pudo iniciar sesión");
-  }
-};
-
-
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const token = await result.user.getIdToken();
+      await loginBackend(token);
+    } catch (error) {
+      console.error("Error login:", error);
+      alert(error.message || "No se pudo iniciar sesion");
+    }
+  };
 
   return (
     <main className="app-shell">
@@ -36,9 +23,13 @@ function Login() {
         <p>Acceso vendedor</p>
       </section>
 
-      <button className="primary-btn" onClick={login}>
-        Iniciar sesión con Google
+      <button className="primary-btn" disabled={!isFirebaseConfigured} onClick={login} type="button">
+        Iniciar sesion con Google
       </button>
+      {authError && <p className="form-error">{authError}</p>}
+      {!isFirebaseConfigured && (
+        <p className="form-error">Configura las variables VITE_FIREBASE_* antes de desplegar.</p>
+      )}
     </main>
   );
 }

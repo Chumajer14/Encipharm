@@ -4,22 +4,22 @@ function BottomNav() {
   return (
     <nav className="bottom-nav">
       <NavLink to="/" className={({ isActive }) => (isActive ? "nav-active" : "")}>
-        <span>🏠</span>
+        <span>Inicio</span>
         Inicio
       </NavLink>
 
       <NavLink to="/cotizacion" className={({ isActive }) => (isActive ? "nav-active" : "")}>
-        <span>📄</span>
-        Cotización
+        <span>Nuevo</span>
+        Cotizacion
       </NavLink>
 
       <NavLink to="/proyeccion" className={({ isActive }) => (isActive ? "nav-active" : "")}>
-        <span>📈</span>
-        Proyección
+        <span>Forecast</span>
+        Proyeccion
       </NavLink>
 
       <NavLink to="/pipeline" className={({ isActive }) => (isActive ? "nav-active" : "")}>
-        <span>📊</span>
+        <span>Etapas</span>
         Pipeline
       </NavLink>
     </nav>

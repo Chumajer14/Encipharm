@@ -2,21 +2,24 @@ import { useEffect, useState } from "react";
 import { db } from "../db/dexie";
 import { products } from "../data/products";
 import { crearOportunidad, getClientes } from "../services/api";
+import { ETAPAS, toBackendStage } from "../utils/etapas";
+
+const initialForm = {
+  clienteId: "",
+  cliente: "",
+  productoId: "",
+  productoNombre: "",
+  productoCategoria: "",
+  monto: "",
+  probabilidad: 55,
+  estado: "Prospeccion",
+  comentario: "",
+};
 
 function NuevaCotizacion({ token }) {
   const [clientes, setClientes] = useState([]);
-
-  const [form, setForm] = useState({
-    clienteId: "",
-    cliente: "",
-    productoId: "",
-    productoNombre: "",
-    productoCategoria: "",
-    monto: "",
-    probabilidad: 55,
-    estado: "Prospección",
-    comentario: "",
-  });
+  const [form, setForm] = useState(initialForm);
+  const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
     async function cargarClientes() {
@@ -25,6 +28,7 @@ function NuevaCotizacion({ token }) {
         setClientes(data);
       } catch (error) {
         console.error("Error cargando clientes:", error);
+        setMensaje("No se pudieron cargar clientes desde el backend.");
       }
     }
 
@@ -33,12 +37,12 @@ function NuevaCotizacion({ token }) {
     }
   }, [token]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const handleClienteChange = (e) => {
-    const cliente = clientes.find((item) => item.id === e.target.value);
+  const handleClienteChange = (event) => {
+    const cliente = clientes.find((item) => item.id === event.target.value);
 
     setForm({
       ...form,
@@ -47,8 +51,8 @@ function NuevaCotizacion({ token }) {
     });
   };
 
-  const handleProductChange = (e) => {
-    const product = products.find((p) => p.id === Number(e.target.value));
+  const handleProductChange = (event) => {
+    const product = products.find((item) => item.id === Number(event.target.value));
 
     setForm({
       ...form,
@@ -58,62 +62,38 @@ function NuevaCotizacion({ token }) {
     });
   };
 
-  const mapearEtapa = (estado) => {
-    const mapa = {
-      "Prospección": "nuevo",
-      "Calificación": "contactado",
-      "Propuesta": "cotizacion",
-      "Negociación": "negociacion",
-      "Cierre": "ganado",
-      "Perdido": "perdido",
-    };
-
-    return mapa[estado] || "nuevo";
-  };
-
-  const guardar = async (e) => {
-    e.preventDefault();
+  const guardar = async (event) => {
+    event.preventDefault();
+    setMensaje("");
 
     try {
+      const oportunidadBackend = {
+        clienteId: form.clienteId,
+        titulo: `${form.cliente} - ${form.productoNombre}`,
+        etapa: toBackendStage(form.estado),
+        valorEstimado: Number(form.monto),
+        probabilidad: Number(form.probabilidad),
+        descripcion: form.comentario || "Cotizacion creada desde app vendedor",
+      };
+
+      const oportunidadCreada = await crearOportunidad(token, oportunidadBackend);
       const nuevaCotizacion = {
         ...form,
         monto: Number(form.monto),
         probabilidad: Number(form.probabilidad),
-        valorPonderado:
-          (Number(form.monto) * Number(form.probabilidad)) / 100,
+        valorPonderado: (Number(form.monto) * Number(form.probabilidad)) / 100,
         fecha: new Date().toISOString(),
+        oportunidadId: oportunidadCreada.id,
+        sincronizada: true,
       };
 
       await db.cotizaciones.add(nuevaCotizacion);
 
-      const oportunidadBackend = {
-        clienteId: form.clienteId,
-        titulo: `${form.cliente} - ${form.productoNombre}`,
-        etapa: mapearEtapa(form.estado),
-        valorEstimado: Number(form.monto),
-        probabilidad: Number(form.probabilidad),
-        descripcion:
-          form.comentario || "Cotización creada desde app vendedor",
-      };
-
-      await crearOportunidad(token, oportunidadBackend);
-
-      alert("Cotización guardada y enviada al dashboard");
-
-      setForm({
-        clienteId: "",
-        cliente: "",
-        productoId: "",
-        productoNombre: "",
-        productoCategoria: "",
-        monto: "",
-        probabilidad: 55,
-        estado: "Prospección",
-        comentario: "",
-      });
+      setMensaje("Cotizacion guardada y enviada al dashboard.");
+      setForm(initialForm);
     } catch (error) {
       console.error("Error al guardar:", error);
-      alert(error.message || "Error al guardar cotización");
+      setMensaje(error.message || "Error al guardar cotizacion.");
     }
   };
 
@@ -122,11 +102,10 @@ function NuevaCotizacion({ token }) {
       <header className="top-bar">
         <div className="logo">E</div>
         <strong>Enci Ventas</strong>
-        <button className="icon-btn">⚙️</button>
       </header>
 
       <section className="page-title">
-        <h1>📄 Nueva Cotización</h1>
+        <h1>Nueva Cotizacion</h1>
         <p>Registra una propuesta comercial del vendedor</p>
       </section>
 
@@ -160,6 +139,7 @@ function NuevaCotizacion({ token }) {
         <input
           name="monto"
           type="number"
+          min="0"
           placeholder="$"
           value={form.monto}
           onChange={handleChange}
@@ -167,7 +147,7 @@ function NuevaCotizacion({ token }) {
         />
 
         <div className="probability-box">
-          <span>Probabilidad de éxito</span>
+          <span>Probabilidad de exito</span>
           <strong>{form.probabilidad}%</strong>
         </div>
 
@@ -182,25 +162,23 @@ function NuevaCotizacion({ token }) {
 
         <label>Etapa</label>
         <select name="estado" value={form.estado} onChange={handleChange}>
-          <option>Prospección</option>
-          <option>Calificación</option>
-          <option>Propuesta</option>
-          <option>Negociación</option>
-          <option>Cierre</option>
-          <option>Perdido</option>
+          {ETAPAS.map((etapa) => (
+            <option key={etapa}>{etapa}</option>
+          ))}
         </select>
 
         <label>Comentario</label>
         <textarea
           name="comentario"
-          placeholder="Próximos pasos o comentario comercial..."
+          placeholder="Proximos pasos o comentario comercial..."
           value={form.comentario}
           onChange={handleChange}
         />
 
         <button className="primary-btn" type="submit">
-          Guardar cotización
+          Guardar cotizacion
         </button>
+        {mensaje && <p className="form-message">{mensaje}</p>}
       </form>
     </main>
   );

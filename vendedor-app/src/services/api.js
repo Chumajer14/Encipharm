@@ -1,6 +1,11 @@
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+const DEFAULT_API_URL = "http://localhost:8000";
+const API_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_URL).replace(/\/+$/, "");
 
 export async function apiFetch(path, token, options = {}) {
+  if (!token) {
+    throw new Error("No hay sesion activa para consumir la API.");
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
@@ -23,12 +28,21 @@ export function loginBackend(token) {
     method: "POST",
   });
 }
+
 export function crearOportunidad(token, oportunidad) {
   return apiFetch("/oportunidades", token, {
     method: "POST",
     body: JSON.stringify(oportunidad),
   });
 }
+
+export function actualizarOportunidad(token, oportunidadId, cambios) {
+  return apiFetch(`/oportunidades/${oportunidadId}`, token, {
+    method: "PATCH",
+    body: JSON.stringify(cambios),
+  });
+}
+
 export function getClientes(token) {
   return apiFetch("/clientes?limit=500", token);
 }

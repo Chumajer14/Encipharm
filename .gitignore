@@ -144,3 +144,4 @@ output/
 
 /node_modules/
 /dist/
+.vercel

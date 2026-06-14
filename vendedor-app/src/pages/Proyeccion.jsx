@@ -15,18 +15,18 @@ function Proyeccion() {
 
   const totalPipeline = cotizaciones.reduce(
     (acc, item) => acc + Number(item.monto || 0),
-    0
+    0,
   );
 
   const totalPonderado = cotizaciones.reduce(
     (acc, item) => acc + Number(item.valorPonderado || 0),
-    0
+    0,
   );
 
   return (
     <main className="app-shell">
       <section className="page-title">
-        <h1>📈 Proyección</h1>
+        <h1>Proyeccion</h1>
         <p>Forecast comercial del vendedor</p>
       </section>
 
@@ -37,7 +37,7 @@ function Proyeccion() {
         </article>
 
         <article className="metric-card success">
-          <span>Proyección ponderada</span>
+          <span>Proyeccion ponderada</span>
           <strong>${totalPonderado.toLocaleString("es-CL")}</strong>
         </article>
       </section>
@@ -50,7 +50,7 @@ function Proyeccion() {
         {cotizaciones.length === 0 && (
           <article className="empty-card">
             <h3>Sin cotizaciones</h3>
-            <p>Registra una cotización para calcular tu proyección.</p>
+            <p>Registra una cotizacion para calcular tu proyeccion.</p>
           </article>
         )}
 
