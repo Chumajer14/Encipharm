@@ -43,6 +43,10 @@ export function actualizarOportunidad(token, oportunidadId, cambios) {
   });
 }
 
+export function getOportunidades(token) {
+  return apiFetch("/oportunidades?limit=500", token);
+}
+
 export function getClientes(token) {
   return apiFetch("/clientes?limit=500", token);
 }

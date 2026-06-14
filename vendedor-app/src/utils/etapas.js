@@ -25,6 +25,19 @@ export const etapaBackend = {
   Perdido: "perdido",
 };
 
+export const etapaApp = {
+  nuevo: "Prospeccion",
+  contactado: "Calificacion",
+  cotizacion: "Propuesta",
+  negociacion: "Negociacion",
+  ganado: "Cierre",
+  perdido: "Perdido",
+};
+
 export function toBackendStage(etapa) {
   return etapaBackend[etapa] || "nuevo";
+}
+
+export function fromBackendStage(etapa) {
+  return etapaApp[etapa] || "Prospeccion";
 }
