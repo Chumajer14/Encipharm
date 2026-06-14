@@ -3,18 +3,20 @@ import { auth } from "../services/firebase";
 
 function Configuracion({ user }) {
   const cerrarSesion = async () => {
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
   };
 
   return (
     <main className="app-shell">
       <header className="top-bar">
         <div className="logo">E</div>
-        <strong>Configuración</strong>
+        <strong>Configuracion</strong>
       </header>
 
       <section className="config-card">
-        <h2>☁️ Conectado</h2>
+        <h2>Conectado</h2>
         <p>Datos sincronizados</p>
       </section>
 
@@ -24,8 +26,8 @@ function Configuracion({ user }) {
         <p>{user?.email}</p>
       </section>
 
-      <button className="danger-btn" onClick={cerrarSesion}>
-        Cerrar sesión
+      <button className="danger-btn" onClick={cerrarSesion} type="button">
+        Cerrar sesion
       </button>
 
       <p className="app-version">Encipharm Ventas v1.0.0</p>

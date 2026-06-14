@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/dexie";
-import { crearOportunidad, getClientes } from "../services/api";
 
 function Cotizaciones() {
   const [cotizaciones, setCotizaciones] = useState([]);
 
   useEffect(() => {
-    cargarCotizaciones();
+    db.cotizaciones.toArray().then(setCotizaciones);
   }, []);
-
-  const cargarCotizaciones = async () => {
-    const data = await db.cotizaciones.toArray();
-    setCotizaciones(data);
-  };
 
   return (
     <main className="mobile-page">
@@ -29,7 +23,7 @@ function Cotizaciones() {
             </p>
 
             <p>
-              <strong>Categoría:</strong>{" "}
+              <strong>Categoria:</strong>{" "}
               {item.productoCategoria}
             </p>
 

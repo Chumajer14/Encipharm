@@ -1,0 +1,54 @@
+# Deploy Vercel - App Vendedor
+
+## Proyecto
+
+Crear un proyecto separado en Vercel para la PWA de vendedores.
+
+- Root Directory: `vendedor-app`
+- Framework Preset: Vite
+- Build Command: `npm run build`
+- Install Command: `npm ci`
+- Output Directory: `dist`
+
+## Variables
+
+Configurar en Vercel:
+
+```env
+VITE_API_BASE_URL=https://api-publica.example.com
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+`VITE_API_BASE_URL` debe apuntar al backend FastAPI publicado con HTTPS.
+
+## Backend
+
+Agregar el dominio final de Vercel al `CORS_ORIGINS` del backend. En ambientes desplegados no usar `localhost`.
+
+## Firebase
+
+Agregar el dominio final de Vercel en Firebase Authentication > Settings > Authorized domains.
+
+## Validacion
+
+Antes de publicar:
+
+```powershell
+cd vendedor-app
+npm ci
+npm run lint
+npm run build
+```
+
+Despues de publicar:
+
+- Abrir la URL de Vercel.
+- Iniciar sesion con Google.
+- Crear una cotizacion.
+- Verificar la oportunidad en el Dashboard Comercial.
+- Instalar la PWA desde Chrome/Android y validar apertura en modo standalone.
