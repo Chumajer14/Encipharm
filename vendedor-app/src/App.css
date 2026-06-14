@@ -1,0 +1,547 @@
+body {
+  margin: 0;
+  background: #020617;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+#root {
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #020617;
+  border-left: 1px solid #1e293b;
+  border-right: 1px solid #1e293b;
+}
+
+.app-shell {
+  padding: 22px;
+  padding-bottom: 90px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ef4444;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+}
+
+.icon-btn {
+  margin-left: auto;
+  background: #111827;
+  border: 1px solid #334155;
+  color: white;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.page-title h1 {
+  font-size: 24px;
+}
+
+.page-title p {
+  color: #94a3b8;
+}
+
+.form-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 22px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-card label {
+  font-weight: bold;
+  color: #cbd5e1;
+}
+
+.form-card input,
+.form-card select,
+.form-card textarea {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 14px;
+  color: white;
+}
+
+.form-card textarea {
+  min-height: 90px;
+}
+
+.probability-box {
+  display: flex;
+  justify-content: space-between;
+  background: #111827;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.probability-box span {
+  color: #94a3b8;
+}
+
+.probability-box strong {
+  color: #22c55e;
+}
+
+.primary-btn {
+  background: #10b981;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.metric-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.metric-card span {
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.metric-card strong {
+  font-size: 28px;
+}
+
+.metric-card.success strong {
+  color: #22c55e;
+}
+
+.stage-badge {
+  display: inline-block;
+  margin-top: 10px;
+  background: #7c3aed;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 100%;
+  max-width: 430px;
+
+  background: #0f172a;
+  border-top: 1px solid #334155;
+
+  display: flex;
+  justify-content: space-around;
+
+  padding: 14px 0;
+
+  z-index: 999;
+}
+
+.bottom-nav a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 24px;
+}
+
+.stage-select {
+  width: 100%;
+  margin-top: 14px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: white;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+}
+.pipeline-section {
+  margin-bottom: 40px;
+}
+
+.pipeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.pipeline-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.pipeline-header span {
+  background: #172554;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.pipeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pipeline-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 22px;
+  padding: 20px;
+}
+
+.pipeline-card h3 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.pipeline-card p {
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.pipeline-card strong {
+  display: block;
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.pipeline-card small {
+  display: block;
+  color: #22c55e;
+  margin-bottom: 14px;
+}
+
+.stage-select {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: #020617;
+  color: white;
+  border: 1px solid #334155;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+#root {
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #020617;
+  border-left: 1px solid #1e293b;
+  border-right: 1px solid #1e293b;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 22px;
+  padding-bottom: 110px;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.page-title h1 {
+  font-size: 26px;
+  margin: 0 0 12px;
+}
+
+.page-title p {
+  color: #93c5fd;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 22px;
+  text-align: center;
+}
+
+.metric-card span {
+  display: block;
+  color: #93c5fd;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.metric-card strong {
+  display: block;
+  font-size: 30px;
+  color: white;
+}
+
+.metric-card.success strong {
+  color: #22c55e;
+}
+
+.section-title {
+  margin: 28px 0 14px;
+}
+
+.section-title h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.quote-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quote-card,
+.empty-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.quote-header h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.quote-header p {
+  margin: 0;
+  color: #93c5fd;
+}
+
+.stage-badge {
+  background: #7c3aed;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.quote-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.quote-values div {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.quote-values span {
+  display: block;
+  color: #94a3b8;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.quote-values strong {
+  font-size: 15px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 430px;
+  width: 100%;
+  background: #0f172a;
+  border-top: 1px solid #334155;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 10px 8px;
+  z-index: 999;
+}
+
+.bottom-nav a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 14px;
+}
+
+.bottom-nav a span {
+  font-size: 22px;
+}
+
+.bottom-nav .nav-active {
+  background: #2e1738;
+  color: #ff4d6d;
+}
+.avatar {
+  width: 52px;
+  height: 52px;
+
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #7C3AED,
+    #3B82F6
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: white;
+
+  margin: 0 auto 16px;
+}
+
+.user-email {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.online-pill {
+  width: fit-content;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #10b981;
+  font-weight: bold;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.quick-card {
+  min-height: 110px;
+  padding: 18px;
+  border-radius: 18px;
+  text-decoration: none;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #334155;
+}
+
+.quick-card span {
+  font-size: 28px;
+}
+
+.quick-card.green {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: #0f766e;
+}
+
+.quick-card.purple {
+  background: rgba(124, 58, 237, 0.16);
+  border-color: #6d28d9;
+}
+
+.quick-card.orange {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: #b45309;
+}
+
+.quick-card.red {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: #991b1b;
+}
+
+.config-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.config-card p {
+  color: #94a3b8;
+}
+
+.danger-btn {
+  width: 100%;
+  background: #dc2626;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.app-version {
+  text-align: center;
+  color: #64748b;
+  margin-top: 40px;
+}

@@ -141,3 +141,6 @@ firestore-debug.*
 # Optional local artifacts
 # =========================
 output/
+
+/node_modules/
+/dist/
