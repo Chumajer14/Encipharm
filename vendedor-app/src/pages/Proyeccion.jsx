@@ -59,7 +59,8 @@ function Proyeccion({ token }) {
 
   return (
     <main className="app-shell">
-      <section className="page-title">
+      <section className="page-title compact-title">
+        <span className="eyebrow">Forecast</span>
         <h1>Proyeccion</h1>
         <p>Forecast comercial del vendedor</p>
       </section>
@@ -69,11 +70,13 @@ function Proyeccion({ token }) {
         <article className="metric-card">
           <span>Pipeline bruto</span>
           <strong>${totalPipeline.toLocaleString("es-CL")}</strong>
+          <small>{cotizaciones.length} cotizaciones activas</small>
         </article>
 
         <article className="metric-card success">
           <span>Proyeccion ponderada</span>
           <strong>${totalPonderado.toLocaleString("es-CL")}</strong>
+          <small>Calculado por probabilidad</small>
         </article>
       </section>
 

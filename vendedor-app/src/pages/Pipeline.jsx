@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/dexie";
 import { actualizarOportunidad, getOportunidades } from "../services/api";
-import { ETAPAS, fromBackendStage, toBackendStage } from "../utils/etapas";
+import { ETAPAS, etapasColor, fromBackendStage, toBackendStage } from "../utils/etapas";
 
 function mapBackendOpportunity(oportunidad) {
   return {
@@ -94,7 +94,8 @@ function Pipeline({ token }) {
 
   return (
     <main className="app-shell">
-      <section className="page-title">
+      <section className="page-title compact-title">
+        <span className="eyebrow">Pipeline</span>
         <h1>Pipeline</h1>
         <p>Seguimiento comercial del vendedor</p>
       </section>
@@ -106,14 +107,22 @@ function Pipeline({ token }) {
         return (
           <section className="pipeline-section" key={etapa}>
             <div className="pipeline-header">
-              <h2>{etapa}</h2>
-              <span>{items.length}</span>
+              <div>
+                <h2>{etapa}</h2>
+                <small>{items.length === 1 ? "1 oportunidad" : `${items.length} oportunidades`}</small>
+              </div>
+              <span style={{ "--stage-color": etapasColor[etapa] }}>{items.length}</span>
             </div>
 
             <div className="pipeline-list">
+              {items.length === 0 && (
+                <article className="empty-card compact-empty">
+                  <p>Sin oportunidades en esta etapa.</p>
+                </article>
+              )}
               {items.map((item) => (
                 <article className="pipeline-card" key={item.id}>
-                  <div className="avatar">
+                  <div className="avatar" style={{ "--avatar-color": etapasColor[item.estado] }}>
                     {(item.cliente || "?").charAt(0)}
                   </div>
                   <h3>{item.cliente}</h3>

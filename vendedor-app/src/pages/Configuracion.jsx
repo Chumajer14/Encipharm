@@ -1,5 +1,6 @@
 import { signOut } from "firebase/auth";
 import { auth } from "../services/firebase";
+import Icon from "../components/Icon";
 
 function Configuracion({ user }) {
   const cerrarSesion = async () => {
@@ -12,15 +13,20 @@ function Configuracion({ user }) {
     <main className="app-shell">
       <header className="top-bar">
         <div className="logo">E</div>
-        <strong>Configuracion</strong>
+        <div>
+          <strong>Configuracion</strong>
+          <p className="user-email">Cuenta y sincronizacion</p>
+        </div>
       </header>
 
       <section className="config-card">
-        <h2>Conectado</h2>
-        <p>Datos sincronizados</p>
+        <span className="config-icon"><Icon name="sync" size={22} /></span>
+        <h2>Sincronizacion activa</h2>
+        <p>Las oportunidades se envian al backend y el dashboard web se revalida automaticamente.</p>
       </section>
 
       <section className="config-card">
+        <span className="config-icon"><Icon name="user" size={22} /></span>
         <h2>Usuario</h2>
         <p>{user?.displayName || "Vendedor"}</p>
         <p>{user?.email}</p>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/dexie";
 import { products } from "../data/products";
+import Icon from "../components/Icon";
 import { crearOportunidad, getClientes } from "../services/api";
 import { ETAPAS, toBackendStage } from "../utils/etapas";
 
@@ -101,12 +102,16 @@ function NuevaCotizacion({ token }) {
     <main className="app-shell">
       <header className="top-bar">
         <div className="logo">E</div>
-        <strong>Enci Ventas</strong>
+        <div>
+          <strong>Nueva cotizacion</strong>
+          <p className="user-email">Carga comercial</p>
+        </div>
       </header>
 
-      <section className="page-title">
-        <h1>Nueva Cotizacion</h1>
-        <p>Registra una propuesta comercial del vendedor</p>
+      <section className="page-title compact-title">
+        <span className="eyebrow">Oportunidad</span>
+        <h1>Crear propuesta comercial</h1>
+        <p>Los datos quedan disponibles para el dashboard y forecast.</p>
       </section>
 
       <form className="form-card" onSubmit={guardar}>
@@ -176,6 +181,7 @@ function NuevaCotizacion({ token }) {
         />
 
         <button className="primary-btn" type="submit">
+          <Icon name="check" size={19} />
           Guardar cotizacion
         </button>
         {mensaje && <p className="form-message">{mensaje}</p>}
