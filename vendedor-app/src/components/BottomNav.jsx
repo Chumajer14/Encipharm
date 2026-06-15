@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import Icon from "./Icon";
+import { useAppSettings } from "../settings/AppSettings";
 
 const NAV_ITEMS = [
   { label: "Inicio", path: "/", icon: "home" },
@@ -9,6 +10,8 @@ const NAV_ITEMS = [
 ];
 
 function BottomNav() {
+  const { t } = useAppSettings();
+
   return (
     <nav className="bottom-nav">
       {NAV_ITEMS.map((item) => (
@@ -18,7 +21,7 @@ function BottomNav() {
           to={item.path}
         >
           <Icon name={item.icon} size={19} />
-          <span>{item.label}</span>
+          <span>{t(item.label)}</span>
         </NavLink>
       ))}
     </nav>

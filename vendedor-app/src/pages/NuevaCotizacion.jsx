@@ -3,6 +3,7 @@ import { db } from "../db/dexie";
 import { products } from "../data/products";
 import Icon from "../components/Icon";
 import { crearOportunidad, getClientes } from "../services/api";
+import { useAppSettings } from "../settings/AppSettings";
 import { ETAPAS, toBackendStage } from "../utils/etapas";
 
 const initialForm = {
@@ -18,6 +19,7 @@ const initialForm = {
 };
 
 function NuevaCotizacion({ token }) {
+  const { t } = useAppSettings();
   const [clientes, setClientes] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [mensaje, setMensaje] = useState("");
@@ -29,14 +31,14 @@ function NuevaCotizacion({ token }) {
         setClientes(data);
       } catch (error) {
         console.error("Error cargando clientes:", error);
-        setMensaje("No se pudieron cargar clientes desde el backend.");
+        setMensaje(t("No se pudieron cargar clientes desde el backend."));
       }
     }
 
     if (token) {
       cargarClientes();
     }
-  }, [token]);
+  }, [token, t]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -74,7 +76,7 @@ function NuevaCotizacion({ token }) {
         etapa: toBackendStage(form.estado),
         valorEstimado: Number(form.monto),
         probabilidad: Number(form.probabilidad),
-        descripcion: form.comentario || "Cotizacion creada desde app vendedor",
+        descripcion: form.comentario || t("Cotizacion creada desde app vendedor"),
       };
 
       const oportunidadCreada = await crearOportunidad(token, oportunidadBackend);
@@ -90,11 +92,11 @@ function NuevaCotizacion({ token }) {
 
       await db.cotizaciones.add(nuevaCotizacion);
 
-      setMensaje("Cotizacion guardada y enviada al dashboard.");
+      setMensaje(t("Cotizacion guardada y enviada al dashboard."));
       setForm(initialForm);
     } catch (error) {
       console.error("Error al guardar:", error);
-      setMensaje(error.message || "Error al guardar cotizacion.");
+      setMensaje(error.message || t("Error al guardar cotizacion."));
     }
   };
 
@@ -103,26 +105,26 @@ function NuevaCotizacion({ token }) {
       <header className="top-bar">
         <div className="logo">E</div>
         <div>
-          <strong>Nueva cotizacion</strong>
-          <p className="user-email">Carga comercial</p>
+          <strong>{t("Nueva cotizacion")}</strong>
+          <p className="user-email">{t("Carga comercial")}</p>
         </div>
       </header>
 
       <section className="page-title compact-title">
-        <span className="eyebrow">Oportunidad</span>
-        <h1>Crear propuesta comercial</h1>
-        <p>Los datos quedan disponibles para el dashboard y forecast.</p>
+        <span className="eyebrow">{t("Oportunidad")}</span>
+        <h1>{t("Crear propuesta comercial")}</h1>
+        <p>{t("Los datos quedan disponibles para el dashboard y forecast.")}</p>
       </section>
 
       <form className="form-card" onSubmit={guardar}>
-        <label>Cliente</label>
+        <label>{t("Cliente")}</label>
         <select
           name="clienteId"
           value={form.clienteId}
           onChange={handleClienteChange}
           required
         >
-          <option value="">Selecciona cliente</option>
+          <option value="">{t("Selecciona cliente")}</option>
           {clientes.map((cliente) => (
             <option key={cliente.id} value={cliente.id}>
               {cliente.empresa || cliente.nombre}
@@ -130,9 +132,9 @@ function NuevaCotizacion({ token }) {
           ))}
         </select>
 
-        <label>Producto</label>
+        <label>{t("Producto")}</label>
         <select value={form.productoId} onChange={handleProductChange} required>
-          <option value="">Selecciona producto</option>
+          <option value="">{t("Selecciona producto")}</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
               {product.name} - {product.category}
@@ -140,7 +142,7 @@ function NuevaCotizacion({ token }) {
           ))}
         </select>
 
-        <label>Monto cotizado</label>
+        <label>{t("Monto cotizado")}</label>
         <input
           name="monto"
           type="number"
@@ -152,7 +154,7 @@ function NuevaCotizacion({ token }) {
         />
 
         <div className="probability-box">
-          <span>Probabilidad de exito</span>
+          <span>{t("Probabilidad de exito")}</span>
           <strong>{form.probabilidad}%</strong>
         </div>
 
@@ -165,24 +167,24 @@ function NuevaCotizacion({ token }) {
           onChange={handleChange}
         />
 
-        <label>Etapa</label>
+        <label>{t("Etapa")}</label>
         <select name="estado" value={form.estado} onChange={handleChange}>
           {ETAPAS.map((etapa) => (
-            <option key={etapa}>{etapa}</option>
+            <option key={etapa} value={etapa}>{t(etapa)}</option>
           ))}
         </select>
 
-        <label>Comentario</label>
+        <label>{t("Comentario")}</label>
         <textarea
           name="comentario"
-          placeholder="Proximos pasos o comentario comercial..."
+          placeholder={t("Proximos pasos o comentario comercial...")}
           value={form.comentario}
           onChange={handleChange}
         />
 
         <button className="primary-btn" type="submit">
           <Icon name="check" size={19} />
-          Guardar cotizacion
+          {t("Guardar cotizacion")}
         </button>
         {mensaje && <p className="form-message">{mensaje}</p>}
       </form>

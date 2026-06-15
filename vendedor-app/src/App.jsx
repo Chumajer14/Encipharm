@@ -6,6 +6,7 @@ import { auth, getFirebaseConfigHelpMessage, isFirebaseConfigured } from "./serv
 import { loginBackend } from "./services/api";
 
 import BottomNav from "./components/BottomNav";
+import { useAppSettings } from "./settings/AppSettings";
 import Configuracion from "./pages/Configuracion";
 import Inicio from "./pages/Inicio";
 import Login from "./pages/Login";
@@ -15,6 +16,7 @@ import Proyeccion from "./pages/Proyeccion";
 import "./App.css";
 
 function App() {
+  const { t } = useAppSettings();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [cargando, setCargando] = useState(Boolean(auth));
@@ -44,17 +46,17 @@ function App() {
         console.error("Error autenticando contra backend:", error);
         setUser(null);
         setToken(null);
-        setAuthError(error.message || "No se pudo validar la sesion.");
+        setAuthError(error.message || t("No se pudo validar la sesion."));
       } finally {
         setCargando(false);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [t]);
 
   if (cargando) {
-    return <main className="app-shell">Cargando sesion...</main>;
+    return <main className="app-shell">{t("Cargando sesion...")}</main>;
   }
 
   if (!user || !token) {

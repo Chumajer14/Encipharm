@@ -20,12 +20,30 @@
   --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
 }
 
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef4f8;
+  --bg-soft: #f6fafc;
+  --card: rgba(255, 255, 255, 0.94);
+  --card-strong: #ffffff;
+  --line: rgba(38, 69, 92, 0.16);
+  --line-strong: rgba(38, 69, 92, 0.28);
+  --text: #102033;
+  --muted: #65758a;
+  --subtle: #43566d;
+  --shadow: 0 16px 42px rgba(31, 58, 84, 0.14);
+}
+
 * {
   box-sizing: border-box;
 }
 
 html {
   background: #020617;
+}
+
+html[data-theme="light"] {
+  background: #dfeaf1;
 }
 
 body {
@@ -36,6 +54,13 @@ body {
     radial-gradient(circle at 90% 5%, rgba(59, 130, 246, 0.18), transparent 32%),
     linear-gradient(160deg, #06101a 0%, #08111c 45%, #04070e 100%);
   color: var(--text);
+}
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 10% -10%, rgba(16, 185, 129, 0.14), transparent 34%),
+    radial-gradient(circle at 95% 5%, rgba(59, 130, 246, 0.12), transparent 30%),
+    linear-gradient(160deg, #f7fbfd 0%, #edf5f9 50%, #dde8ef 100%);
 }
 
 button,
@@ -143,6 +168,16 @@ a {
   text-decoration: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+html[data-theme="light"] .icon-btn,
+html[data-theme="light"] .form-card input,
+html[data-theme="light"] .form-card select,
+html[data-theme="light"] .form-card textarea,
+html[data-theme="light"] .stage-select,
+html[data-theme="light"] .quote-values div,
+html[data-theme="light"] .mobile-kpi-grid article {
+  background: rgba(244, 248, 251, 0.88);
 }
 
 .icon-btn:active,
@@ -262,6 +297,7 @@ a {
   display: block;
   margin-top: 8px;
   font-size: 22px;
+  overflow-wrap: anywhere;
 }
 
 .page-title {
@@ -350,6 +386,27 @@ a {
 
 .quick-card.blue {
   background: linear-gradient(150deg, rgba(59, 130, 246, 0.24), rgba(17, 29, 45, 0.9));
+}
+
+html[data-theme="light"] .quick-card {
+  color: var(--text);
+  background: var(--card);
+}
+
+html[data-theme="light"] .quick-card.green {
+  background: linear-gradient(150deg, rgba(16, 185, 129, 0.16), rgba(255, 255, 255, 0.94));
+}
+
+html[data-theme="light"] .quick-card.purple {
+  background: linear-gradient(150deg, rgba(139, 92, 246, 0.14), rgba(255, 255, 255, 0.94));
+}
+
+html[data-theme="light"] .quick-card.orange {
+  background: linear-gradient(150deg, rgba(245, 158, 11, 0.16), rgba(255, 255, 255, 0.94));
+}
+
+html[data-theme="light"] .quick-card.blue {
+  background: linear-gradient(150deg, rgba(59, 130, 246, 0.14), rgba(255, 255, 255, 0.94));
 }
 
 .form-card {
@@ -472,13 +529,18 @@ a {
 .metric-card {
   border-radius: 22px;
   padding: 22px;
+  min-width: 0;
 }
 
 .metric-card strong {
   display: block;
   margin: 8px 0 6px;
-  font-size: clamp(28px, 8vw, 36px);
+  max-width: 100%;
+  font-size: clamp(23px, 5.8vw, 32px);
   line-height: 1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-wrap: balance;
 }
 
 .metric-card small {
@@ -570,8 +632,10 @@ a {
 .quote-values strong {
   display: block;
   margin-top: 6px;
-  font-size: 14px;
+  max-width: 100%;
+  font-size: clamp(12px, 3.2vw, 14px);
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .pipeline-section {
@@ -662,6 +726,44 @@ a {
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  padding: 6px;
+  border-radius: 18px;
+  background: rgba(4, 10, 18, 0.48);
+  border: 1px solid var(--line);
+}
+
+.segmented-control.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.segmented-control button {
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.segmented-control button.active {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.28);
+  color: var(--text);
+}
+
+html[data-theme="light"] .segmented-control {
+  background: rgba(225, 235, 242, 0.7);
+}
+
 .app-version {
   margin-top: 34px;
   color: #64748b;
@@ -685,6 +787,10 @@ a {
   z-index: 20;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
   backdrop-filter: blur(20px);
+}
+
+html[data-theme="light"] .bottom-nav {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .bottom-nav a {
@@ -730,6 +836,10 @@ a {
   }
 
   .quote-values {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 

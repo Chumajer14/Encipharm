@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/dexie";
 import { actualizarOportunidad, getOportunidades } from "../services/api";
+import { useAppSettings } from "../settings/AppSettings";
 import { ETAPAS, etapasColor, fromBackendStage, toBackendStage } from "../utils/etapas";
 
 function mapBackendOpportunity(oportunidad) {
@@ -44,6 +45,7 @@ async function loadCotizaciones(token) {
 }
 
 function Pipeline({ token }) {
+  const { t } = useAppSettings();
   const [cotizaciones, setCotizaciones] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
@@ -85,7 +87,7 @@ function Pipeline({ token }) {
         }
       } catch (error) {
         console.error("Error sincronizando etapa:", error);
-        setMensaje("La etapa quedo local. Reintenta cuando el backend este disponible.");
+        setMensaje(t("La etapa quedo local. Reintenta cuando el backend este disponible."));
       }
     }
 
@@ -95,9 +97,9 @@ function Pipeline({ token }) {
   return (
     <main className="app-shell">
       <section className="page-title compact-title">
-        <span className="eyebrow">Pipeline</span>
-        <h1>Pipeline</h1>
-        <p>Seguimiento comercial del vendedor</p>
+        <span className="eyebrow">{t("Pipeline")}</span>
+        <h1>{t("Pipeline")}</h1>
+        <p>{t("Seguimiento comercial del vendedor")}</p>
       </section>
       {mensaje && <p className="form-message">{mensaje}</p>}
 
@@ -108,8 +110,8 @@ function Pipeline({ token }) {
           <section className="pipeline-section" key={etapa}>
             <div className="pipeline-header">
               <div>
-                <h2>{etapa}</h2>
-                <small>{items.length === 1 ? "1 oportunidad" : `${items.length} oportunidades`}</small>
+                <h2>{t(etapa)}</h2>
+                <small>{items.length === 1 ? t("1 oportunidad") : `${items.length} ${t("oportunidades")}`}</small>
               </div>
               <span style={{ "--stage-color": etapasColor[etapa] }}>{items.length}</span>
             </div>
@@ -117,7 +119,7 @@ function Pipeline({ token }) {
             <div className="pipeline-list">
               {items.length === 0 && (
                 <article className="empty-card compact-empty">
-                  <p>Sin oportunidades en esta etapa.</p>
+                  <p>{t("Sin oportunidades en esta etapa.")}</p>
                 </article>
               )}
               {items.map((item) => (
@@ -125,15 +127,15 @@ function Pipeline({ token }) {
                   <div className="avatar" style={{ "--avatar-color": etapasColor[item.estado] }}>
                     {(item.cliente || "?").charAt(0)}
                   </div>
-                  <h3>{item.cliente}</h3>
-                  <p>{item.productoNombre}</p>
+                  <h3>{item.cliente || t("Cliente sin nombre")}</h3>
+                  <p>{item.productoNombre || t("Oportunidad")}</p>
 
                   <strong>
                     ${Number(item.monto || 0).toLocaleString("es-CL")}
                   </strong>
 
-                  <small>Probabilidad: {item.probabilidad}%</small>
-                  {!item.sincronizada && <small>Pendiente de sincronizar</small>}
+                  <small>{t("Probabilidad:")} {item.probabilidad}%</small>
+                  {!item.sincronizada && <small>{t("Pendiente de sincronizar")}</small>}
 
                   <select
                     className="stage-select"
@@ -142,7 +144,7 @@ function Pipeline({ token }) {
                   >
                     {ETAPAS.map((opcion) => (
                       <option key={opcion} value={opcion}>
-                        {opcion}
+                        {t(opcion)}
                       </option>
                     ))}
                   </select>

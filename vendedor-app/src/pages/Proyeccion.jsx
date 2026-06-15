@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/dexie";
 import { getOportunidades } from "../services/api";
+import { useAppSettings } from "../settings/AppSettings";
 import { fromBackendStage } from "../utils/etapas";
 
 function mapBackendOpportunity(oportunidad) {
@@ -25,6 +26,7 @@ function mergeCotizaciones(locales, remotas) {
 }
 
 function Proyeccion({ token }) {
+  const { t } = useAppSettings();
   const [cotizaciones, setCotizaciones] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
@@ -38,14 +40,14 @@ function Proyeccion({ token }) {
       } catch (error) {
         console.error("Error cargando oportunidades:", error);
         setCotizaciones(locales);
-        setMensaje("Mostrando datos locales. No se pudo sincronizar con backend.");
+        setMensaje(t("Mostrando datos locales. No se pudo sincronizar con backend."));
       }
     }
 
     if (token) {
       cargar();
     }
-  }, [token]);
+  }, [token, t]);
 
   const totalPipeline = cotizaciones.reduce(
     (acc, item) => acc + Number(item.monto || 0),
@@ -60,35 +62,35 @@ function Proyeccion({ token }) {
   return (
     <main className="app-shell">
       <section className="page-title compact-title">
-        <span className="eyebrow">Forecast</span>
-        <h1>Proyeccion</h1>
-        <p>Forecast comercial del vendedor</p>
+        <span className="eyebrow">{t("Forecast")}</span>
+        <h1>{t("Proyeccion")}</h1>
+        <p>{t("Forecast comercial del vendedor")}</p>
       </section>
       {mensaje && <p className="form-message">{mensaje}</p>}
 
       <section className="stats-grid">
         <article className="metric-card">
-          <span>Pipeline bruto</span>
+          <span>{t("Pipeline bruto")}</span>
           <strong>${totalPipeline.toLocaleString("es-CL")}</strong>
-          <small>{cotizaciones.length} cotizaciones activas</small>
+          <small>{cotizaciones.length} {t("cotizaciones activas")}</small>
         </article>
 
         <article className="metric-card success">
-          <span>Proyeccion ponderada</span>
+          <span>{t("Proyeccion ponderada")}</span>
           <strong>${totalPonderado.toLocaleString("es-CL")}</strong>
-          <small>Calculado por probabilidad</small>
+          <small>{t("Calculado por probabilidad")}</small>
         </article>
       </section>
 
       <section className="section-title">
-        <h2>Cotizaciones recientes</h2>
+        <h2>{t("Cotizaciones recientes")}</h2>
       </section>
 
       <section className="quote-list">
         {cotizaciones.length === 0 && (
           <article className="empty-card">
-            <h3>Sin cotizaciones</h3>
-            <p>Registra una cotizacion para calcular tu proyeccion.</p>
+            <h3>{t("Sin cotizaciones")}</h3>
+            <p>{t("Registra una cotizacion para calcular tu proyeccion.")}</p>
           </article>
         )}
 
@@ -96,26 +98,26 @@ function Proyeccion({ token }) {
           <article className="quote-card" key={item.id}>
             <div className="quote-header">
               <div>
-                <h3>{item.cliente || "Cliente sin nombre"}</h3>
-                <p>{item.productoNombre || "Producto no seleccionado"}</p>
+                <h3>{item.cliente || t("Cliente sin nombre")}</h3>
+                <p>{item.productoNombre || t("Producto no seleccionado")}</p>
               </div>
 
-              <span className="stage-badge">{item.estado}</span>
+              <span className="stage-badge">{t(item.estado)}</span>
             </div>
 
             <div className="quote-values">
               <div>
-                <span>Monto</span>
+                <span>{t("Monto")}</span>
                 <strong>${Number(item.monto || 0).toLocaleString("es-CL")}</strong>
               </div>
 
               <div>
-                <span>Prob.</span>
+                <span>{t("Prob.")}</span>
                 <strong>{item.probabilidad}%</strong>
               </div>
 
               <div>
-                <span>Pond.</span>
+                <span>{t("Pond.")}</span>
                 <strong>
                   ${Number(item.valorPonderado || 0).toLocaleString("es-CL")}
                 </strong>
