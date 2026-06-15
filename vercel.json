@@ -1,8 +1,8 @@
 {
   "framework": "vite",
-  "buildCommand": "cd frontend && npm run build",
-  "installCommand": "cd frontend && npm ci",
-  "outputDirectory": "frontend/dist",
+  "buildCommand": "cd vendedor-app && npm run build",
+  "installCommand": "cd vendedor-app && npm ci",
+  "outputDirectory": "vendedor-app/dist",
   "rewrites": [
     {
       "source": "/(.*)",
