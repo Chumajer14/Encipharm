@@ -111,7 +111,7 @@ function App() {
           <Route
             path="/equipo"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute minimumRole="supervisor">
                 <EquipoVentas />
               </ProtectedRoute>
             }

@@ -60,6 +60,7 @@ def test_production_rejects_enabled_temporary_role_switcher():
 
 def test_temporary_role_switcher_is_disabled_by_default():
     settings = Settings(
+        _env_file=None,
         FIREBASE_PROJECT_ID="enci-test",
         GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
     )

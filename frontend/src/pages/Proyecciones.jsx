@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/authContext";
+import { isSupervisorRole } from "../auth/roles";
 import LoadingState from "../components/LoadingState";
 import useCachedQuery from "../hooks/useCachedQuery";
 import { getClientes, getOportunidades, getPropuestas, getUsers } from "../services/api";
@@ -144,15 +145,16 @@ function progressColor(progress) {
 }
 
 function Proyecciones() {
-  const { idToken } = useAuth();
+  const { backendUser, idToken } = useAuth();
   const [clientes, setClientes] = useState([]);
   const [users, setUsers] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [propuestas, setPropuestas] = useState([]);
   const [period, setPeriod] = useState("3m");
   const [selectedSellerUid, setSelectedSellerUid] = useState("");
+  const isSupervisorView = isSupervisorRole(backendUser?.rol);
   const proyeccionesQuery = useCachedQuery(
-    "proyecciones:dataset",
+    `proyecciones:dataset:${backendUser?.uid || "anon"}:${backendUser?.rol || "sin_acceso"}`,
     async () => {
       const [clientesData, opportunitiesData, proposalsData, usersData] = await Promise.all([
         getClientes(idToken),
@@ -160,9 +162,10 @@ function Proyecciones() {
         getPropuestas(idToken),
         getUsers(idToken).catch(() => []),
       ]);
-      return { clientes: clientesData, oportunidades: opportunitiesData, propuestas: proposalsData, users: usersData };
+      const users = usersData.length ? usersData : [backendUser];
+      return { clientes: clientesData, oportunidades: opportunitiesData, propuestas: proposalsData, users };
     },
-    { enabled: Boolean(idToken), initialData: null },
+    { enabled: Boolean(idToken && backendUser?.uid), initialData: null },
   );
   const loading = proyeccionesQuery.loading;
   const error = proyeccionesQuery.error;
@@ -178,10 +181,19 @@ function Proyecciones() {
   }, [proyeccionesQuery.data]);
 
   const rows = useMemo(
-    () => buildSellerRows({ oportunidades, propuestas, users }),
-    [oportunidades, propuestas, users],
+    () => {
+      const sellerRows = buildSellerRows({ oportunidades, propuestas, users });
+      return isSupervisorView ? sellerRows : sellerRows.filter((row) => row.uid === backendUser?.uid);
+    },
+    [backendUser?.uid, isSupervisorView, oportunidades, propuestas, users],
   );
-  const selectedSeller = rows.find((row) => row.uid === selectedSellerUid);
+
+  const effectiveSelectedSellerUid = !isSupervisorView
+    ? rows[0]?.uid || ""
+    : rows.some((row) => row.uid === selectedSellerUid)
+      ? selectedSellerUid
+      : rows[0]?.uid || "";
+  const selectedSeller = rows.find((row) => row.uid === effectiveSelectedSellerUid);
   const periodConfig = PERIODS.find((item) => item.key === period) || PERIODS[0];
   const chartPoints = useMemo(
     () => buildChartSeries({ months: buildMonths(periodConfig.months), oportunidades, propuestas }),
@@ -264,7 +276,7 @@ function Proyecciones() {
               <span className="card-title-icon" aria-hidden="true">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" /></svg>
               </span>
-              Vendedores - Proyectado vs Realizado
+              {isSupervisorView ? "Vendedores - Proyectado vs Realizado" : "Mi estado - Proyectado vs Realizado"}
             </div>
           </div>
           <div className="card-body proy-table-body">
@@ -275,7 +287,7 @@ function Proyecciones() {
                   const progress = row.projected > 0 ? Math.min((row.realized / row.projected) * 100, 100) : 0;
                   const color = progressColor(progress);
                   return (
-                    <tr className={`seller-row ${selectedSellerUid === row.uid ? "selected" : ""}`} key={row.uid} onClick={() => setSelectedSellerUid(row.uid)}>
+                    <tr className={`seller-row ${effectiveSelectedSellerUid === row.uid ? "selected" : ""}`} key={row.uid} onClick={() => setSelectedSellerUid(row.uid)}>
                       <td>
                         <div className="seller-cell">
                           <span className="seller-avatar" style={{ background: AVATAR_COLORS[index % AVATAR_COLORS.length] }}>{initials(row.name)}</span>

@@ -1106,6 +1106,13 @@ a {
   margin-bottom: 32px;
 }
 
+.command-kpi-grid.seller-kpi-grid {
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 980px;
+}
+
 .command-kpi {
   animation: fadeIn 0.5s ease-out backwards;
   background: var(--bg-secondary);
@@ -1489,18 +1496,30 @@ a {
 .funnel-stage {
   background: var(--bg-tertiary);
   border-left: 4px solid var(--info);
+  border-bottom: 0;
+  border-right: 0;
+  border-top: 0;
   border-radius: 12px;
+  color: inherit;
   gap: 16px;
   min-height: 72px;
   padding: 16px;
   cursor: pointer;
+  font: inherit;
+  text-align: left;
   position: relative;
   transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  width: 100%;
 }
 
 .funnel-stage:hover {
   background: var(--bg-elevated);
   transform: translateX(2px);
+}
+
+.funnel-stage:focus-visible {
+  outline: 2px solid var(--accent-violet);
+  outline-offset: 2px;
 }
 
 .funnel-stage.violet {
@@ -1985,6 +2004,18 @@ a {
   overflow: hidden;
   position: relative;
   width: min(800px, 100%);
+}
+
+.funnel-detail-modal {
+  max-width: 960px;
+  width: min(960px, 100%);
+}
+
+.funnel-detail-table-wrap {
+  border: 0;
+  border-radius: 0;
+  max-height: calc(100vh - 180px);
+  overflow: auto;
 }
 
 .opportunity-modal-close {
@@ -3788,6 +3819,23 @@ a {
   background: var(--bg-tertiary);
 }
 
+.users-table tr.pending-access-row td {
+  animation: pendingAccessPulse 1.3s ease-in-out infinite;
+  background: rgb(239 68 68 / 12%);
+}
+
+@keyframes pendingAccessPulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px rgb(239 68 68 / 18%);
+  }
+
+  50% {
+    box-shadow: inset 0 0 0 1px rgb(239 68 68 / 65%);
+    color: #fecaca;
+  }
+}
+
 .user-cell {
   align-items: center;
   display: flex;
@@ -3846,6 +3894,11 @@ a {
 .role-badge.solo-lectura {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
+}
+
+.role-badge.sin-acceso {
+  background: rgb(239 68 68 / 18%);
+  color: #fca5a5;
 }
 
 .toggle-wrap {

@@ -31,9 +31,9 @@ def _auth_user_to_record(firebase_user) -> dict[str, Any]:
             "email": email,
             "nombre": display_name or email,
             "activo": not disabled,
-            "rol": "vendedor",
-            "rango": "Vendedor",
-            "cargo": "Vendedor",
+            "rol": "sin_acceso",
+            "rango": "Sin acceso",
+            "cargo": "Sin acceso",
         },
     )
 
@@ -41,6 +41,7 @@ def _auth_user_to_record(firebase_user) -> dict[str, Any]:
 def normalize_user(uid: str, data: dict[str, Any]) -> dict[str, Any]:
     role = normalize_user_role(data.get("rol"))
     rank = normalize_user_rank(data.get("rango") or data.get("cargo"), role)
+    default_access = role != "sin_acceso"
     return {
         "uid": data.get("uid", uid),
         "email": data.get("email"),
@@ -49,8 +50,8 @@ def normalize_user(uid: str, data: dict[str, Any]) -> dict[str, Any]:
         "cargo": data.get("cargo") or rank,
         "rango": rank,
         "zona": normalize_user_zone(data.get("zona")),
-        "appMovil": data.get("appMovil", True),
-        "webApp": data.get("webApp", True),
+        "appMovil": data.get("appMovil", default_access),
+        "webApp": data.get("webApp", default_access),
         "theme": normalize_user_theme(data.get("theme")),
         "language": normalize_user_language(data.get("language")),
         "activo": data.get("activo", True),

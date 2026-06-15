@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { hasMinimumRole } from "../auth/roles";
 import { useI18n } from "../i18n/useI18n";
 
 const NAV_SECTIONS = [
@@ -106,6 +107,15 @@ function getPageTitle(pathname) {
   return activeItem?.label || "Command Center";
 }
 
+function visibleNavSections(userRole) {
+  return NAV_SECTIONS
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => item.path !== "/equipo" || hasMinimumRole(userRole, "supervisor")),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
 function AppShell({ children, roleSwitcher }) {
   const { backendUser, logout } = useAuth();
   const { t } = useI18n();
@@ -115,6 +125,7 @@ function AppShell({ children, roleSwitcher }) {
   const displayName = backendUser?.nombre || email;
   const currentPosition = backendUser?.rango || backendUser?.cargo || "Vendedor";
   const pageTitle = t(getPageTitle(location.pathname));
+  const navSections = visibleNavSections(backendUser?.rol);
 
   return (
     <div className="app-shell">
@@ -130,7 +141,7 @@ function AppShell({ children, roleSwitcher }) {
         </div>
 
         <nav className="sidebar-nav">
-          {NAV_SECTIONS.map((section) => (
+          {navSections.map((section) => (
             <div className="nav-section" key={section.title}>
               <span className="nav-section-title">{t(section.title)}</span>
               {section.items.map((item) => (

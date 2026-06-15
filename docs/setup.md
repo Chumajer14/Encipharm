@@ -41,6 +41,17 @@ FIREBASE_PROJECT_ID=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 ```
 
+### Seed demo Max Wellq
+
+Para cargar datos comerciales de prueba al usuario `max@wellq.co.uk`:
+
+```bash
+cd Backend
+uv run python scripts/seed_max_wellq_demo.py --apply
+```
+
+El seed crea o actualiza documentos deterministicos con tag `max-wellq-demo-20260615`: 10 clientes, oportunidades en varias etapas, propuestas e interacciones. Si el usuario esta en Firebase Auth pero no en Firestore, el script crea su ficha como vendedor activo para que pueda ver sus datos.
+
 ## Frontend
 
 ```bash

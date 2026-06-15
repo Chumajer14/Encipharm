@@ -51,14 +51,14 @@ Crea el perfil interno del usuario autenticado en Firestore o retorna el perfil 
   "uid": "string",
   "email": "usuario@enci.cl",
   "nombre": "Juan Perez",
-  "rol": "vendedor",
+  "rol": "sin_acceso",
   "activo": true,
   "createdAt": "2026-04-24T12:00:00Z",
   "updatedAt": "2026-04-24T12:00:00Z"
 }
 ```
 
-Si el usuario no existe en Firestore, se crea con rol inicial `vendedor`.
+Si el usuario no existe en Firestore, se crea con rol inicial `sin_acceso`, sin permisos de app web ni movil. Ese rol solo completa la sincronizacion de identidad; cualquier ruta protegida con rol minimo `vendedor` responde `403` hasta que un administrador cambie el rol a `vendedor`, `supervisor` o `admin`.
 Si el usuario existe con `activo = false`, la API rechaza el login y los endpoints protegidos con `403`.
 
 ## PATCH `/auth/temporary-role`
@@ -84,7 +84,7 @@ Controles aplicados:
 }
 ```
 
-Valores permitidos: `vendedor`, `supervisor`, `admin`.
+Valores permitidos: `sin_acceso`, `vendedor`, `supervisor`, `admin`.
 
 **Respuesta exitosa `200 OK`:** retorna el `UserResponse` actualizado.
 
@@ -100,7 +100,7 @@ Retorna los datos basicos del usuario autenticado a partir del token JWT.
 {
   "uid": "string",
   "email": "usuario@enci.cl",
-  "rol": "vendedor",
+  "rol": "sin_acceso",
   "activo": true,
   "message": "Token valido"
 }

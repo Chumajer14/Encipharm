@@ -6,9 +6,10 @@ import { useI18n } from "../i18n/useI18n";
 import { getUsers, updateUser, updateUserStatus } from "../services/api";
 import { initials, matchText } from "../utils/commercialAnalytics";
 
-const RANKS = ["Solo lectura", "Vendedor", "Gerente", "Administrador"];
+const RANKS = ["Sin acceso", "Solo lectura", "Vendedor", "Gerente", "Administrador"];
 const ZONES = ["Zona norte", "Zona centro", "Zona sur", "Zona oriente"];
 const RANK_TO_ROLE = {
+  "Sin acceso": "sin_acceso",
   "Solo lectura": "vendedor",
   Vendedor: "vendedor",
   Gerente: "supervisor",
@@ -25,6 +26,7 @@ const AVATAR_COLORS = [
 
 function rankFromUser(user) {
   if (user.rango) return user.rango;
+  if (user.rol === "sin_acceso") return "Sin acceso";
   if (user.rol === "admin") return "Administrador";
   if (user.rol === "supervisor") return "Gerente";
   return user.cargo || "Vendedor";
@@ -85,6 +87,7 @@ function Configuracion() {
     () => users.filter((user) => matchText({ ...user, rango: rankFromUser(user) }, query, ["nombre", "email", "rol", "rango", "zona"])),
     [query, users],
   );
+  const effectiveActiveTab = canViewUsers || activeTab !== "usuarios" ? activeTab : "apariencia";
 
   const updateLocalUser = (updated) => setUsers(users.map((item) => item.uid === updated.uid ? updated : item));
 
@@ -172,12 +175,12 @@ function Configuracion() {
   return (
     <main className="page config-content">
       <aside className="config-sidebar">
-        <button className={`config-tab ${activeTab === "usuarios" ? "active" : ""}`} onClick={() => setActiveTab("usuarios")} type="button"><ConfigIcon type="users" />{t("Usuarios")}</button>
-        <button className={`config-tab ${activeTab === "apariencia" ? "active" : ""}`} onClick={() => setActiveTab("apariencia")} type="button"><ConfigIcon type="sun" />{t("Apariencia")}</button>
-        <button className={`config-tab ${activeTab === "idioma" ? "active" : ""}`} onClick={() => setActiveTab("idioma")} type="button"><ConfigIcon type="lang" />{t("Idioma")}</button>
+        {canViewUsers && <button className={`config-tab ${effectiveActiveTab === "usuarios" ? "active" : ""}`} onClick={() => setActiveTab("usuarios")} type="button"><ConfigIcon type="users" />{t("Usuarios")}</button>}
+        <button className={`config-tab ${effectiveActiveTab === "apariencia" ? "active" : ""}`} onClick={() => setActiveTab("apariencia")} type="button"><ConfigIcon type="sun" />{t("Apariencia")}</button>
+        <button className={`config-tab ${effectiveActiveTab === "idioma" ? "active" : ""}`} onClick={() => setActiveTab("idioma")} type="button"><ConfigIcon type="lang" />{t("Idioma")}</button>
       </aside>
 
-      <section className={`config-panel ${activeTab === "usuarios" ? "active" : ""}`}>
+      {canViewUsers && <section className={`config-panel ${effectiveActiveTab === "usuarios" ? "active" : ""}`}>
         <div className="config-panel-title">{t("Gestión de Usuarios")}</div>
         <p className="config-panel-sub">{t("Administra los integrantes del equipo, roles y permisos de acceso")}</p>
         {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
@@ -192,7 +195,7 @@ function Configuracion() {
             {visibleUsers.map((user, index) => {
               const rank = rankFromUser(user);
               return (
-                <tr key={user.uid}>
+                <tr className={user.rol === "sin_acceso" ? "pending-access-row" : ""} key={user.uid}>
                   <td><div className="user-cell"><span className="user-cell-avatar" style={{ background: AVATAR_COLORS[index % AVATAR_COLORS.length] }}>{initials(user.nombre || user.email)}</span><span className="user-cell-info"><strong>{user.nombre}</strong><small>{user.email}</small></span></div></td>
                   <td><span className={`role-badge ${rank.toLowerCase().replaceAll(" ", "-")}`}>{rank}</span></td>
                   <td>{user.zona || "Zona centro"}</td>
@@ -205,9 +208,9 @@ function Configuracion() {
             })}
           </tbody>
         </table>}
-      </section>
+      </section>}
 
-      <section className={`config-panel ${activeTab === "apariencia" ? "active" : ""}`}>
+      <section className={`config-panel ${effectiveActiveTab === "apariencia" ? "active" : ""}`}>
         <div className="config-panel-title">{t("Apariencia")}</div>
         <p className="config-panel-sub">{t("Selecciona el tema visual de la aplicación")}</p>
         <div className="appearance-grid">
@@ -222,7 +225,7 @@ function Configuracion() {
         </div>
       </section>
 
-      <section className={`config-panel ${activeTab === "idioma" ? "active" : ""}`}>
+      <section className={`config-panel ${effectiveActiveTab === "idioma" ? "active" : ""}`}>
         <div className="config-panel-title">{t("Idioma")}</div>
         <p className="config-panel-sub">{t("Selecciona el idioma de la interfaz de la aplicación")}</p>
         <div className="lang-grid">

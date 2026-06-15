@@ -8,6 +8,7 @@
   --line: rgba(148, 163, 184, 0.2);
   --line-strong: rgba(148, 163, 184, 0.34);
   --text: #f7fbff;
+  --text-h: #f7fbff;
   --muted: #93a4b8;
   --subtle: #c7d2e2;
   --brand: #13b981;
@@ -29,8 +30,10 @@ html[data-theme="light"] {
   --line: rgba(38, 69, 92, 0.16);
   --line-strong: rgba(38, 69, 92, 0.28);
   --text: #102033;
+  --text-h: #102033;
   --muted: #65758a;
   --subtle: #43566d;
+  --border: rgba(38, 69, 92, 0.16);
   --shadow: 0 16px 42px rgba(31, 58, 84, 0.14);
 }
 
@@ -195,6 +198,7 @@ html[data-theme="light"] .mobile-kpi-grid article {
 .empty-card,
 .pipeline-card,
 .config-card {
+  color: var(--text);
   background: var(--card);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -362,6 +366,10 @@ html[data-theme="light"] .mobile-kpi-grid article {
   color: #e2e8f0;
 }
 
+html[data-theme="light"] .quick-card svg {
+  color: #28506c;
+}
+
 .quick-card strong {
   font-size: 17px;
   line-height: 1.15;
@@ -521,6 +529,16 @@ html[data-theme="light"] .quick-card.blue {
   border-color: rgba(16, 185, 129, 0.2);
 }
 
+html[data-theme="light"] .form-error {
+  color: #8f1d1d;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+html[data-theme="light"] .form-message {
+  color: #056448;
+  background: rgba(16, 185, 129, 0.12);
+}
+
 .stats-grid {
   display: grid;
   gap: 14px;
@@ -615,6 +633,12 @@ html[data-theme="light"] .quick-card.blue {
   font-weight: 800;
 }
 
+html[data-theme="light"] .stage-badge {
+  background: rgba(109, 40, 217, 0.1);
+  border-color: rgba(109, 40, 217, 0.24);
+  color: #4c1d95;
+}
+
 .quote-values {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -702,6 +726,10 @@ html[data-theme="light"] .quick-card.blue {
   color: #86efac;
   font-weight: 800;
   margin-bottom: 12px;
+}
+
+html[data-theme="light"] .pipeline-card small {
+  color: #047857;
 }
 
 .stage-select {
@@ -809,9 +837,18 @@ html[data-theme="light"] .bottom-nav {
   transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
+html[data-theme="light"] .bottom-nav a {
+  color: #53677d;
+}
+
 .bottom-nav .nav-active {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(59, 130, 246, 0.16));
   color: white;
+}
+
+html[data-theme="light"] .bottom-nav .nav-active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.12));
+  color: #0f2c3e;
 }
 
 @media (min-width: 560px) {

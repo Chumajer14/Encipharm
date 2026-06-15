@@ -1,10 +1,12 @@
 export const ROLE_LABELS = Object.freeze({
+  sin_acceso: "sin acceso",
   admin: "administrador",
   supervisor: "supervisor",
   vendedor: "vendedor",
 });
 
 const ROLE_RANKS = Object.freeze({
+  sin_acceso: 0,
   vendedor: 1,
   supervisor: 2,
   admin: 3,
