@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const memoryCache = new Map();
 const STORAGE_PREFIX = "enci-query:";
-const DEFAULT_REFRESH_MS = Number(import.meta.env.VITE_QUERY_REFRESH_MS || 30 * 1000);
+const FIREBASE_FREE_TIER_MODE = import.meta.env.VITE_FIREBASE_FREE_TIER_MODE !== "false";
+const DEFAULT_REFRESH_MS = Number(
+  import.meta.env.VITE_QUERY_REFRESH_MS || (FIREBASE_FREE_TIER_MODE ? 5 * 60 * 1000 : 60 * 1000),
+);
 
 function readSessionCache(key) {
   try {
@@ -70,9 +73,21 @@ function useCachedQuery(
   const [loading, setLoading] = useState(enabled && initialCached === undefined);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const fetcherRef = useRef(fetcher);
+  const refreshRef = useRef({ inFlight: null, lastStartedAt: 0, retryAfterUntil: 0 });
+
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  }, [fetcher]);
 
   const refresh = useCallback(async ({ silent = false } = {}) => {
     if (!enabled) return undefined;
+    const now = Date.now();
+    if (refreshRef.current.inFlight) return refreshRef.current.inFlight;
+    if (silent && now < refreshRef.current.retryAfterUntil) return readCache(cacheKey);
+    if (silent && now - refreshRef.current.lastStartedAt < 1500) return readCache(cacheKey);
+
+    refreshRef.current.lastStartedAt = now;
     const hasCache = readCache(cacheKey) !== undefined;
     if (!silent && !hasCache) {
       setLoading(true);
@@ -80,20 +95,30 @@ function useCachedQuery(
     if (silent || hasCache) {
       setRefreshing(true);
     }
-    try {
-      const nextData = await fetcher();
-      writeCache(cacheKey, nextData);
-      setData(nextData);
-      setError("");
-      return nextData;
-    } catch (refreshError) {
-      setError(refreshError?.message || "No se pudieron cargar los datos.");
-      return undefined;
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [cacheKey, enabled, fetcher]);
+
+    const request = (async () => {
+      try {
+        const nextData = await fetcherRef.current();
+        writeCache(cacheKey, nextData);
+        setData(nextData);
+        setError("");
+        return nextData;
+      } catch (refreshError) {
+        if (refreshError?.status === 429) {
+          refreshRef.current.retryAfterUntil = Date.now() + 60 * 1000;
+        }
+        setError(refreshError?.message || "No se pudieron cargar los datos.");
+        return undefined;
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+        refreshRef.current.inFlight = null;
+      }
+    })();
+
+    refreshRef.current.inFlight = request;
+    return request;
+  }, [cacheKey, enabled]);
 
   useEffect(() => {
     if (!enabled) return undefined;
