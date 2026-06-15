@@ -8,6 +8,8 @@ const PREVIEW_ORIGIN_REGEX =
 const BASE_CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
   "Access-Control-Allow-Headers": "Authorization,Content-Type",
+  "Cache-Control": "no-store",
+  "Pragma": "no-cache",
 };
 
 function resolveAllowedOrigin(origin = "") {

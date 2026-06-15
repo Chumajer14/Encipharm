@@ -1,7 +1,8 @@
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
 const FIREBASE_FREE_TIER_MODE = import.meta.env.VITE_FIREBASE_FREE_TIER_MODE !== "false";
 const GET_CACHE_PREFIX = "enci-api-get:";
-const GET_CACHE_TTL_MS = FIREBASE_FREE_TIER_MODE ? 10 * 60 * 1000 : 60 * 1000;
+const DEFAULT_GET_CACHE_TTL_MS = FIREBASE_FREE_TIER_MODE ? 30 * 1000 : 60 * 1000;
+const GET_CACHE_TTL_MS = Number(import.meta.env.VITE_API_GET_CACHE_TTL_MS || DEFAULT_GET_CACHE_TTL_MS);
 const getCacheMemory = new Map();
 
 /**
@@ -111,6 +112,7 @@ export async function apiFetch(path, { token, ...options } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
+    cache: method === "GET" ? "no-store" : "default",
   });
 
   if (!response.ok) {

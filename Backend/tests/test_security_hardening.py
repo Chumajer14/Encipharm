@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 
 from app.core.config import Settings
 from app.core.errors import google_api_exception_handler, http_exception_handler
+from app.core.headers import apply_dynamic_cache_headers
 from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
 from app.docs import testing_docs as render_testing_docs
 
@@ -192,6 +193,14 @@ async def test_http_errors_use_standard_contract():
     assert b'"error":"Sin permisos"' in response.body
     assert b'"codigo":"ERR_FORBIDDEN"' in response.body
     assert b'"timestamp"' in response.body
+
+
+def test_dynamic_api_responses_are_not_cached():
+    response = JSONResponse({"ok": True})
+
+    apply_dynamic_cache_headers("/dashboard/vendedor", response.headers)
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["pragma"] == "no-cache"
 
 
 @pytest.mark.anyio

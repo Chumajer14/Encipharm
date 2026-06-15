@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 const memoryCache = new Map();
 const STORAGE_PREFIX = "enci-query:";
-const FIREBASE_FREE_TIER_MODE = import.meta.env.VITE_FIREBASE_FREE_TIER_MODE !== "false";
-const DEFAULT_REFRESH_MS = FIREBASE_FREE_TIER_MODE ? 0 : 120000;
+const DEFAULT_REFRESH_MS = Number(import.meta.env.VITE_QUERY_REFRESH_MS || 30 * 1000);
 
 function readSessionCache(key) {
   try {
@@ -61,8 +60,8 @@ function useCachedQuery(
     enabled = true,
     initialData,
     refreshMs = DEFAULT_REFRESH_MS,
-    refreshOnFocus = !FIREBASE_FREE_TIER_MODE,
-    refreshOnMount = !FIREBASE_FREE_TIER_MODE,
+    refreshOnFocus = true,
+    refreshOnMount = true,
   } = {},
 ) {
   const cacheKey = useMemo(() => String(key), [key]);

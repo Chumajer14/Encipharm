@@ -184,7 +184,7 @@ function AppShell({ children, roleSwitcher }) {
         <div className="firebase-quota-note" role="note">
           <strong>Modo ahorro Firebase activo.</strong>
           <span>
-            Las consultas repetitivas estan pausadas temporalmente para adaptar el sistema al plan gratuito. Los datos se mantienen en cache de sesion y se actualizan al guardar cambios; no es un error del sistema.
+            Los datos se mantienen en cache breve y se revalidan automaticamente para reflejar cambios recientes desde la app movil y el dashboard.
           </span>
         </div>
       </div>

@@ -18,6 +18,7 @@ from app.core.errors import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
+from app.core.headers import apply_dynamic_cache_headers
 from app.core.rate_limit import InMemoryRateLimitMiddleware, RequestSizeLimitMiddleware
 from app.core.readiness import ReadinessReport, build_readiness_report
 from app.docs import router as docs_router
@@ -59,6 +60,7 @@ async def add_security_headers(request, call_next):
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "no-referrer")
     response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    apply_dynamic_cache_headers(request.url.path, response.headers)
     if request.url.path.startswith("/docs"):
         response.headers.setdefault(
             "Content-Security-Policy",
