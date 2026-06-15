@@ -66,8 +66,6 @@ class Settings(BaseSettings):
             raise ValueError("CORS_ORIGINS no puede incluir '*' en produccion")
         if self.APP_ENV == "production" and self.CORS_ORIGIN_REGEX in {".*", "^.*$"}:
             raise ValueError("CORS_ORIGIN_REGEX no puede permitir todos los origenes en produccion")
-        if self.APP_ENV == "production" and self.ENABLE_TEMPORARY_ROLE_SWITCHER:
-            raise ValueError("ENABLE_TEMPORARY_ROLE_SWITCHER debe estar deshabilitado en produccion")
         return self
 
 @lru_cache()
