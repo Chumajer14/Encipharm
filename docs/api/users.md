@@ -12,9 +12,12 @@ Authorization: Bearer <firebase_id_token>
 
 | Rol | Alcance |
 |-----|---------|
+| `sin_acceso` | Cuenta sincronizada desde Google, pendiente de aprobacion administrativa |
 | `admin` | Puede listar, consultar y modificar usuarios, roles y estado |
 | `supervisor` | Puede listar y consultar usuarios |
 | `vendedor` | No puede administrar usuarios |
+
+Los usuarios nuevos creados por login Google entran como `sin_acceso`. En Configuracion > Usuarios, el administrador puede cambiar su rol a `vendedor`, `supervisor` o `admin`; las filas pendientes se resaltan visualmente para priorizar la aprobacion.
 
 ## GET `/users/`
 
@@ -54,6 +57,8 @@ Actualiza solo el rol de un usuario. Requiere `admin`.
   "rol": "supervisor"
 }
 ```
+
+Valores permitidos: `sin_acceso`, `vendedor`, `supervisor`, `admin`.
 
 ## PATCH `/users/{uid}/status`
 

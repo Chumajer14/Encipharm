@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../auth/authContext";
+import { getRoleLabel } from "../auth/roles";
 import { useI18n } from "../i18n/useI18n";
 
 const TEST_ROLES = [
@@ -14,7 +15,7 @@ function TemporaryRoleSwitcher() {
   const [savingRole, setSavingRole] = useState("");
 
   const currentRole = backendUser?.rol || "vendedor";
-  const currentRoleLabel = currentRole === "admin" ? t("Administrador") : t("Vendedor");
+  const currentRoleLabel = getRoleLabel(currentRole);
 
   const handleRoleChange = async (rol) => {
     setError("");

@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { isSupervisorRole } from "../auth/roles";
 import LoadingState from "../components/LoadingState";
 import useCachedQuery from "../hooks/useCachedQuery";
 import { getClientes, getDashboardVendedor, getDashboardSupervisor, getOportunidades, getPropuestas, getUsers } from "../services/api";
-import { buildSellerRows, compactMoney, STAGE_LABELS, STAGES, weightedValue } from "../utils/commercialAnalytics";
+import { buildSellerRows, compactMoney, money, STAGE_LABELS, STAGES, weightedValue } from "../utils/commercialAnalytics";
 
 function getCount(items = [], key) {
   return items.find((item) => item.clave === key)?.total ?? 0;
@@ -346,7 +346,66 @@ function formatFunnelChange(stage, index) {
   };
 }
 
-function SalesFunnel({ onZoneChange, selectedZone, stages = [] }) {
+function FunnelStageDetailModal({ clientsById, onClose, opportunities, stage }) {
+  const rows = opportunities.filter((item) => item.etapa === stage?.clave);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="opportunity-modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="opportunity-modal funnel-detail-modal" role="dialog" aria-modal="true" aria-labelledby="funnel-detail-title">
+        <button className="opportunity-modal-close" type="button" onClick={onClose}>X</button>
+        <header className="opportunity-modal-header">
+          <h2 id="funnel-detail-title">{stage?.nombre || "Detalle del embudo"}</h2>
+          <p>{rows.length} clientes en el estado seleccionado</p>
+        </header>
+        <div className="pipeline-table-wrap funnel-detail-table-wrap">
+          <table className="pipeline-table">
+            <thead>
+              <tr>
+                <th>Cliente / Proyecto</th>
+                <th className="text-right">Valor Propuesta</th>
+                <th>Probabilidad</th>
+                <th className="text-right">Valor Pond.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((item) => {
+                const client = clientsById.get(item.clienteId);
+                const probability = Math.max(0, Math.min(Number(item.probabilidad || 0), 100));
+                return (
+                  <tr key={item.id}>
+                    <td>
+                      <strong>{client?.empresa || client?.nombre || item.clienteId}</strong>
+                      <small>{item.titulo}</small>
+                    </td>
+                    <td className="td-right">{money(item.valorEstimado)}</td>
+                    <td>
+                      <div className="probability-cell">
+                        <span className="probability-bar"><i style={{ width: `${probability}%` }} /></span>
+                        <small>{probability}%</small>
+                      </div>
+                    </td>
+                    <td className="td-right">{money(weightedValue(item))}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {rows.length === 0 && <section className="empty-state pipeline-empty-state"><h2>Sin clientes en este estado</h2></section>}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SalesFunnel({ onStageSelect, onZoneChange, selectedZone, stages = [] }) {
   const fallbackStages = STAGES.map((stage) => ({
       clave: stage,
       nombre: DASHBOARD_FUNNEL_LABELS[stage],
@@ -377,7 +436,7 @@ function SalesFunnel({ onZoneChange, selectedZone, stages = [] }) {
           const metric = formatFunnelChange(stage, index);
 
           return (
-          <div className={`funnel-stage ${visual.color}`} key={stage.clave || stage.nombre}>
+          <button className={`funnel-stage ${visual.color}`} key={stage.clave || stage.nombre} onClick={() => onStageSelect(stage)} type="button">
             <span className="funnel-icon">{visual.icon}</span>
             <div className="funnel-info">
               <strong>{stage.nombre}</strong>
@@ -389,7 +448,7 @@ function SalesFunnel({ onZoneChange, selectedZone, stages = [] }) {
               <strong>{stage.total}</strong>
               <small className={metric.className}>{metric.label}</small>
             </div>
-          </div>
+          </button>
           );
         })}
       </div>
@@ -407,6 +466,7 @@ function Dashboard() {
   const [activityAlerts, setActivityAlerts] = useState([]);
   const [forecastMode, setForecastMode] = useState("mensual");
   const [selectedFunnelZone, setSelectedFunnelZone] = useState("");
+  const [selectedFunnelStage, setSelectedFunnelStage] = useState(null);
   const [showMapUnavailable, setShowMapUnavailable] = useState(false);
 
   const rol = backendUser?.rol || "vendedor";
@@ -414,13 +474,14 @@ function Dashboard() {
   const dashboardQuery = useCachedQuery(
     `dashboard:${backendUser?.uid || "anon"}:${rol}`,
     async () => {
-      const [response, clientsData, opportunitiesData, proposalsData, users] = await Promise.all([
+      const [response, clientsData, opportunitiesData, proposalsData, usersData] = await Promise.all([
         isSupervisorView ? getDashboardSupervisor(idToken) : getDashboardVendedor(idToken),
         getClientes(idToken),
         getOportunidades(idToken),
         getPropuestas(idToken),
         getUsers(idToken).catch(() => []),
       ]);
+      const users = usersData.length ? usersData : [backendUser];
       return { clients: clientsData, opportunities: opportunitiesData, proposals: proposalsData, response, users };
     },
     { enabled: Boolean(idToken && backendUser?.uid), initialData: null },
@@ -439,12 +500,13 @@ function Dashboard() {
     if (!dashboardQuery.data) return;
     const { clients: clientsData, opportunities: opportunitiesData, proposals: proposalsData, response, users } = dashboardQuery.data;
     const rows = buildSellerRows({ oportunidades: opportunitiesData, propuestas: proposalsData, users });
+    const visibleRows = isSupervisorView ? rows.slice(0, 4) : rows.filter((row) => row.uid === backendUser?.uid).slice(0, 1);
     queueMicrotask(() => {
       setData(response);
       setClients(clientsData);
       setOpportunities(opportunitiesData);
       setProposals(proposalsData);
-      setSellerRows(rows.slice(0, 4));
+      setSellerRows(visibleRows);
       setActivityAlerts([
         ...opportunitiesData
           .filter((item) => ["negociacion", "perdido"].includes(item.etapa))
@@ -460,12 +522,12 @@ function Dashboard() {
           .map((item) => ({ type: "info", title: "Cierre Exitoso", body: `${item.titulo} por ${compactMoney(item.montoTotal)}` })),
       ]);
     });
-  }, [dashboardQuery.data]);
+  }, [backendUser?.uid, dashboardQuery.data, isSupervisorView]);
 
   const forecastPoints = forecastMode === "semanal"
     ? data?.forecastMensual || []
     : buildMonthlyForecast(opportunities, proposals);
-  const clientsById = new Map(clients.map((client) => [client.id, client]));
+  const clientsById = useMemo(() => new Map(clients.map((client) => [client.id, client])), [clients]);
   const visibleFunnelOpportunities = selectedFunnelZone
     ? opportunities.filter((item) => normalizeCompanyZone(clientsById.get(item.clienteId)?.region) === selectedFunnelZone)
     : opportunities;
@@ -476,7 +538,7 @@ function Dashboard() {
       {error && <p className="error-text">{error}</p>}
       {loading && <LoadingState />}
 
-      {!loading && <section className="command-kpi-grid">
+      {!loading && <section className={`command-kpi-grid ${!isSupervisorView ? "seller-kpi-grid" : ""}`}>
         <KpiCard
           icon="money"
           label="Proyeccion Ponderada (Mes)"
@@ -503,15 +565,17 @@ function Dashboard() {
           progress={acceptedValue > 0 ? Math.min((averageTicket / acceptedValue) * 100, 100) : 0}
           value={formatCompactMoney(averageTicket)}
         />
-        <KpiCard
-          accent="danger"
-          icon="location"
-          label="Vendedores Activos Hoy"
-          metaLeft={`${Math.max(totalSellers - sellersToday, 0)} sin registros comerciales`}
-          metaRight="Fuente: CRM"
-          progress={totalSellers > 0 ? (sellersToday / totalSellers) * 100 : 0}
-          value={`${sellersToday}/${totalSellers}`}
-        />
+        {isSupervisorView && (
+          <KpiCard
+            accent="danger"
+            icon="location"
+            label="Vendedores Activos Hoy"
+            metaLeft={`${Math.max(totalSellers - sellersToday, 0)} sin registros comerciales`}
+            metaRight="Fuente: CRM"
+            progress={totalSellers > 0 ? (sellersToday / totalSellers) * 100 : 0}
+            value={`${sellersToday}/${totalSellers}`}
+          />
+        )}
       </section>}
 
       {!loading && <section className="command-main-grid">
@@ -524,6 +588,7 @@ function Dashboard() {
           pipelineValue={pipelineValue}
         />
         <SalesFunnel
+          onStageSelect={setSelectedFunnelStage}
           onZoneChange={setSelectedFunnelZone}
           selectedZone={selectedFunnelZone}
           stages={visibleFunnelStages}
@@ -533,8 +598,8 @@ function Dashboard() {
       {!loading && <section className="dashboard-bottom-grid">
         <article className="card command-card">
           <div className="card-header">
-            <div className="card-title"><span className="card-title-icon"><PanelSvgIcon name="team" /></span>Rendimiento del Equipo</div>
-            <Link className="panel-filter" to="/equipo">Ver Todos</Link>
+            <div className="card-title"><span className="card-title-icon"><PanelSvgIcon name="team" /></span>{isSupervisorView ? "Rendimiento del Equipo" : "Mi rendimiento"}</div>
+            {isSupervisorView && <Link className="panel-filter" to="/equipo">Ver Todos</Link>}
           </div>
           <table className="team-table">
             <thead><tr><th>Vendedor</th><th>Estado</th><th>Win Rate</th><th>Pipeline</th></tr></thead>
@@ -574,6 +639,14 @@ function Dashboard() {
       </section>}
 
       {showMapUnavailable && <NotOperationalModal onClose={() => setShowMapUnavailable(false)} />}
+      {selectedFunnelStage && (
+        <FunnelStageDetailModal
+          clientsById={clientsById}
+          onClose={() => setSelectedFunnelStage(null)}
+          opportunities={visibleFunnelOpportunities}
+          stage={selectedFunnelStage}
+        />
+      )}
     </main>
   );
 }

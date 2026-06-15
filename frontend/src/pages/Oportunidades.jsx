@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/authContext";
+import { isSupervisorRole } from "../auth/roles";
 import LoadingState from "../components/LoadingState";
 import useCachedQuery from "../hooks/useCachedQuery";
 import { getClientes, getOportunidades, getPropuestas, getUsers } from "../services/api";
@@ -161,7 +162,7 @@ function OpportunityModal({ cliente, onClose, oportunidad, propuestas, sellerNam
 }
 
 function Oportunidades() {
-  const { idToken } = useAuth();
+  const { backendUser, idToken } = useAuth();
   const [clientes, setClientes] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [propuestas, setPropuestas] = useState([]);
@@ -171,7 +172,7 @@ function Oportunidades() {
   const [stageFilter, setStageFilter] = useState("");
   const [selectedOpportunityId, setSelectedOpportunityId] = useState("");
   const pipelineQuery = useCachedQuery(
-    "pipeline:dataset",
+    `pipeline:dataset:${backendUser?.uid || "anon"}:${backendUser?.rol || "sin_acceso"}`,
     async () => {
       const [clientesData, oportunidadesData, propuestasData, usersData] = await Promise.all([
         getClientes(idToken),
@@ -179,12 +180,14 @@ function Oportunidades() {
         getPropuestas(idToken),
         getUsers(idToken).catch(() => []),
       ]);
-      return { clientes: clientesData, oportunidades: oportunidadesData, propuestas: propuestasData, users: usersData };
+      const users = usersData.length ? usersData : [backendUser];
+      return { clientes: clientesData, oportunidades: oportunidadesData, propuestas: propuestasData, users };
     },
-    { enabled: Boolean(idToken), initialData: null },
+    { enabled: Boolean(idToken && backendUser?.uid), initialData: null },
   );
   const loading = pipelineQuery.loading;
   const error = pipelineQuery.error;
+  const isSupervisorView = isSupervisorRole(backendUser?.rol);
 
   useEffect(() => {
     if (!pipelineQuery.data) return;
@@ -218,11 +221,11 @@ function Oportunidades() {
         cliente?.nombre,
         cliente?.rubro,
       ].some((value) => normalize(value).includes(term));
-      const matchesSeller = !sellerFilter || item.vendedorUid === sellerFilter;
+      const matchesSeller = !isSupervisorView || !sellerFilter || item.vendedorUid === sellerFilter;
       const matchesStage = !stageFilter || item.etapa === stageFilter;
       return matchesSearch && matchesSeller && matchesStage;
     });
-  }, [clientesById, oportunidades, search, sellerFilter, stageFilter]);
+  }, [clientesById, isSupervisorView, oportunidades, search, sellerFilter, stageFilter]);
 
   const funnel = buildFunnel(filteredOportunidades);
   const totalPipeline = filteredOportunidades.reduce((sum, item) => sum + Number(item.valorEstimado || 0), 0);
@@ -235,7 +238,7 @@ function Oportunidades() {
     setStageFilter("");
   };
 
-  const sellerName = (uid) => usersById.get(uid)?.nombre || usersById.get(uid)?.email || uid || "Sin vendedor";
+  const sellerName = (uid) => usersById.get(uid)?.nombre || usersById.get(uid)?.email || backendUser?.nombre || backendUser?.email || uid || "Sin vendedor";
   const clientName = (item) => clientesById.get(item.clienteId)?.empresa || clientesById.get(item.clienteId)?.nombre || item.clienteId;
 
   return (
@@ -258,12 +261,14 @@ function Oportunidades() {
             placeholder="Ej: Agricola del Sur..."
           />
         </label>
-        <label>Vendedor
-          <select value={sellerFilter} onChange={(event) => setSellerFilter(event.target.value)}>
-            <option value="">Todos los vendedores</option>
-            {sellerOptions.map((seller) => <option key={seller.uid} value={seller.uid}>{seller.label}</option>)}
-          </select>
-        </label>
+        {isSupervisorView && (
+          <label>Vendedor
+            <select value={sellerFilter} onChange={(event) => setSellerFilter(event.target.value)}>
+              <option value="">Todos los vendedores</option>
+              {sellerOptions.map((seller) => <option key={seller.uid} value={seller.uid}>{seller.label}</option>)}
+            </select>
+          </label>
+        )}
         <label>Etapa
           <select value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}>
             <option value="">Todas las etapas</option>

@@ -45,7 +45,7 @@ async def get_current_user(
         decoded["_firestore_user"] = user_data
         decoded["_firestore_user_exists"] = True
     else:
-        decoded["rol"] = "vendedor"
+        decoded["rol"] = "sin_acceso"
         decoded["_firestore_user"] = None
         decoded["_firestore_user_exists"] = False
     return decoded

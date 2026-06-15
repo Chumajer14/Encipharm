@@ -3,8 +3,8 @@ from typing import Optional
 from typing import Literal
 from datetime import datetime
 
-UserRole = Literal["admin", "supervisor", "vendedor"]
-UserRank = Literal["Solo lectura", "Vendedor", "Gerente", "Administrador"]
+UserRole = Literal["sin_acceso", "admin", "supervisor", "vendedor"]
+UserRank = Literal["Sin acceso", "Solo lectura", "Vendedor", "Gerente", "Administrador"]
 UserZone = Literal["Zona norte", "Zona centro", "Zona sur", "Zona oriente"]
 UserTheme = Literal["dark", "light"]
 UserLanguage = Literal["es", "en", "pt"]
@@ -17,12 +17,16 @@ ROLE_ALIASES = {
     "supervisor": "supervisor",
     "vendedor": "vendedor",
     "seller": "vendedor",
+    "sin acceso": "sin_acceso",
+    "sin_acceso": "sin_acceso",
+    "no_access": "sin_acceso",
+    "no access": "sin_acceso",
 }
 
 
 def normalize_user_role(value: str | None) -> UserRole:
-    normalized = str(value or "vendedor").strip().lower()
-    return ROLE_ALIASES.get(normalized, "vendedor")
+    normalized = str(value or "sin_acceso").strip().lower()
+    return ROLE_ALIASES.get(normalized, "sin_acceso")
 
 
 RANK_ALIASES = {
@@ -35,6 +39,9 @@ RANK_ALIASES = {
     "manager": "Gerente",
     "admin": "Administrador",
     "administrador": "Administrador",
+    "sin acceso": "Sin acceso",
+    "sin_acceso": "Sin acceso",
+    "no_access": "Sin acceso",
 }
 
 ZONE_ALIASES = {
@@ -55,6 +62,8 @@ def normalize_user_rank(value: str | None, role: str | None = None) -> UserRank:
         if normalized in RANK_ALIASES:
             return RANK_ALIASES[normalized]
     role_value = normalize_user_role(role)
+    if role_value == "sin_acceso":
+        return "Sin acceso"
     if role_value == "admin":
         return "Administrador"
     if role_value == "supervisor":
@@ -93,12 +102,12 @@ def normalize_user_language(value: str | None) -> UserLanguage:
 class UserBase(BaseModel):
     email: EmailStr
     nombre: str = Field(min_length=1)
-    rol: UserRole = "vendedor"
-    cargo: str = "Vendedor"
-    rango: UserRank = "Vendedor"
+    rol: UserRole = "sin_acceso"
+    cargo: str = "Sin acceso"
+    rango: UserRank = "Sin acceso"
     zona: UserZone = "Zona centro"
-    appMovil: bool = True
-    webApp: bool = True
+    appMovil: bool = False
+    webApp: bool = False
     theme: UserTheme = "dark"
     language: UserLanguage = "es"
     activo: bool = True
