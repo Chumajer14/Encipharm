@@ -3,7 +3,7 @@ import { useAuth } from "../auth/authContext";
 import { isSupervisorRole } from "../auth/roles";
 import LoadingState from "../components/LoadingState";
 import useCachedQuery from "../hooks/useCachedQuery";
-import { getClientes, getOportunidades, getPropuestas, getUsers } from "../services/api";
+import { getClientes, getOportunidades, getPropuestas, getUsers, updateOportunidad } from "../services/api";
 import { buildOpportunityCompetitionProfile, STAGE_LABELS, weightedValue } from "../utils/commercialAnalytics";
 
 const FUNNEL_STAGES = ["nuevo", "contactado", "cotizacion", "negociacion", "ganado"];
@@ -49,6 +49,23 @@ function buildClientSites(cliente, oportunidad) {
       region,
     },
   ];
+}
+
+function CogIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16">
+      <path d="M10.3 4.3c.4-1.7 2.9-1.7 3.4 0a1.7 1.7 0 0 0 2.6 1c1.5-.9 3.3.8 2.3 2.4a1.7 1.7 0 0 0 1.1 2.6c1.7.4 1.7 2.9 0 3.4a1.7 1.7 0 0 0-1.1 2.6c1 1.5-.8 3.3-2.3 2.3a1.7 1.7 0 0 0-2.6 1.1c-.5 1.7-3 1.7-3.4 0a1.7 1.7 0 0 0-2.6-1.1c-1.5 1-3.3-.8-2.4-2.3a1.7 1.7 0 0 0-1-2.6c-1.7-.5-1.7-3 0-3.4a1.7 1.7 0 0 0 1-2.6c-.9-1.6.9-3.3 2.4-2.4a1.7 1.7 0 0 0 2.6-1Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16">
+      <path d="m5 12 4 4L19 6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+    </svg>
+  );
 }
 
 function OpportunityModal({ cliente, onClose, oportunidad, propuestas, sellerName }) {
@@ -171,6 +188,11 @@ function Oportunidades() {
   const [sellerFilter, setSellerFilter] = useState("");
   const [stageFilter, setStageFilter] = useState("");
   const [selectedOpportunityId, setSelectedOpportunityId] = useState("");
+  const [editingProbabilityId, setEditingProbabilityId] = useState("");
+  const [probabilityDraft, setProbabilityDraft] = useState(0);
+  const [savingProbabilityId, setSavingProbabilityId] = useState("");
+  const [probabilityMessage, setProbabilityMessage] = useState("");
+  const [probabilityError, setProbabilityError] = useState("");
   const pipelineQuery = useCachedQuery(
     `pipeline:dataset:${backendUser?.uid || "anon"}:${backendUser?.rol || "sin_acceso"}`,
     async () => {
@@ -238,6 +260,39 @@ function Oportunidades() {
     setStageFilter("");
   };
 
+  const openProbabilityEditor = (item) => {
+    setProbabilityError("");
+    setProbabilityMessage("");
+    setEditingProbabilityId((currentId) => {
+      const nextId = currentId === item.id ? "" : item.id;
+      if (nextId) {
+        setProbabilityDraft(Math.max(0, Math.min(Number(item.probabilidad || 0), 100)));
+      }
+      return nextId;
+    });
+  };
+
+  const saveProbability = async (item) => {
+    if (!idToken || savingProbabilityId) return;
+    const nextProbability = Math.max(0, Math.min(Number(probabilityDraft || 0), 100));
+    setSavingProbabilityId(item.id);
+    setProbabilityError("");
+    setProbabilityMessage("");
+
+    try {
+      const updatedOpportunity = await updateOportunidad(idToken, item.id, { probabilidad: nextProbability });
+      setOportunidades((currentItems) => currentItems.map((currentItem) => (
+        currentItem.id === item.id ? { ...currentItem, ...updatedOpportunity } : currentItem
+      )));
+      setEditingProbabilityId("");
+      setProbabilityMessage(`Probabilidad actualizada para ${clientName(item)}.`);
+    } catch (saveError) {
+      setProbabilityError(saveError?.message || "No se pudo actualizar la probabilidad.");
+    } finally {
+      setSavingProbabilityId("");
+    }
+  };
+
   const sellerName = (uid) => usersById.get(uid)?.nombre || usersById.get(uid)?.email || backendUser?.nombre || backendUser?.email || uid || "Sin vendedor";
   const clientName = (item) => clientesById.get(item.clienteId)?.empresa || clientesById.get(item.clienteId)?.nombre || item.clienteId;
 
@@ -251,6 +306,8 @@ function Oportunidades() {
       </section>
 
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
+      {probabilityMessage && <section className="notice notice-success"><strong>Confirmacion</strong><span>{probabilityMessage}</span></section>}
+      {probabilityError && <section className="notice notice-error"><strong>Error</strong><span>{probabilityError}</span></section>}
 
       <section className="filters-card pipeline-filter-bar">
         <label>Buscar cliente
@@ -329,6 +386,47 @@ function Oportunidades() {
                       <div className="probability-cell">
                         <span className="probability-bar"><i style={{ width: `${probability}%` }} /></span>
                         <small>{probability}%</small>
+                        <button
+                          aria-label="Ajustar probabilidad"
+                          className="probability-config-btn"
+                          disabled={savingProbabilityId !== ""}
+                          onClick={() => openProbabilityEditor(item)}
+                          title="Ajustar probabilidad"
+                          type="button"
+                        >
+                          <CogIcon />
+                        </button>
+                        {editingProbabilityId === item.id && (
+                          <div className="probability-popover">
+                            <label>
+                              Probabilidad
+                              <input
+                                max="100"
+                                min="0"
+                                onChange={(event) => setProbabilityDraft(event.target.value)}
+                                type="number"
+                                value={probabilityDraft}
+                              />
+                            </label>
+                            <input
+                              aria-label="Probabilidad"
+                              max="100"
+                              min="0"
+                              onChange={(event) => setProbabilityDraft(event.target.value)}
+                              type="range"
+                              value={probabilityDraft}
+                            />
+                            <button
+                              aria-label="Confirmar probabilidad"
+                              className="probability-save-btn"
+                              disabled={savingProbabilityId === item.id}
+                              onClick={() => saveProbability(item)}
+                              type="button"
+                            >
+                              {savingProbabilityId === item.id ? <span className="inline-spinner" /> : <CheckIcon />}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="td-right">{money(weightedValue(item))}</td>
