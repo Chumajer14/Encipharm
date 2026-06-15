@@ -583,7 +583,16 @@ async def test_temporary_role_can_be_enabled_outside_development(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_temporary_role_is_disabled_when_feature_flag_off(monkeypatch):
+async def test_temporary_role_updates_when_feature_flag_off(monkeypatch):
+    db = FakeDb()
+    db.collection("users").document("seller-1").set({
+        "uid": "seller-1",
+        "email": "seller@enci.cl",
+        "nombre": "Seller",
+        "rol": "vendedor",
+        "activo": True,
+    })
+    monkeypatch.setattr("app.api.auth.get_db", lambda: db)
     monkeypatch.setattr(
         "app.api.auth.get_settings",
         lambda: Settings(
@@ -594,13 +603,12 @@ async def test_temporary_role_is_disabled_when_feature_flag_off(monkeypatch):
         ),
     )
 
-    with pytest.raises(HTTPException) as exc_info:
-        await patch_temporary_own_role(
-            UserRoleUpdate(rol="admin"),
-            {"uid": "seller-1"},
-        )
+    updated = await patch_temporary_own_role(
+        UserRoleUpdate(rol="admin"),
+        {"uid": "seller-1"},
+    )
 
-    assert exc_info.value.status_code == 403
+    assert updated.rol == "admin"
 
 
 def test_temporary_role_rejects_extra_uid_email_and_status_fields():
