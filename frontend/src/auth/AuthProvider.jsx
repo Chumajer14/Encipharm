@@ -36,6 +36,16 @@ function friendlyAuthError(authError) {
   return authError?.message || "No se pudo iniciar sesion.";
 }
 
+function ensureWebAccess(user) {
+  if (user?.rol === "sin_acceso") {
+    throw new Error("Tu cuenta no tiene un rol habilitado en el sistema web.");
+  }
+
+  if (user?.webApp === false) {
+    throw new Error("Tu cuenta no tiene acceso habilitado al sistema web.");
+  }
+}
+
 export function AuthProvider({ children }) {
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [backendUser, setBackendUser] = useState(null);
@@ -63,6 +73,7 @@ export function AuthProvider({ children }) {
       try {
         const token = await user.getIdToken();
         const syncedUser = await loginWithBackend(token);
+        ensureWebAccess(syncedUser);
         setFirebaseUser(user);
         setBackendUser(syncedUser);
         setIdToken(token);

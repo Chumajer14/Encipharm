@@ -15,6 +15,7 @@ function getApiBaseUrl() {
 }
 
 const API_BASE_URL = getApiBaseUrl();
+const CLIENT_PLATFORM = "web";
 
 function getCacheKey(path) {
   return `${GET_CACHE_PREFIX}${path}`;
@@ -102,6 +103,7 @@ export async function apiFetch(path, { token, ...options } = {}) {
 
   const headers = {
     "Content-Type": "application/json",
+    "X-Enci-Client": CLIENT_PLATFORM,
     ...(options.headers || {}),
   };
 
