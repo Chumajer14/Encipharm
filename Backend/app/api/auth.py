@@ -106,9 +106,16 @@ async def patch_temporary_own_role(
 ):
     """Control temporal de desarrollo: cambia solo el rol de la cuenta autenticada.
 
-    Control operativo temporal. No acepta UID, email, activo ni otros campos
-    sensibles en el payload.
+    Debe mantenerse detras de ENABLE_TEMPORARY_ROLE_SWITCHER. No acepta UID,
+    email, activo ni otros campos sensibles en el payload.
     """
+    settings = get_settings()
+    if not settings.ENABLE_TEMPORARY_ROLE_SWITCHER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cambio temporal de rol deshabilitado en este ambiente",
+        )
+
     db = get_db()
     updated = update_user(db, user["uid"], {"rol": payload.rol})
     record_audit_event(
