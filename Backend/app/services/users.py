@@ -121,8 +121,22 @@ def update_user(db, uid: str, changes: dict[str, Any]) -> dict[str, Any]:
     }
     if "nombre" in clean_changes:
         clean_changes["nombre"] = normalize_display_name(clean_changes["nombre"])
+    if "rol" in clean_changes:
+        clean_changes["rol"] = normalize_user_role(clean_changes["rol"])
+
+    current_data = user_doc.to_dict()
+    final_role = normalize_user_role(clean_changes.get("rol", current_data.get("rol")))
+    if final_role == "sin_acceso":
+        clean_changes["appMovil"] = False
+        clean_changes["webApp"] = False
+        clean_changes.setdefault("rango", "Sin acceso")
+        clean_changes.setdefault("cargo", "Sin acceso")
+    elif "rol" in clean_changes:
+        clean_changes.setdefault("rango", normalize_user_rank(clean_changes.get("rango"), final_role))
+        clean_changes.setdefault("cargo", clean_changes["rango"])
+
     clean_changes["updatedAt"] = datetime.now(timezone.utc)
 
     user_ref.update(clean_changes)
-    updated_data = {**user_doc.to_dict(), **clean_changes}
+    updated_data = {**current_data, **clean_changes}
     return normalize_user(uid, updated_data)

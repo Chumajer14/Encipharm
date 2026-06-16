@@ -7,6 +7,7 @@ import { loginBackend } from "./services/api";
 
 import BottomNav from "./components/BottomNav";
 import { useAppSettings } from "./settings/AppSettings";
+import { ensureMobileAccess } from "./utils/access";
 import Configuracion from "./pages/Configuracion";
 import Inicio from "./pages/Inicio";
 import Login from "./pages/Login";
@@ -37,7 +38,8 @@ function App() {
         }
 
         const idToken = await usuario.getIdToken();
-        await loginBackend(idToken);
+        const backendUser = await loginBackend(idToken);
+        ensureMobileAccess(backendUser);
 
         setUser(usuario);
         setToken(idToken);

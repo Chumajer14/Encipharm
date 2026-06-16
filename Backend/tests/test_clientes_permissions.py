@@ -4,6 +4,7 @@ from pydantic import ValidationError
 
 from app.api.auth import patch_temporary_own_role, upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
+from app.core.auth import ensure_platform_access
 from app.core.auth import require_role
 from app.core.config import Settings
 from app.models.cliente import ClienteCreate, ClienteResponse
@@ -19,7 +20,7 @@ from app.services.clientes import (
     list_clientes,
     parse_clientes_csv,
 )
-from app.services.users import list_users
+from app.services.users import list_users, update_user
 
 
 class FakeDocumentSnapshot:
@@ -293,6 +294,52 @@ def test_user_update_rejects_unknown_sensitive_fields():
             "uid": "other-user",
             "email": "other@enci.cl",
         })
+
+
+def test_update_user_forces_platform_access_off_without_role():
+    db = FakeDb()
+    db.collection("users").document("user-1").set({
+        "uid": "user-1",
+        "email": "user@enci.cl",
+        "nombre": "Usuario",
+        "rol": "vendedor",
+        "appMovil": True,
+        "webApp": True,
+        "activo": True,
+    })
+
+    updated = update_user(db, "user-1", {
+        "rol": "sin_acceso",
+        "appMovil": True,
+        "webApp": True,
+    })
+
+    assert updated["rol"] == "sin_acceso"
+    assert updated["appMovil"] is False
+    assert updated["webApp"] is False
+    assert updated["rango"] == "Sin acceso"
+
+
+def test_platform_access_rejects_disabled_web_app():
+    with pytest.raises(HTTPException) as exc_info:
+        ensure_platform_access({
+            "rol": "vendedor",
+            "webApp": False,
+            "appMovil": True,
+        }, "web")
+
+    assert exc_info.value.status_code == 403
+
+
+def test_platform_access_rejects_disabled_mobile_app():
+    with pytest.raises(HTTPException) as exc_info:
+        ensure_platform_access({
+            "rol": "vendedor",
+            "webApp": True,
+            "appMovil": False,
+        }, "mobile")
+
+    assert exc_info.value.status_code == 403
 
 
 def test_cliente_phone_accepts_chilean_mobile_local_digits():
