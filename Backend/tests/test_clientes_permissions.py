@@ -553,33 +553,25 @@ async def test_temporary_role_updates_current_user(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_temporary_role_can_be_enabled_outside_development(monkeypatch):
-    db = FakeDb()
-    db.collection("users").document("seller-1").set({
-        "uid": "seller-1",
-        "email": "seller@enci.cl",
-        "nombre": "Seller",
-        "rol": "vendedor",
-        "activo": True,
-    })
-    monkeypatch.setattr("app.api.auth.get_db", lambda: db)
+async def test_temporary_role_is_disabled_in_production(monkeypatch):
     monkeypatch.setattr(
         "app.api.auth.get_settings",
         lambda: Settings(
             APP_ENV="production",
             CORS_ORIGINS="https://enci.cl",
-            ENABLE_TEMPORARY_ROLE_SWITCHER=True,
+            ENABLE_TEMPORARY_ROLE_SWITCHER=False,
             FIREBASE_PROJECT_ID="enci-test",
             GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
         ),
     )
 
-    updated = await patch_temporary_own_role(
-        UserRoleUpdate(rol="admin"),
-        {"uid": "seller-1"},
-    )
+    with pytest.raises(HTTPException) as exc_info:
+        await patch_temporary_own_role(
+            UserRoleUpdate(rol="admin"),
+            {"uid": "seller-1"},
+        )
 
-    assert updated.rol == "admin"
+    assert exc_info.value.status_code == 403
 
 
 @pytest.mark.anyio

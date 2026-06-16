@@ -106,11 +106,11 @@ async def patch_temporary_own_role(
 ):
     """Control temporal de desarrollo: cambia solo el rol de la cuenta autenticada.
 
-    Debe mantenerse detras de ENABLE_TEMPORARY_ROLE_SWITCHER. No acepta UID,
-    email, activo ni otros campos sensibles en el payload.
+    Debe retirarse antes de produccion. El endpoint se bloquea fuera de development
+    y no acepta UID, email, activo ni otros campos sensibles en el payload.
     """
     settings = get_settings()
-    if not settings.ENABLE_TEMPORARY_ROLE_SWITCHER:
+    if settings.APP_ENV != "development" or not settings.ENABLE_TEMPORARY_ROLE_SWITCHER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cambio temporal de rol deshabilitado en este ambiente",

@@ -47,16 +47,15 @@ def test_production_rejects_open_cors_regex():
         )
 
 
-def test_production_allows_explicit_temporary_role_switcher_flag():
-    settings = Settings(
-        APP_ENV="production",
-        CORS_ORIGINS="https://enci.cl",
-        ENABLE_TEMPORARY_ROLE_SWITCHER=True,
-        FIREBASE_PROJECT_ID="enci-test",
-        GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
-    )
-
-    assert settings.ENABLE_TEMPORARY_ROLE_SWITCHER is True
+def test_production_rejects_enabled_temporary_role_switcher():
+    with pytest.raises(ValidationError):
+        Settings(
+            APP_ENV="production",
+            CORS_ORIGINS="https://enci.cl",
+            ENABLE_TEMPORARY_ROLE_SWITCHER=True,
+            FIREBASE_PROJECT_ID="enci-test",
+            GOOGLE_APPLICATION_CREDENTIALS="serviceAccountKey.json",
+        )
 
 
 def test_temporary_role_switcher_is_disabled_by_default():
