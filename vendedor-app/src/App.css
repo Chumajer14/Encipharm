@@ -799,6 +799,32 @@ html[data-theme="light"] .segmented-control {
   font-size: 12px;
 }
 
+.ia-rag-shell {
+  display: grid;
+  place-items: center;
+}
+
+.ia-rag-message {
+  display: grid;
+  place-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.ia-rag-x {
+  font-size: clamp(96px, 32vw, 160px);
+  line-height: 0.85;
+  font-weight: 950;
+  color: #ef4444;
+}
+
+.ia-rag-message p {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 900;
+}
+
 .bottom-nav {
   position: fixed;
   bottom: max(10px, env(safe-area-inset-bottom));
@@ -809,7 +835,7 @@ html[data-theme="light"] .segmented-control {
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 24px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 4px;
   padding: 7px;
   z-index: 20;
@@ -835,6 +861,12 @@ html[data-theme="light"] .bottom-nav {
   border-radius: 18px;
   font-weight: 800;
   transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.nav-emoji {
+  display: block;
+  font-size: 19px;
+  line-height: 1;
 }
 
 html[data-theme="light"] .bottom-nav a {

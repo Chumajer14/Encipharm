@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { label: "Inicio", path: "/", icon: "home" },
   { label: "Nuevo", path: "/cotizacion", icon: "add" },
   { label: "Forecast", path: "/proyeccion", icon: "forecast" },
+  { label: "IA RAG", path: "/ia-rag", emoji: "🤖" },
   { label: "Pipeline", path: "/pipeline", icon: "pipeline" },
 ];
 
@@ -20,7 +21,7 @@ function BottomNav() {
           key={item.path}
           to={item.path}
         >
-          <Icon name={item.icon} size={19} />
+          {item.emoji ? <span className="nav-emoji" aria-hidden="true">{item.emoji}</span> : <Icon name={item.icon} size={19} />}
           <span>{t(item.label)}</span>
         </NavLink>
       ))}
