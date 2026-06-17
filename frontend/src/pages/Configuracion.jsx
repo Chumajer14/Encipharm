@@ -99,7 +99,6 @@ function Configuracion() {
     try {
       setError("");
       const updated = await updateUser(idToken, user.uid, {
-        lookupEmail: user.email,
         ...changes,
       });
       updateLocalUser(updated, user);
@@ -121,7 +120,6 @@ function Configuracion() {
     try {
       setError("");
       const updated = await updateUser(idToken, user.uid, {
-        lookupEmail: user.email,
         activo: !user.activo,
       });
       updateLocalUser(updated, user);
@@ -173,7 +171,6 @@ function Configuracion() {
     try {
       setSavingUser(true);
       const updated = await updateUser(idToken, editingUser.uid, {
-        lookupEmail: editingUser.email,
         nombre: form.nombre,
         rango: form.rango,
         cargo: form.rango,
