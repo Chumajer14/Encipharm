@@ -1,5 +1,6 @@
 const DEFAULT_API_URL = "http://localhost:8000";
 const API_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_URL).replace(/\/+$/, "");
+const CLIENT_PLATFORM = "mobile";
 
 export async function apiFetch(path, token, options = {}) {
   if (!token) {
@@ -10,6 +11,7 @@ export async function apiFetch(path, token, options = {}) {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      "X-Enci-Client": CLIENT_PLATFORM,
       Authorization: `Bearer ${token}`,
       ...(options.headers || {}),
     },

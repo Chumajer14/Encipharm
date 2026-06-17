@@ -10,11 +10,16 @@ const getCacheMemory = new Map();
  * The trailing slash is removed to keep endpoint composition stable in Vercel.
  */
 function getApiBaseUrl() {
+  if (typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app")) {
+    return "/api";
+  }
+
   const configuredUrl = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL;
   return configuredUrl.replace(/\/+$/, "");
 }
 
 const API_BASE_URL = getApiBaseUrl();
+const CLIENT_PLATFORM = "web";
 
 function getCacheKey(path) {
   return `${GET_CACHE_PREFIX}${path}`;
@@ -102,6 +107,7 @@ export async function apiFetch(path, { token, ...options } = {}) {
 
   const headers = {
     "Content-Type": "application/json",
+    "X-Enci-Client": CLIENT_PLATFORM,
     ...(options.headers || {}),
   };
 

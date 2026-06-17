@@ -3,7 +3,7 @@ import { useAuth } from "../auth/authContext";
 import { hasMinimumRole } from "../auth/roles";
 import LoadingState from "../components/LoadingState";
 import { useI18n } from "../i18n/useI18n";
-import { getUsers, updateUser, updateUserStatus } from "../services/api";
+import { getUsers, updateUser } from "../services/api";
 import { initials, matchText } from "../utils/commercialAnalytics";
 
 const RANKS = ["Sin acceso", "Solo lectura", "Vendedor", "Gerente", "Administrador"];
@@ -61,6 +61,7 @@ function Configuracion() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [savingUser, setSavingUser] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", rango: "Vendedor", zona: "Zona centro", appMovil: true, webApp: true, activo: true });
   const canEdit = backendUser?.rol === "admin";
   const canViewUsers = hasMinimumRole(backendUser?.rol, "supervisor");
@@ -89,22 +90,42 @@ function Configuracion() {
   );
   const effectiveActiveTab = canViewUsers || activeTab !== "usuarios" ? activeTab : "apariencia";
 
-  const updateLocalUser = (updated) => setUsers(users.map((item) => item.uid === updated.uid ? updated : item));
+  const updateLocalUser = (updated, previousUser = null) => setUsers(users.map((item) => (
+    item.uid === updated.uid || item.uid === previousUser?.uid || item.email === updated.email ? updated : item
+  )));
 
   const patchUser = async (user, changes) => {
     if (!canEdit) return;
-    const updated = await updateUser(idToken, user.uid, changes);
-    updateLocalUser(updated);
+    try {
+      setError("");
+      const updated = await updateUser(idToken, user.uid, {
+        ...changes,
+      });
+      updateLocalUser(updated, user);
+    } catch (updateError) {
+      setError(updateError?.message || "No se pudieron guardar los cambios del usuario.");
+    }
   };
 
   const toggleField = async (user, field) => {
+    if (user.rol === "sin_acceso" && user[field] === false) {
+      setError("Asigna un rol antes de habilitar accesos a una plataforma.");
+      return;
+    }
     await patchUser(user, { [field]: !user[field] });
   };
 
   const toggleStatus = async (user) => {
     if (!canEdit) return;
-    const updated = await updateUserStatus(idToken, user.uid, !user.activo);
-    updateLocalUser(updated);
+    try {
+      setError("");
+      const updated = await updateUser(idToken, user.uid, {
+        activo: !user.activo,
+      });
+      updateLocalUser(updated, user);
+    } catch (statusError) {
+      setError(statusError?.message || "No se pudo cambiar el estado del usuario.");
+    }
   };
 
   const openModal = (user = null) => {
@@ -127,26 +148,53 @@ function Configuracion() {
   const closeModal = () => {
     setModalOpen(false);
     setEditingUser(null);
+    setSavingUser(false);
   };
 
   const saveUser = async () => {
     if (!canEdit) return;
+    setError("");
     if (!editingUser) {
       setError("Para agregar un usuario nuevo primero debe existir su cuenta Firebase. Luego podras editarlo en esta tabla.");
       return;
     }
-    const updated = await updateUser(idToken, editingUser.uid, {
-      nombre: form.nombre,
-      rango: form.rango,
-      cargo: form.rango,
-      zona: form.zona,
-      rol: RANK_TO_ROLE[form.rango],
-      appMovil: form.appMovil,
-      webApp: form.webApp,
-      activo: form.activo,
-    });
-    updateLocalUser(updated);
-    closeModal();
+    if (!form.nombre.trim()) {
+      setError("El nombre del usuario es obligatorio.");
+      return;
+    }
+
+    const nextRole = RANK_TO_ROLE[form.rango];
+    const platformAccess = nextRole === "sin_acceso"
+      ? { appMovil: false, webApp: false }
+      : { appMovil: form.appMovil, webApp: form.webApp };
+
+    try {
+      setSavingUser(true);
+      const updated = await updateUser(idToken, editingUser.uid, {
+        nombre: form.nombre,
+        rango: form.rango,
+        cargo: form.rango,
+        zona: form.zona,
+        rol: nextRole,
+        ...platformAccess,
+        activo: form.activo,
+      });
+      updateLocalUser(updated, editingUser);
+      closeModal();
+    } catch (saveError) {
+      setError(saveError?.message || "No se pudo guardar el usuario.");
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const changeRank = (nextRank) => {
+    const nextForm = { ...form, rango: nextRank };
+    if (RANK_TO_ROLE[nextRank] === "sin_acceso") {
+      nextForm.appMovil = false;
+      nextForm.webApp = false;
+    }
+    setForm(nextForm);
   };
 
   const savePreference = async (changes) => {
@@ -246,10 +294,10 @@ function Configuracion() {
             <div className="user-modal-header"><strong>{editingUser ? t("Editar Usuario") : t("Agregar Usuario")}</strong><button className="user-modal-close" onClick={closeModal} type="button"><ConfigIcon type="close" /></button></div>
             <div className="user-modal-body">
               <div className="form-row"><label className="form-group"><span>{t("Nombre")}</span><input className="form-input" onChange={(event) => setForm({ ...form, nombre: event.target.value })} value={form.nombre} /></label><label className="form-group"><span>{t("Correo electronico")}</span><input className="form-input" disabled value={form.email} /></label></div>
-              <div className="form-row"><label className="form-group"><span>{t("Rol")}</span><select className="form-select" onChange={(event) => setForm({ ...form, rango: event.target.value })} value={form.rango}>{RANKS.map((rank) => <option key={rank}>{rank}</option>)}</select></label><label className="form-group"><span>{t("Zona")}</span><select className="form-select" onChange={(event) => setForm({ ...form, zona: event.target.value })} value={form.zona}>{ZONES.map((zone) => <option key={zone}>{zone}</option>)}</select></label></div>
-              <div className="form-row full"><span className="form-label">{t("Privilegios de acceso")}</span><div className="privileges-grid"><button className={`privilege-item ${form.appMovil ? "checked" : ""}`} onClick={() => setForm({ ...form, appMovil: !form.appMovil })} type="button"><i />{t("App Movil")}<small>{t("Acceso a la aplicacion movil")}</small></button><button className={`privilege-item ${form.webApp ? "checked" : ""}`} onClick={() => setForm({ ...form, webApp: !form.webApp })} type="button"><i />{t("Web App")}<small>{t("Acceso al Command Center")}</small></button></div></div>
+              <div className="form-row"><label className="form-group"><span>{t("Rol")}</span><select className="form-select" onChange={(event) => changeRank(event.target.value)} value={form.rango}>{RANKS.map((rank) => <option key={rank}>{rank}</option>)}</select></label><label className="form-group"><span>{t("Zona")}</span><select className="form-select" onChange={(event) => setForm({ ...form, zona: event.target.value })} value={form.zona}>{ZONES.map((zone) => <option key={zone}>{zone}</option>)}</select></label></div>
+              <div className="form-row full"><span className="form-label">{t("Privilegios de acceso")}</span><div className="privileges-grid"><button className={`privilege-item ${form.appMovil ? "checked" : ""}`} disabled={RANK_TO_ROLE[form.rango] === "sin_acceso"} onClick={() => setForm({ ...form, appMovil: !form.appMovil })} type="button"><i />{t("App Movil")}<small>{t("Acceso a la aplicacion movil")}</small></button><button className={`privilege-item ${form.webApp ? "checked" : ""}`} disabled={RANK_TO_ROLE[form.rango] === "sin_acceso"} onClick={() => setForm({ ...form, webApp: !form.webApp })} type="button"><i />{t("Web App")}<small>{t("Acceso al Command Center")}</small></button></div></div>
             </div>
-            <div className="user-modal-footer"><button className="btn-cancel" onClick={closeModal} type="button">{t("Cancelar")}</button><button className="btn-save" onClick={saveUser} type="button">{t("Guardar Usuario")}</button></div>
+            <div className="user-modal-footer"><button className="btn-cancel" disabled={savingUser} onClick={closeModal} type="button">{t("Cancelar")}</button><button className="btn-save" disabled={savingUser} onClick={saveUser} type="button">{savingUser ? t("Guardando...") : t("Guardar Usuario")}</button></div>
           </div>
         </div>
       )}

@@ -105,24 +105,61 @@ def get_user_or_404(db, uid: str) -> dict[str, Any]:
 
 
 def update_user(db, uid: str, changes: dict[str, Any]) -> dict[str, Any]:
+    lookup_email = changes.get("lookupEmail")
     user_ref = db.collection(USERS_COLLECTION).document(uid)
     user_doc = user_ref.get()
+    current_data = user_doc.to_dict() if user_doc.exists else None
 
-    if not user_doc.exists:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado",
-        )
+    if current_data is None:
+        try:
+            firebase_user = firebase_auth.get_user(uid)
+        except (ValueError, firebase_exceptions.FirebaseError) as error:
+            if not lookup_email:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Usuario no encontrado",
+                ) from error
+            try:
+                firebase_user = firebase_auth.get_user_by_email(str(lookup_email))
+            except (ValueError, firebase_exceptions.FirebaseError) as email_error:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Usuario no encontrado",
+                ) from email_error
+            uid = firebase_user.uid
+            user_ref = db.collection(USERS_COLLECTION).document(uid)
+            user_doc = user_ref.get()
+            current_data = user_doc.to_dict() if user_doc.exists else None
+
+        if current_data is None:
+            current_data = {
+                **_auth_user_to_record(firebase_user),
+                "createdAt": datetime.now(timezone.utc),
+            }
+            user_ref.set(current_data)
 
     clean_changes = {
         key: value
         for key, value in changes.items()
-        if value is not None
+        if value is not None and key != "lookupEmail"
     }
     if "nombre" in clean_changes:
         clean_changes["nombre"] = normalize_display_name(clean_changes["nombre"])
+    if "rol" in clean_changes:
+        clean_changes["rol"] = normalize_user_role(clean_changes["rol"])
+
+    final_role = normalize_user_role(clean_changes.get("rol", current_data.get("rol")))
+    if final_role == "sin_acceso":
+        clean_changes["appMovil"] = False
+        clean_changes["webApp"] = False
+        clean_changes.setdefault("rango", "Sin acceso")
+        clean_changes.setdefault("cargo", "Sin acceso")
+    elif "rol" in clean_changes:
+        clean_changes.setdefault("rango", normalize_user_rank(clean_changes.get("rango"), final_role))
+        clean_changes.setdefault("cargo", clean_changes["rango"])
+
     clean_changes["updatedAt"] = datetime.now(timezone.utc)
 
     user_ref.update(clean_changes)
-    updated_data = {**user_doc.to_dict(), **clean_changes}
+    updated_data = {**current_data, **clean_changes}
     return normalize_user(uid, updated_data)

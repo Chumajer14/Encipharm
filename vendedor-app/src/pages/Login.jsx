@@ -3,6 +3,7 @@ import { auth, googleProvider } from "../services/firebase";
 import { loginBackend } from "../services/api";
 import Icon from "../components/Icon";
 import { useAppSettings } from "../settings/AppSettings";
+import { ensureMobileAccess } from "../utils/access";
 
 function Login({ authError = "", isFirebaseConfigured = true }) {
   const { t } = useAppSettings();
@@ -13,7 +14,8 @@ function Login({ authError = "", isFirebaseConfigured = true }) {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const token = await result.user.getIdToken();
-      await loginBackend(token);
+      const backendUser = await loginBackend(token);
+      ensureMobileAccess(backendUser);
     } catch (error) {
       console.error("Error login:", error);
       alert(error.message || t("No se pudo iniciar sesion"));

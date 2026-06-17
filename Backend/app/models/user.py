@@ -151,6 +151,7 @@ class UserUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     nombre: Optional[str] = Field(default=None, min_length=1)
+    lookupEmail: Optional[EmailStr] = None
     rol: Optional[UserRole] = None
     cargo: Optional[str] = Field(default=None, min_length=1, max_length=80)
     rango: Optional[UserRank] = None

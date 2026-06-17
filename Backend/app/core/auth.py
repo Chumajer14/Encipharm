@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from google.api_core import exceptions as google_exceptions
 
@@ -10,8 +10,35 @@ from app.services.firestore import get_db
 security = HTTPBearer()
 
 
+def normalize_client_platform(value: str | None) -> str:
+    normalized = str(value or "web").strip().lower()
+    if normalized in {"mobile", "movil", "app", "app_movil", "app-movil"}:
+        return "mobile"
+    return "web"
+
+
+def ensure_platform_access(user_data: dict, platform: str | None) -> None:
+    normalized_platform = normalize_client_platform(platform)
+    access_field = "appMovil" if normalized_platform == "mobile" else "webApp"
+    access_label = "app movil" if normalized_platform == "mobile" else "web app"
+
+    user_role = normalize_user_role(user_data.get("rol"))
+    if user_role == "sin_acceso":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario sin rol habilitado en el sistema",
+        )
+
+    if not user_data.get(access_field, user_role != "sin_acceso"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Usuario sin acceso a {access_label}",
+        )
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
+    x_enci_client: str | None = Header(default="web"),
 ) -> dict:
     token = credentials.credentials
     try:
@@ -39,6 +66,7 @@ async def get_current_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Usuario inactivo en el sistema",
             )
+        ensure_platform_access(user_data, x_enci_client)
         decoded["rol"] = normalize_user_role(user_data.get("rol"))
         decoded["nombre"] = user_data.get("nombre", "")
         decoded["activo"] = user_data.get("activo", True)
@@ -52,7 +80,10 @@ async def get_current_user(
 
 
 def require_role(required_role: str):
-    async def role_checker(user: dict = Depends(get_current_user)) -> dict:
+    async def role_checker(
+        user: dict = Depends(get_current_user),
+        x_enci_client: str | None = Header(default="web"),
+    ) -> dict:
         db = get_db()
         try:
             user_doc = db.collection("users").document(user["uid"]).get()
@@ -69,6 +100,7 @@ def require_role(required_role: str):
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Usuario inactivo en el sistema",
             )
+        ensure_platform_access(user_data, x_enci_client)
         roles_permitidos = {
             "admin": ["admin"],
             "supervisor": ["admin", "supervisor"],

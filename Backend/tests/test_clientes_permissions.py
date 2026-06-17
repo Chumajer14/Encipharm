@@ -4,6 +4,7 @@ from pydantic import ValidationError
 
 from app.api.auth import patch_temporary_own_role, upsert_authenticated_user
 from app.api.clientes import _ensure_cliente_access
+from app.core.auth import ensure_platform_access
 from app.core.auth import require_role
 from app.core.config import Settings
 from app.models.cliente import ClienteCreate, ClienteResponse
@@ -19,7 +20,7 @@ from app.services.clientes import (
     list_clientes,
     parse_clientes_csv,
 )
-from app.services.users import list_users
+from app.services.users import list_users, update_user
 
 
 class FakeDocumentSnapshot:
@@ -293,6 +294,124 @@ def test_user_update_rejects_unknown_sensitive_fields():
             "uid": "other-user",
             "email": "other@enci.cl",
         })
+
+
+def test_user_update_accepts_lookup_email_for_provisioning():
+    payload = UserUpdate.model_validate({
+        "lookupEmail": "lookup@enci.cl",
+        "rol": "vendedor",
+    })
+
+    assert str(payload.lookupEmail) == "lookup@enci.cl"
+    assert payload.rol == "vendedor"
+
+
+def test_update_user_forces_platform_access_off_without_role():
+    db = FakeDb()
+    db.collection("users").document("user-1").set({
+        "uid": "user-1",
+        "email": "user@enci.cl",
+        "nombre": "Usuario",
+        "rol": "vendedor",
+        "appMovil": True,
+        "webApp": True,
+        "activo": True,
+    })
+
+    updated = update_user(db, "user-1", {
+        "rol": "sin_acceso",
+        "appMovil": True,
+        "webApp": True,
+    })
+
+    assert updated["rol"] == "sin_acceso"
+    assert updated["appMovil"] is False
+    assert updated["webApp"] is False
+    assert updated["rango"] == "Sin acceso"
+
+
+def test_update_user_provisions_existing_firebase_auth_user(monkeypatch):
+    class FakeFirebaseUser:
+        uid = "firebase-only-1"
+        email = "firebase.only@enci.cl"
+        display_name = "Firebase Only"
+        disabled = False
+
+    db = FakeDb()
+    monkeypatch.setattr(
+        "app.services.users.firebase_auth.get_user",
+        lambda uid: FakeFirebaseUser(),
+    )
+
+    updated = update_user(db, "firebase-only-1", {
+        "rol": "vendedor",
+        "rango": "Vendedor",
+        "cargo": "Vendedor",
+        "webApp": True,
+        "appMovil": True,
+    })
+
+    stored = db.collection("users").rows["firebase-only-1"]
+    assert updated["rol"] == "vendedor"
+    assert updated["email"] == "firebase.only@enci.cl"
+    assert updated["webApp"] is True
+    assert updated["appMovil"] is True
+    assert stored["createdAt"] is not None
+
+
+def test_update_user_provisions_by_lookup_email_when_uid_is_stale(monkeypatch):
+    class FakeFirebaseUser:
+        uid = "resolved-auth-uid"
+        email = "resolved@enci.cl"
+        display_name = "Resolved User"
+        disabled = False
+
+    db = FakeDb()
+    monkeypatch.setattr(
+        "app.services.users.firebase_auth.get_user",
+        lambda uid: (_ for _ in ()).throw(ValueError("missing uid")),
+    )
+    monkeypatch.setattr(
+        "app.services.users.firebase_auth.get_user_by_email",
+        lambda email: FakeFirebaseUser(),
+    )
+
+    updated = update_user(db, "stale-ui-uid", {
+        "lookupEmail": "resolved@enci.cl",
+        "rol": "supervisor",
+        "rango": "Gerente",
+        "cargo": "Gerente",
+        "webApp": True,
+        "appMovil": False,
+    })
+
+    assert updated["uid"] == "resolved-auth-uid"
+    assert updated["email"] == "resolved@enci.cl"
+    assert updated["rol"] == "supervisor"
+    assert "stale-ui-uid" not in db.collection("users").rows
+    assert "resolved-auth-uid" in db.collection("users").rows
+
+
+def test_platform_access_rejects_disabled_web_app():
+    with pytest.raises(HTTPException) as exc_info:
+        ensure_platform_access({
+            "rol": "vendedor",
+            "webApp": False,
+            "appMovil": True,
+        }, "web")
+
+    assert exc_info.value.status_code == 403
+
+
+def test_platform_access_rejects_disabled_mobile_app():
+    with pytest.raises(HTTPException) as exc_info:
+        ensure_platform_access({
+            "rol": "vendedor",
+            "webApp": True,
+            "appMovil": False,
+        }, "mobile")
+
+    assert exc_info.value.status_code == 403
 
 
 def test_cliente_phone_accepts_chilean_mobile_local_digits():
