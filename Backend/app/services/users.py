@@ -107,12 +107,21 @@ def get_user_or_404(db, uid: str) -> dict[str, Any]:
 def update_user(db, uid: str, changes: dict[str, Any]) -> dict[str, Any]:
     user_ref = db.collection(USERS_COLLECTION).document(uid)
     user_doc = user_ref.get()
+    current_data = user_doc.to_dict() if user_doc.exists else None
 
-    if not user_doc.exists:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado",
-        )
+    if current_data is None:
+        try:
+            firebase_user = firebase_auth.get_user(uid)
+        except (ValueError, firebase_exceptions.FirebaseError) as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuario no encontrado",
+            ) from error
+        current_data = {
+            **_auth_user_to_record(firebase_user),
+            "createdAt": datetime.now(timezone.utc),
+        }
+        user_ref.set(current_data)
 
     clean_changes = {
         key: value
@@ -124,7 +133,6 @@ def update_user(db, uid: str, changes: dict[str, Any]) -> dict[str, Any]:
     if "rol" in clean_changes:
         clean_changes["rol"] = normalize_user_role(clean_changes["rol"])
 
-    current_data = user_doc.to_dict()
     final_role = normalize_user_role(clean_changes.get("rol", current_data.get("rol")))
     if final_role == "sin_acceso":
         clean_changes["appMovil"] = False

@@ -320,6 +320,35 @@ def test_update_user_forces_platform_access_off_without_role():
     assert updated["rango"] == "Sin acceso"
 
 
+def test_update_user_provisions_existing_firebase_auth_user(monkeypatch):
+    class FakeFirebaseUser:
+        uid = "firebase-only-1"
+        email = "firebase.only@enci.cl"
+        display_name = "Firebase Only"
+        disabled = False
+
+    db = FakeDb()
+    monkeypatch.setattr(
+        "app.services.users.firebase_auth.get_user",
+        lambda uid: FakeFirebaseUser(),
+    )
+
+    updated = update_user(db, "firebase-only-1", {
+        "rol": "vendedor",
+        "rango": "Vendedor",
+        "cargo": "Vendedor",
+        "webApp": True,
+        "appMovil": True,
+    })
+
+    stored = db.collection("users").rows["firebase-only-1"]
+    assert updated["rol"] == "vendedor"
+    assert updated["email"] == "firebase.only@enci.cl"
+    assert updated["webApp"] is True
+    assert updated["appMovil"] is True
+    assert stored["createdAt"] is not None
+
+
 def test_platform_access_rejects_disabled_web_app():
     with pytest.raises(HTTPException) as exc_info:
         ensure_platform_access({
