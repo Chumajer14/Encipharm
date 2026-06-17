@@ -3,7 +3,7 @@ import { useAuth } from "../auth/authContext";
 import { hasMinimumRole } from "../auth/roles";
 import LoadingState from "../components/LoadingState";
 import { useI18n } from "../i18n/useI18n";
-import { getUsers, updateUser, updateUserStatus } from "../services/api";
+import { getUsers, updateUser } from "../services/api";
 import { initials, matchText } from "../utils/commercialAnalytics";
 
 const RANKS = ["Sin acceso", "Solo lectura", "Vendedor", "Gerente", "Administrador"];
@@ -90,14 +90,19 @@ function Configuracion() {
   );
   const effectiveActiveTab = canViewUsers || activeTab !== "usuarios" ? activeTab : "apariencia";
 
-  const updateLocalUser = (updated) => setUsers(users.map((item) => item.uid === updated.uid ? updated : item));
+  const updateLocalUser = (updated, previousUser = null) => setUsers(users.map((item) => (
+    item.uid === updated.uid || item.uid === previousUser?.uid || item.email === updated.email ? updated : item
+  )));
 
   const patchUser = async (user, changes) => {
     if (!canEdit) return;
     try {
       setError("");
-      const updated = await updateUser(idToken, user.uid, changes);
-      updateLocalUser(updated);
+      const updated = await updateUser(idToken, user.uid, {
+        lookupEmail: user.email,
+        ...changes,
+      });
+      updateLocalUser(updated, user);
     } catch (updateError) {
       setError(updateError?.message || "No se pudieron guardar los cambios del usuario.");
     }
@@ -115,8 +120,11 @@ function Configuracion() {
     if (!canEdit) return;
     try {
       setError("");
-      const updated = await updateUserStatus(idToken, user.uid, !user.activo);
-      updateLocalUser(updated);
+      const updated = await updateUser(idToken, user.uid, {
+        lookupEmail: user.email,
+        activo: !user.activo,
+      });
+      updateLocalUser(updated, user);
     } catch (statusError) {
       setError(statusError?.message || "No se pudo cambiar el estado del usuario.");
     }
@@ -165,6 +173,7 @@ function Configuracion() {
     try {
       setSavingUser(true);
       const updated = await updateUser(idToken, editingUser.uid, {
+        lookupEmail: editingUser.email,
         nombre: form.nombre,
         rango: form.rango,
         cargo: form.rango,
@@ -173,7 +182,7 @@ function Configuracion() {
         ...platformAccess,
         activo: form.activo,
       });
-      updateLocalUser(updated);
+      updateLocalUser(updated, editingUser);
       closeModal();
     } catch (saveError) {
       setError(saveError?.message || "No se pudo guardar el usuario.");

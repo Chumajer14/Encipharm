@@ -105,6 +105,7 @@ def get_user_or_404(db, uid: str) -> dict[str, Any]:
 
 
 def update_user(db, uid: str, changes: dict[str, Any]) -> dict[str, Any]:
+    lookup_email = changes.get("lookupEmail")
     user_ref = db.collection(USERS_COLLECTION).document(uid)
     user_doc = user_ref.get()
     current_data = user_doc.to_dict() if user_doc.exists else None
@@ -113,20 +114,34 @@ def update_user(db, uid: str, changes: dict[str, Any]) -> dict[str, Any]:
         try:
             firebase_user = firebase_auth.get_user(uid)
         except (ValueError, firebase_exceptions.FirebaseError) as error:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Usuario no encontrado",
-            ) from error
-        current_data = {
-            **_auth_user_to_record(firebase_user),
-            "createdAt": datetime.now(timezone.utc),
-        }
-        user_ref.set(current_data)
+            if not lookup_email:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Usuario no encontrado",
+                ) from error
+            try:
+                firebase_user = firebase_auth.get_user_by_email(str(lookup_email))
+            except (ValueError, firebase_exceptions.FirebaseError) as email_error:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Usuario no encontrado",
+                ) from email_error
+            uid = firebase_user.uid
+            user_ref = db.collection(USERS_COLLECTION).document(uid)
+            user_doc = user_ref.get()
+            current_data = user_doc.to_dict() if user_doc.exists else None
+
+        if current_data is None:
+            current_data = {
+                **_auth_user_to_record(firebase_user),
+                "createdAt": datetime.now(timezone.utc),
+            }
+            user_ref.set(current_data)
 
     clean_changes = {
         key: value
         for key, value in changes.items()
-        if value is not None
+        if value is not None and key != "lookupEmail"
     }
     if "nombre" in clean_changes:
         clean_changes["nombre"] = normalize_display_name(clean_changes["nombre"])

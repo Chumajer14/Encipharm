@@ -296,6 +296,16 @@ def test_user_update_rejects_unknown_sensitive_fields():
         })
 
 
+def test_user_update_accepts_lookup_email_for_provisioning():
+    payload = UserUpdate.model_validate({
+        "lookupEmail": "lookup@enci.cl",
+        "rol": "vendedor",
+    })
+
+    assert str(payload.lookupEmail) == "lookup@enci.cl"
+    assert payload.rol == "vendedor"
+
+
 def test_update_user_forces_platform_access_off_without_role():
     db = FakeDb()
     db.collection("users").document("user-1").set({
@@ -347,6 +357,39 @@ def test_update_user_provisions_existing_firebase_auth_user(monkeypatch):
     assert updated["webApp"] is True
     assert updated["appMovil"] is True
     assert stored["createdAt"] is not None
+
+
+def test_update_user_provisions_by_lookup_email_when_uid_is_stale(monkeypatch):
+    class FakeFirebaseUser:
+        uid = "resolved-auth-uid"
+        email = "resolved@enci.cl"
+        display_name = "Resolved User"
+        disabled = False
+
+    db = FakeDb()
+    monkeypatch.setattr(
+        "app.services.users.firebase_auth.get_user",
+        lambda uid: (_ for _ in ()).throw(ValueError("missing uid")),
+    )
+    monkeypatch.setattr(
+        "app.services.users.firebase_auth.get_user_by_email",
+        lambda email: FakeFirebaseUser(),
+    )
+
+    updated = update_user(db, "stale-ui-uid", {
+        "lookupEmail": "resolved@enci.cl",
+        "rol": "supervisor",
+        "rango": "Gerente",
+        "cargo": "Gerente",
+        "webApp": True,
+        "appMovil": False,
+    })
+
+    assert updated["uid"] == "resolved-auth-uid"
+    assert updated["email"] == "resolved@enci.cl"
+    assert updated["rol"] == "supervisor"
+    assert "stale-ui-uid" not in db.collection("users").rows
+    assert "resolved-auth-uid" in db.collection("users").rows
 
 
 def test_platform_access_rejects_disabled_web_app():
