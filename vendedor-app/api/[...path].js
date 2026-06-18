@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 
-const BACKEND_BASE_URL = "https://encipharm.onrender.com";
+const BACKEND_BASE_URL = "https://enci-backend.vercel.app";
 const PRODUCTION_ORIGIN = "https://enciapp.vercel.app";
 const PREVIEW_ORIGIN_REGEX =
   /^https:\/\/enciapp-[a-z0-9-]+-chumajer14s-projects\.vercel\.app$/;

@@ -72,7 +72,7 @@ def build_readiness_report(settings: Settings) -> ReadinessReport:
         _check(
             "rag_deepseek_api_key",
             bool(settings.DEEPSEEK_API_KEY and settings.DEEPSEEK_API_KEY.strip()),
-            "DEEPSEEK_API_KEY debe estar configurada en Render para habilitar /rag/chat.",
+            "DEEPSEEK_API_KEY debe estar configurada en el backend desplegado para habilitar /rag/chat.",
         ),
         _check(
             "rag_deepseek_base_url",
