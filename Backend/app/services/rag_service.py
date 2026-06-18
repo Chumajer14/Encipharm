@@ -2,9 +2,11 @@ import html
 import io
 import re
 import uuid
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from time import monotonic
+from typing import Any
 from zipfile import BadZipFile, ZipFile
 
 from fastapi import HTTPException, UploadFile, status
@@ -12,6 +14,9 @@ from firebase_admin import firestore
 
 from app.core.config import get_settings
 from app.models.rag import NO_CONTEXT_RESPONSE
+from app.services.clientes import list_clientes
+from app.services.comercial import list_interactions, list_opportunities, list_proposals
+from app.services.dashboard import build_dashboard
 from app.services.storage_service import download_document_bytes, get_extension, upload_document_bytes
 from app.services.users import list_users
 
@@ -21,10 +26,45 @@ MIME_BY_EXTENSION = {
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ".txt": "text/plain",
 }
-SELLERS_QUESTION_PATTERN = re.compile(
-    r"\b(vendedores|vendedor(?:es)?|equipo\s+de\s+ventas|quienes\s+venden|quien(?:es)?\s+son\s+los\s+vendedores)\b",
-    re.IGNORECASE,
-)
+STOPWORDS = {
+    "a",
+    "al",
+    "algo",
+    "como",
+    "con",
+    "cual",
+    "cuales",
+    "cuando",
+    "de",
+    "del",
+    "dime",
+    "donde",
+    "el",
+    "en",
+    "es",
+    "esta",
+    "estan",
+    "hay",
+    "la",
+    "las",
+    "lo",
+    "los",
+    "me",
+    "muestra",
+    "para",
+    "por",
+    "que",
+    "quien",
+    "quienes",
+    "son",
+    "su",
+    "sus",
+    "todos",
+    "todas",
+    "un",
+    "una",
+    "y",
+}
 
 
 class UserRateLimiter:
@@ -63,54 +103,167 @@ def sanitize_question(value: str) -> str:
     return normalize_text(html.unescape(without_tags))
 
 
-def is_sellers_question(question: str) -> bool:
-    """Detecta consultas CRM sobre usuarios vendedores."""
+def _tokens(value: str) -> set[str]:
+    words = re.findall(r"[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9_@.-]{3,}", value.lower())
+    return {word for word in words if word not in STOPWORDS}
 
-    return bool(SELLERS_QUESTION_PATTERN.search(question))
+
+def _safe_value(value: Any) -> str:
+    if value is None:
+        return "N/D"
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
 
 
-def answer_sellers_question(db, user: dict) -> tuple[str, list[dict], int, bool]:
-    """Responde consultas sobre vendedores desde el CRM, sin invocar el LLM."""
+def _source(documento: str, pagina: str, text: str) -> dict:
+    clean_text = normalize_text(text)
+    return {
+        "texto": clean_text,
+        "documento": documento,
+        "pagina": pagina,
+        "fragmento": clean_text[:500],
+    }
 
-    if user.get("rol") not in {"supervisor", "admin"}:
-        return (
-            "No tienes permisos para consultar el listado completo de vendedores.",
-            [{"documento": "CRM usuarios", "pagina": "permisos", "fragmento": "El listado de vendedores requiere rol supervisor o admin."}],
-            0,
-            False,
-        )
 
-    sellers = [
-        crm_user
-        for crm_user in list_users(db, activo=True, limit=500)
-        if crm_user.get("rol") == "vendedor" and crm_user.get("webApp", True)
-    ]
-    if not sellers:
-        return (
-            "No hay vendedores activos registrados con acceso web en el CRM.",
-            [{"documento": "CRM usuarios", "pagina": "users", "fragmento": "Consulta de usuarios activos con rol vendedor."}],
-            0,
-            False,
-        )
+def _score_chunk(question_tokens: set[str], chunk: dict) -> int:
+    chunk_tokens = _tokens(f"{chunk.get('documento', '')} {chunk.get('pagina', '')} {chunk.get('texto', '')}")
+    return len(question_tokens & chunk_tokens)
 
-    sellers.sort(key=lambda item: item.get("nombre") or item.get("email") or "")
-    lines = [
-        f"- {seller.get('nombre')} ({seller.get('email')}) - {seller.get('zona')} - {seller.get('cargo')}"
-        for seller in sellers
-    ]
-    response = "Vendedores activos registrados en el CRM:\n" + "\n".join(lines)
+
+def _count_by(items: list[dict], key: str) -> str:
+    counter = Counter(_safe_value(item.get(key)) for item in items)
+    if not counter:
+        return "sin registros"
+    return ", ".join(f"{name}: {total}" for name, total in counter.most_common(8))
+
+
+def _format_user(user: dict) -> str:
     return (
-        response,
-        [
-            {
-                "documento": "CRM usuarios",
-                "pagina": "users",
-                "fragmento": f"{len(sellers)} vendedores activos con acceso web.",
-            }
-        ],
-        0,
-        False,
+        f"Usuario: {user.get('nombre')} | email: {user.get('email')} | rol: {user.get('rol')} | "
+        f"cargo: {user.get('cargo')} | rango: {user.get('rango')} | zona: {user.get('zona')} | "
+        f"activo: {user.get('activo')} | webApp: {user.get('webApp')} | appMovil: {user.get('appMovil')}"
     )
+
+
+def _format_cliente(cliente: dict) -> str:
+    return (
+        f"Cliente: {cliente.get('nombre')} | empresa: {cliente.get('empresa')} | email: {cliente.get('email')} | "
+        f"telefono: {cliente.get('telefono')} | rubro: {cliente.get('rubro')} | region: {cliente.get('region')} | "
+        f"estado: {cliente.get('estado')} | vendedorUid: {cliente.get('vendedorUid') or cliente.get('ownerUid')}"
+    )
+
+
+def _format_opportunity(opportunity: dict) -> str:
+    return (
+        f"Oportunidad: {opportunity.get('titulo')} | clienteId: {opportunity.get('clienteId')} | "
+        f"etapa: {opportunity.get('etapa')} | valorEstimado: {opportunity.get('valorEstimado')} | "
+        f"probabilidad: {opportunity.get('probabilidad')} | vendedorUid: {opportunity.get('vendedorUid')}"
+    )
+
+
+def _format_proposal(proposal: dict) -> str:
+    return (
+        f"Propuesta: {proposal.get('titulo')} | clienteId: {proposal.get('clienteId')} | "
+        f"oportunidadId: {proposal.get('oportunidadId')} | estado: {proposal.get('estado')} | "
+        f"montoNeto: {proposal.get('montoNeto')} | montoTotal: {proposal.get('montoTotal')} | "
+        f"descuentoPct: {proposal.get('descuentoPct')} | vendedorUid: {proposal.get('vendedorUid')}"
+    )
+
+
+def _format_interaction(interaction: dict) -> str:
+    return (
+        f"Interaccion: {interaction.get('tipo')} | clienteId: {interaction.get('clienteId')} | "
+        f"fecha: {_safe_value(interaction.get('fecha'))} | resumen: {interaction.get('resumen')} | "
+        f"resultado: {interaction.get('resultado')} | proximaAccion: {interaction.get('proximaAccion')} | "
+        f"vendedorUid: {interaction.get('vendedorUid')}"
+    )
+
+
+def build_internal_context_chunks(db, question: str, user: dict, limit: int = 16) -> list[dict]:
+    """Construye contexto corporativo visible para responder preguntas internas amplias."""
+
+    vendedor_uid = user.get("uid") if user.get("rol") == "vendedor" else None
+    clientes = list_clientes(db, vendedor_uid=vendedor_uid, limit=120)
+    opportunities = list_opportunities(db, user=user, limit=120)
+    proposals = list_proposals(db, user=user, limit=120)
+    interactions = list_interactions(db, user=user, limit=80)
+    dashboard = build_dashboard(db, vendedor_uid=vendedor_uid)
+
+    chunks = [
+        _source(
+            "CRM metricas",
+            "dashboard",
+            "Metricas internas: "
+            + "; ".join(
+                f"{key}: {value}"
+                for key, value in dashboard.items()
+                if key not in {"forecastMensual", "embudoVentas"}
+            ),
+        ),
+        _source(
+            "CRM clientes",
+            "resumen",
+            f"Total clientes visibles: {len(clientes)}. Por estado: {_count_by(clientes, 'estado')}. "
+            f"Por region: {_count_by(clientes, 'region')}. Por rubro: {_count_by(clientes, 'rubro')}.",
+        ),
+        _source(
+            "CRM oportunidades",
+            "resumen",
+            f"Total oportunidades visibles: {len(opportunities)}. Por etapa: {_count_by(opportunities, 'etapa')}.",
+        ),
+        _source(
+            "CRM propuestas",
+            "resumen",
+            f"Total propuestas visibles: {len(proposals)}. Por estado: {_count_by(proposals, 'estado')}.",
+        ),
+    ]
+
+    if user.get("rol") in {"supervisor", "admin"}:
+        users = list_users(db, activo=None, limit=500)
+        chunks.append(
+            _source(
+                "CRM usuarios",
+                "resumen",
+                f"Total usuarios registrados: {len(users)}. Por rol: {_count_by(users, 'rol')}. "
+                f"Por zona: {_count_by(users, 'zona')}.",
+            )
+        )
+        chunks.extend(_source("CRM usuarios", crm_user.get("uid") or "users", _format_user(crm_user)) for crm_user in users)
+    else:
+        chunks.append(_source("CRM usuarios", user.get("uid") or "me", _format_user(user)))
+
+    chunks.extend(_source("CRM clientes", cliente.get("id") or "clientes", _format_cliente(cliente)) for cliente in clientes)
+    chunks.extend(
+        _source("CRM oportunidades", opportunity.get("id") or "oportunidades", _format_opportunity(opportunity))
+        for opportunity in opportunities
+    )
+    chunks.extend(
+        _source("CRM propuestas", proposal.get("id") or "propuestas", _format_proposal(proposal))
+        for proposal in proposals
+    )
+    chunks.extend(
+        _source("CRM interacciones", interaction.get("id") or "interacciones", _format_interaction(interaction))
+        for interaction in interactions
+    )
+
+    question_tokens = _tokens(question)
+    if not question_tokens:
+        return chunks[:limit]
+
+    scored = [(_score_chunk(question_tokens, chunk), index, chunk) for index, chunk in enumerate(chunks)]
+    relevant = [item for item in scored if item[0] > 0]
+    if not relevant:
+        return chunks[: min(4, limit)]
+
+    relevant.sort(key=lambda item: (item[0], -item[1]), reverse=True)
+    selected = [chunk for _score, _index, chunk in relevant[:limit]]
+    summary_chunks = chunks[:4]
+    selected_keys = {(chunk["documento"], chunk["pagina"]) for chunk in selected}
+    return [
+        *[chunk for chunk in summary_chunks if (chunk["documento"], chunk["pagina"]) not in selected_keys],
+        *selected,
+    ][:limit]
 
 
 def sanitize_filename(file_name: str) -> str:

@@ -16,14 +16,13 @@ from app.models.rag import (
 from app.services.firestore import get_db
 from app.services.llm_service import build_system_prompt, build_user_prompt, call_deepseek
 from app.services.rag_service import (
+    build_internal_context_chunks,
     list_conversations,
     list_documents,
     no_context_payload,
     rag_chat_rate_limiter,
     read_upload_bytes,
     reindex_documents,
-    answer_sellers_question,
-    is_sellers_question,
     sanitize_question,
     save_conversation_turn,
     search_similar_chunks,
@@ -47,17 +46,18 @@ async def chat_with_rag(
     if not pregunta:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="La pregunta no puede estar vacia")
 
-    use_crm_sellers = is_sellers_question(pregunta)
-    if use_crm_sellers:
-        respuesta, fuentes, tokens_usados, sin_contexto = await run_in_threadpool(
-            answer_sellers_question,
-            get_db(),
-            user,
-        )
-    else:
-        chunks = await run_in_threadpool(search_similar_chunks, pregunta, settings.MAX_CONTEXT_CHUNKS)
+    db = get_db()
+    internal_chunks = await run_in_threadpool(
+        build_internal_context_chunks,
+        db,
+        pregunta,
+        user,
+        settings.MAX_CONTEXT_CHUNKS * 3,
+    )
+    document_chunks = await run_in_threadpool(search_similar_chunks, pregunta, settings.MAX_CONTEXT_CHUNKS)
+    chunks = [*internal_chunks, *document_chunks]
 
-    if not use_crm_sellers and chunks:
+    if chunks:
         llm_response = await call_deepseek(build_system_prompt(), build_user_prompt(pregunta, chunks))
         respuesta = llm_response["texto"]
         tokens_usados = llm_response["tokens"]
@@ -70,12 +70,12 @@ async def chat_with_rag(
             for chunk in chunks
         ]
         sin_contexto = False
-    elif not use_crm_sellers:
+    else:
         respuesta, fuentes, tokens_usados, sin_contexto = no_context_payload()
 
     conversation_id = await run_in_threadpool(
         save_conversation_turn,
-        get_db(),
+        db,
         user,
         pregunta,
         respuesta,
