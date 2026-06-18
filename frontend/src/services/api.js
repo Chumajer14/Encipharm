@@ -136,7 +136,19 @@ function getErrorDetail(errorBody) {
     return errorBody.detail.map((item) => item.msg || JSON.stringify(item)).join(" ");
   }
 
-  return errorBody.detail || errorBody.error || errorBody.message;
+  const details = [];
+  if (errorBody.detail) details.push(errorBody.detail);
+  if (errorBody.message) details.push(errorBody.message);
+  if (typeof errorBody.error === "string") details.push(errorBody.error);
+  if (errorBody.hint) details.push(`Hint: ${errorBody.hint}`);
+  if (errorBody.proxy?.attempts) details.push(`Intentos: ${errorBody.proxy.attempts}`);
+  if (errorBody.error && typeof errorBody.error === "object") {
+    const proxyError = [errorBody.error.name, errorBody.error.message].filter(Boolean).join(": ");
+    if (proxyError) details.push(`ProxyError: ${proxyError}`);
+    if (errorBody.error.cause) details.push(`Cause: ${errorBody.error.cause}`);
+  }
+
+  return details.join(" | ");
 }
 
 export async function apiFetch(path, { token, ...options } = {}) {

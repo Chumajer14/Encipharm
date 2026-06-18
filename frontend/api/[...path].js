@@ -51,6 +51,7 @@ function buildProxyError({ backendUrl, error, rawPath, traceId }) {
       method: "FETCH_BACKEND",
       rawPath,
       backendUrl,
+      attempts: error?.attempts || 1,
     },
     error: {
       name: errorName,
@@ -58,6 +59,50 @@ function buildProxyError({ backendUrl, error, rawPath, traceId }) {
       cause: error?.cause?.message || null,
     },
   };
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function fetchBackendWithRetry(backendUrl, request, rawPath, traceId) {
+  const maxAttempts = 3;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
+
+    try {
+      return await fetch(backendUrl, {
+        method: request.method,
+        headers: buildHeaders(request),
+        body: ["GET", "HEAD"].includes(request.method) ? undefined : JSON.stringify(request.body || {}),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      lastError = error;
+      lastError.attempts = attempt;
+      console.error("Proxy backend fetch failed", {
+        traceId,
+        rawPath,
+        backendUrl,
+        attempt,
+        name: error?.name,
+        message: error?.message,
+        cause: error?.cause?.message,
+      });
+      if (attempt < maxAttempts) {
+        await delay(350 * attempt);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  throw lastError;
 }
 
 export default async function handler(request, response) {
@@ -82,15 +127,7 @@ export default async function handler(request, response) {
   const backendUrl = `${BACKEND_BASE_URL}/${rawPath}${searchParams ? `?${searchParams}` : ""}`;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
-    const backendResponse = await fetch(backendUrl, {
-      method: request.method,
-      headers: buildHeaders(request),
-      body: ["GET", "HEAD"].includes(request.method) ? undefined : JSON.stringify(request.body || {}),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    const backendResponse = await fetchBackendWithRetry(backendUrl, request, rawPath, traceId);
     const contentType = backendResponse.headers.get("content-type") || "application/json";
     const body = await backendResponse.arrayBuffer();
 
