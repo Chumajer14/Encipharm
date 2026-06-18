@@ -4607,6 +4607,30 @@ a {
   color: var(--text-primary);
 }
 
+.rag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.rag-suggestions button {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 12px;
+}
+
+.rag-suggestions button:hover:not(:disabled) {
+  border-color: var(--accent-violet);
+  color: var(--text-primary);
+}
+
 .rag-chat-input,
 .rag-upload-form {
   display: grid;
