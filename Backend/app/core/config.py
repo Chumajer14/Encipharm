@@ -26,9 +26,12 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173,"
         "http://127.0.0.1:5174,"
         "http://127.0.0.1:5175,"
+        "https://encipharm.vercel.app,"
         "https://enciapp.vercel.app"
     )
-    CORS_ORIGIN_REGEX: Optional[str] = r"^https://enciapp-[a-z0-9-]+-chumajer14s-projects\.vercel\.app$"
+    CORS_ORIGIN_REGEX: Optional[str] = (
+        r"^https://(encipharm|enciapp)-[a-z0-9-]+-chumajer14s-projects\.vercel\.app$"
+    )
 
     # Firebase
     FIREBASE_PROJECT_ID: str
