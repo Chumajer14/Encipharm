@@ -13,6 +13,7 @@ from firebase_admin import firestore
 from app.core.config import get_settings
 from app.models.rag import NO_CONTEXT_RESPONSE
 from app.services.storage_service import download_document_bytes, get_extension, upload_document_bytes
+from app.services.users import list_users
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 MIME_BY_EXTENSION = {
@@ -20,6 +21,10 @@ MIME_BY_EXTENSION = {
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ".txt": "text/plain",
 }
+SELLERS_QUESTION_PATTERN = re.compile(
+    r"\b(vendedores|vendedor(?:es)?|equipo\s+de\s+ventas|quienes\s+venden|quien(?:es)?\s+son\s+los\s+vendedores)\b",
+    re.IGNORECASE,
+)
 
 
 class UserRateLimiter:
@@ -56,6 +61,56 @@ def sanitize_question(value: str) -> str:
 
     without_tags = re.sub(r"<[^>]*>", " ", value)
     return normalize_text(html.unescape(without_tags))
+
+
+def is_sellers_question(question: str) -> bool:
+    """Detecta consultas CRM sobre usuarios vendedores."""
+
+    return bool(SELLERS_QUESTION_PATTERN.search(question))
+
+
+def answer_sellers_question(db, user: dict) -> tuple[str, list[dict], int, bool]:
+    """Responde consultas sobre vendedores desde el CRM, sin invocar el LLM."""
+
+    if user.get("rol") not in {"supervisor", "admin"}:
+        return (
+            "No tienes permisos para consultar el listado completo de vendedores.",
+            [{"documento": "CRM usuarios", "pagina": "permisos", "fragmento": "El listado de vendedores requiere rol supervisor o admin."}],
+            0,
+            False,
+        )
+
+    sellers = [
+        crm_user
+        for crm_user in list_users(db, activo=True, limit=500)
+        if crm_user.get("rol") == "vendedor" and crm_user.get("webApp", True)
+    ]
+    if not sellers:
+        return (
+            "No hay vendedores activos registrados con acceso web en el CRM.",
+            [{"documento": "CRM usuarios", "pagina": "users", "fragmento": "Consulta de usuarios activos con rol vendedor."}],
+            0,
+            False,
+        )
+
+    sellers.sort(key=lambda item: item.get("nombre") or item.get("email") or "")
+    lines = [
+        f"- {seller.get('nombre')} ({seller.get('email')}) - {seller.get('zona')} - {seller.get('cargo')}"
+        for seller in sellers
+    ]
+    response = "Vendedores activos registrados en el CRM:\n" + "\n".join(lines)
+    return (
+        response,
+        [
+            {
+                "documento": "CRM usuarios",
+                "pagina": "users",
+                "fragmento": f"{len(sellers)} vendedores activos con acceso web.",
+            }
+        ],
+        0,
+        False,
+    )
 
 
 def sanitize_filename(file_name: str) -> str:

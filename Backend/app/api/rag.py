@@ -22,6 +22,8 @@ from app.services.rag_service import (
     rag_chat_rate_limiter,
     read_upload_bytes,
     reindex_documents,
+    answer_sellers_question,
+    is_sellers_question,
     sanitize_question,
     save_conversation_turn,
     search_similar_chunks,
@@ -45,8 +47,17 @@ async def chat_with_rag(
     if not pregunta:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="La pregunta no puede estar vacia")
 
-    chunks = await run_in_threadpool(search_similar_chunks, pregunta, settings.MAX_CONTEXT_CHUNKS)
-    if chunks:
+    use_crm_sellers = is_sellers_question(pregunta)
+    if use_crm_sellers:
+        respuesta, fuentes, tokens_usados, sin_contexto = await run_in_threadpool(
+            answer_sellers_question,
+            get_db(),
+            user,
+        )
+    else:
+        chunks = await run_in_threadpool(search_similar_chunks, pregunta, settings.MAX_CONTEXT_CHUNKS)
+
+    if not use_crm_sellers and chunks:
         llm_response = await call_deepseek(build_system_prompt(), build_user_prompt(pregunta, chunks))
         respuesta = llm_response["texto"]
         tokens_usados = llm_response["tokens"]
@@ -59,7 +70,7 @@ async def chat_with_rag(
             for chunk in chunks
         ]
         sin_contexto = False
-    else:
+    elif not use_crm_sellers:
         respuesta, fuentes, tokens_usados, sin_contexto = no_context_payload()
 
     conversation_id = await run_in_threadpool(
