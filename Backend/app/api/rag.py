@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 
 from app.core.auth import require_role
 from app.core.config import get_settings
@@ -44,7 +45,7 @@ async def chat_with_rag(
     if not pregunta:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="La pregunta no puede estar vacia")
 
-    chunks = search_similar_chunks(pregunta, settings.MAX_CONTEXT_CHUNKS)
+    chunks = await run_in_threadpool(search_similar_chunks, pregunta, settings.MAX_CONTEXT_CHUNKS)
     if chunks:
         llm_response = await call_deepseek(build_system_prompt(), build_user_prompt(pregunta, chunks))
         respuesta = llm_response["texto"]
@@ -61,15 +62,16 @@ async def chat_with_rag(
     else:
         respuesta, fuentes, tokens_usados, sin_contexto = no_context_payload()
 
-    conversation_id = save_conversation_turn(
+    conversation_id = await run_in_threadpool(
+        save_conversation_turn,
         get_db(),
-        user=user,
-        pregunta=pregunta,
-        respuesta=respuesta,
-        fuentes=fuentes,
-        tokens_usados=tokens_usados,
-        sin_contexto=sin_contexto,
-        conversacion_id=payload.conversacion_id,
+        user,
+        pregunta,
+        respuesta,
+        fuentes,
+        tokens_usados,
+        sin_contexto,
+        payload.conversacion_id,
     )
 
     return RagChatResponse(
@@ -88,7 +90,7 @@ async def get_rag_conversations(
 ):
     """Lista conversaciones RAG segun alcance de rol."""
 
-    return list_conversations(get_db(), user, limit=limit)
+    return await run_in_threadpool(list_conversations, get_db(), user, limit)
 
 
 @router.post("/documents/upload", response_model=RagUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -100,7 +102,14 @@ async def upload_rag_document(
 
     content = await read_upload_bytes(file)
     _extension, content_type = validate_document_file(file.filename or "", content)
-    result = upload_and_index_document(get_db(), file.filename or "documento", content, content_type, user)
+    result = await run_in_threadpool(
+        upload_and_index_document,
+        get_db(),
+        file.filename or "documento",
+        content,
+        content_type,
+        user,
+    )
     return RagUploadResponse(mensaje="Documento indexado exitosamente", **result)
 
 
@@ -108,7 +117,7 @@ async def upload_rag_document(
 async def reindex_rag_documents(user: dict = Depends(require_role("admin"))):
     """Reconstruye el indice vectorial desde los documentos activos almacenados."""
 
-    chunks = reindex_documents(get_db(), user)
+    chunks = await run_in_threadpool(reindex_documents, get_db(), user)
     return {"mensaje": "Documentos reindexados exitosamente", "chunks_indexados": chunks}
 
 
@@ -116,4 +125,4 @@ async def reindex_rag_documents(user: dict = Depends(require_role("admin"))):
 async def get_rag_documents(user: dict = Depends(require_role("admin"))):
     """Lista documentos disponibles en el corpus RAG."""
 
-    return list_documents(get_db())
+    return await run_in_threadpool(list_documents, get_db())

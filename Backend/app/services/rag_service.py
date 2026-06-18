@@ -151,8 +151,12 @@ def search_similar_chunks(query: str, n_results: int | None = None) -> list[dict
     """Busca fragmentos similares y filtra por umbral configurable."""
 
     settings = get_settings()
+    collection = _get_collection()
+    if collection.count() == 0:
+        return []
+
     query_embedding = _load_embedding_model().encode([query]).tolist()
-    results = _get_collection().query(
+    results = collection.query(
         query_embeddings=query_embedding,
         n_results=n_results or settings.MAX_CONTEXT_CHUNKS,
         include=["documents", "metadatas", "distances"],
@@ -283,6 +287,7 @@ def save_conversation_turn(
     """Persiste pregunta y respuesta en la coleccion chatConversaciones."""
 
     now = firestore.SERVER_TIMESTAMP
+    message_timestamp = datetime.now(timezone.utc)
     conversation_id = conversacion_id or str(uuid.uuid4())
     conversation_ref = db.collection("chatConversaciones").document(conversation_id)
     snapshot = conversation_ref.get()
@@ -298,11 +303,11 @@ def save_conversation_turn(
 
     messages = [
         *existing_messages,
-        {"tipo": "pregunta", "texto": pregunta, "timestamp": now},
+        {"tipo": "pregunta", "texto": pregunta, "timestamp": message_timestamp},
         {
             "tipo": "respuesta",
             "texto": respuesta,
-            "timestamp": now,
+            "timestamp": message_timestamp,
             "fuentes": fuentes,
             "tokens_usados": tokens_usados,
             "sin_contexto": sin_contexto,
