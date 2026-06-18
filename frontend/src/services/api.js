@@ -86,10 +86,12 @@ function notifyDataMutated() {
 }
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, details = {}) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = details.code || `API_HTTP_${status || "UNKNOWN"}`;
+    this.details = details;
   }
 }
 
@@ -97,6 +99,44 @@ function notifyAuthExpired(status) {
   if (status === 401) {
     window.dispatchEvent(new CustomEvent("enci:auth-expired"));
   }
+}
+
+function buildDiagnosticMessage({ code, message, method, path, status, traceId, upstreamStatus }) {
+  const parts = [
+    `[${code}]`,
+    message,
+    `Metodo: ${method}`,
+    `Ruta: ${path}`,
+  ];
+
+  if (status) parts.push(`HTTP: ${status}`);
+  if (upstreamStatus) parts.push(`Backend: ${upstreamStatus}`);
+  if (traceId) parts.push(`Trace: ${traceId}`);
+
+  return parts.join(" | ");
+}
+
+async function readErrorBody(response) {
+  const text = await response.text().catch(() => "");
+  if (!text) return { raw: "" };
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      code: "API_ERROR_BODY_NOT_JSON",
+      detail: "El servidor respondio con un cuerpo no JSON.",
+      raw: text.slice(0, 500),
+    };
+  }
+}
+
+function getErrorDetail(errorBody) {
+  if (Array.isArray(errorBody.detail)) {
+    return errorBody.detail.map((item) => item.msg || JSON.stringify(item)).join(" ");
+  }
+
+  return errorBody.detail || errorBody.error || errorBody.message;
 }
 
 export async function apiFetch(path, { token, ...options } = {}) {
@@ -119,23 +159,87 @@ export async function apiFetch(path, { token, ...options } = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-    cache: method === "GET" ? "no-store" : "default",
-  });
+  let response;
+  const url = `${API_BASE_URL}${path}`;
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    const detail = Array.isArray(errorBody.detail)
-      ? errorBody.detail.map((item) => item.msg).join(" ")
-      : errorBody.detail || errorBody.error;
-    const message = detail || `Error ${response.status}`;
-    notifyAuthExpired(response.status);
-    throw new ApiError(message, response.status);
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      cache: method === "GET" ? "no-store" : "default",
+    });
+  } catch (networkError) {
+    const code = "API_NETWORK_FETCH_FAILED";
+    throw new ApiError(
+      buildDiagnosticMessage({
+        code,
+        message: "El navegador no pudo ejecutar fetch. Posible CORS, DNS, conexion o bloqueo de red.",
+        method,
+        path,
+      }),
+      0,
+      {
+        code,
+        method,
+        path,
+        url,
+        errorName: networkError?.name,
+        errorMessage: networkError?.message,
+      },
+    );
   }
 
-  const data = await response.json();
+  if (!response.ok) {
+    const errorBody = await readErrorBody(response);
+    const traceId = response.headers.get("X-Enci-Trace-Id") || errorBody.traceId;
+    const upstreamStatus = response.headers.get("X-Enci-Upstream-Status");
+    const code = errorBody.code || `API_HTTP_${response.status}`;
+    const detail = getErrorDetail(errorBody);
+    const message = buildDiagnosticMessage({
+      code,
+      message: detail || response.statusText || `Error ${response.status}`,
+      method,
+      path,
+      status: response.status,
+      traceId,
+      upstreamStatus,
+    });
+    notifyAuthExpired(response.status);
+    throw new ApiError(message, response.status, {
+      code,
+      method,
+      path,
+      url,
+      traceId,
+      upstreamStatus,
+      body: errorBody,
+    });
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (parseError) {
+    const code = "API_SUCCESS_BODY_NOT_JSON";
+    throw new ApiError(
+      buildDiagnosticMessage({
+        code,
+        message: "La respuesta fue exitosa, pero no se pudo parsear como JSON.",
+        method,
+        path,
+        status: response.status,
+        traceId: response.headers.get("X-Enci-Trace-Id"),
+      }),
+      response.status,
+      {
+        code,
+        method,
+        path,
+        url,
+        errorMessage: parseError?.message,
+      },
+    );
+  }
   if (canUseGetCache) {
     writeGetCache(path, data);
   } else if (method !== "GET") {

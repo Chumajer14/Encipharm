@@ -11,6 +11,7 @@ const BASE_CORS_HEADERS = {
   "Cache-Control": "no-store",
   "Pragma": "no-cache",
 };
+const BACKEND_TIMEOUT_MS = 25_000;
 
 function resolveAllowedOrigin(origin = "") {
   if (origin === PRODUCTION_ORIGIN || PREVIEW_ORIGIN_REGEX.test(origin)) {
@@ -31,8 +32,38 @@ function buildHeaders(request) {
   return headers;
 }
 
+function buildProxyError({ backendUrl, error, rawPath, traceId }) {
+  const errorName = error?.name || "Error";
+  const errorMessage = error?.message || "Error desconocido";
+  const isTimeout = errorName === "AbortError" || errorMessage.toLowerCase().includes("aborted");
+
+  return {
+    code: isTimeout ? "PROXY_BACKEND_TIMEOUT" : "PROXY_BACKEND_FETCH_FAILED",
+    detail: isTimeout
+      ? "El proxy de Vercel agoto el tiempo esperando respuesta del backend Render."
+      : "El proxy de Vercel no pudo conectar con el backend Render.",
+    hint: isTimeout
+      ? "Revisa si Render esta arrancando, bloqueado o con cold start superior a 25 segundos."
+      : "Revisa disponibilidad de Render, DNS, TLS o variables de entorno del backend.",
+    traceId,
+    proxy: {
+      app: "encipharm",
+      method: "FETCH_BACKEND",
+      rawPath,
+      backendUrl,
+    },
+    error: {
+      name: errorName,
+      message: errorMessage,
+      cause: error?.cause?.message || null,
+    },
+  };
+}
+
 export default async function handler(request, response) {
+  const traceId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   response.setHeader("Access-Control-Allow-Origin", resolveAllowedOrigin(request.headers.origin));
+  response.setHeader("X-Enci-Trace-Id", traceId);
   Object.entries(BASE_CORS_HEADERS).forEach(([key, value]) => {
     response.setHeader(key, value);
   });
@@ -51,21 +82,26 @@ export default async function handler(request, response) {
   const backendUrl = `${BACKEND_BASE_URL}/${rawPath}${searchParams ? `?${searchParams}` : ""}`;
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
     const backendResponse = await fetch(backendUrl, {
       method: request.method,
       headers: buildHeaders(request),
       body: ["GET", "HEAD"].includes(request.method) ? undefined : JSON.stringify(request.body || {}),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     const contentType = backendResponse.headers.get("content-type") || "application/json";
     const body = await backendResponse.arrayBuffer();
 
     response.status(backendResponse.status);
     response.setHeader("Content-Type", contentType);
+    response.setHeader("X-Enci-Upstream-Status", String(backendResponse.status));
+    response.setHeader("X-Enci-Upstream-Url", backendUrl);
     response.send(Buffer.from(body));
   } catch (error) {
-    response.status(502).json({
-      detail: "No se pudo conectar con el backend.",
-      error: error.message,
-    });
+    response
+      .status(error?.name === "AbortError" ? 504 : 502)
+      .json(buildProxyError({ backendUrl, error, rawPath, traceId }));
   }
 }
