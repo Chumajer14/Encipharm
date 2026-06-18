@@ -72,7 +72,7 @@ function App() {
         <Route path="/" element={<Inicio user={user} />} />
         <Route path="/cotizacion" element={<NuevaCotizacion token={token} />} />
         <Route path="/proyeccion" element={<Proyeccion token={token} />} />
-        <Route path="/ia-rag" element={<IARag />} />
+        <Route path="/ia-rag" element={<IARag token={token} />} />
         <Route path="/pipeline" element={<Pipeline token={token} />} />
         <Route path="/configuracion" element={<Configuracion user={user} />} />
         <Route path="*" element={<Navigate to="/" />} />

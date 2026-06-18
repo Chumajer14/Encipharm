@@ -1,6 +1,19 @@
 const DEFAULT_API_URL = "http://localhost:8000";
-const API_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_URL).replace(/\/+$/, "");
 const CLIENT_PLATFORM = "mobile";
+
+/**
+ * Resolves the backend base URL for local development and Vercel deployments.
+ * Production uses the Vercel proxy to avoid exposing backend topology to clients.
+ */
+function getApiUrl() {
+  if (typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app")) {
+    return "/api";
+  }
+
+  return (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_URL).replace(/\/+$/, "");
+}
+
+const API_URL = getApiUrl();
 
 export async function apiFetch(path, token, options = {}) {
   if (!token) {
@@ -51,4 +64,11 @@ export function getOportunidades(token) {
 
 export function getClientes(token) {
   return apiFetch("/clientes?limit=500", token);
+}
+
+export function sendRagMessage(token, payload) {
+  return apiFetch("/rag/chat", token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

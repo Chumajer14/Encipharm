@@ -59,4 +59,5 @@ Despues de publicar:
 - Iniciar sesion con Google.
 - Crear una cotizacion.
 - Verificar la oportunidad en el Dashboard Comercial.
+- Abrir `IA RAG` desde la barra inferior y enviar una consulta contra `/rag/chat`.
 - Instalar la PWA desde Chrome/Android y validar apertura en modo standalone.
