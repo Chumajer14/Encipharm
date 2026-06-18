@@ -35,7 +35,8 @@ class Settings(BaseSettings):
 
     # Firebase
     FIREBASE_PROJECT_ID: str
-    GOOGLE_APPLICATION_CREDENTIALS: str
+    GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = None
+    FIREBASE_SERVICE_ACCOUNT_JSON: Optional[str] = None
 
     # Firebase web config for /docs testing console
     FIREBASE_WEB_API_KEY: Optional[str] = None

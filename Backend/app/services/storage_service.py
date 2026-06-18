@@ -1,6 +1,8 @@
 from pathlib import Path
+import json
 
 from fastapi import HTTPException, status
+from google.oauth2 import service_account
 
 from app.core.config import get_settings
 
@@ -23,7 +25,13 @@ def _get_bucket():
             detail="Storage de documentos no disponible",
         ) from error
 
-    return storage.Client(project=settings.FIREBASE_PROJECT_ID).bucket(settings.GCS_BUCKET_DOCUMENTS)
+    client_kwargs = {"project": settings.FIREBASE_PROJECT_ID}
+    if settings.FIREBASE_SERVICE_ACCOUNT_JSON:
+        client_kwargs["credentials"] = service_account.Credentials.from_service_account_info(
+            json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON)
+        )
+
+    return storage.Client(**client_kwargs).bucket(settings.GCS_BUCKET_DOCUMENTS)
 
 
 def upload_document_bytes(file_name: str, content: bytes, content_type: str) -> str:

@@ -39,6 +39,17 @@ def _check(name: str, ok: bool, detail: str) -> ReadinessCheck:
     )
 
 
+def _has_firebase_credentials(settings: Settings) -> bool:
+    if settings.FIREBASE_SERVICE_ACCOUNT_JSON:
+        return True
+    if not settings.GOOGLE_APPLICATION_CREDENTIALS:
+        return False
+    return (
+        Path(settings.GOOGLE_APPLICATION_CREDENTIALS).exists()
+        and settings.GOOGLE_APPLICATION_CREDENTIALS not in PLACEHOLDER_VALUES
+    )
+
+
 def build_readiness_report(settings: Settings) -> ReadinessReport:
     """Build a non-secret readiness report without connecting to Firebase."""
 
@@ -50,9 +61,8 @@ def build_readiness_report(settings: Settings) -> ReadinessReport:
         ),
         _check(
             "google_application_credentials",
-            Path(settings.GOOGLE_APPLICATION_CREDENTIALS).exists()
-            and settings.GOOGLE_APPLICATION_CREDENTIALS not in PLACEHOLDER_VALUES,
-            "GOOGLE_APPLICATION_CREDENTIALS debe existir y no usar el valor placeholder.",
+            _has_firebase_credentials(settings),
+            "Configura FIREBASE_SERVICE_ACCOUNT_JSON o un GOOGLE_APPLICATION_CREDENTIALS valido.",
         ),
         _check(
             "cors_origins",

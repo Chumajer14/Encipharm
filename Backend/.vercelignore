@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.venv
+__pycache__
+.pytest_cache
+chroma_db
+serviceAccountKey.json
+tests
+scripts
+uv.lock
+
