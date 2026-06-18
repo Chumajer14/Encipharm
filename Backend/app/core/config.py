@@ -42,6 +42,18 @@ class Settings(BaseSettings):
     FIREBASE_WEB_APP_ID: Optional[str] = None
     FIREBASE_WEB_MEASUREMENT_ID: Optional[str] = None
 
+    # RAG assistant
+    DEEPSEEK_API_KEY: Optional[str] = None
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    DEEPSEEK_MODEL: str = "deepseek-chat"
+    MAX_TOKENS_RESPONSE: int = 1024
+    MAX_CONTEXT_CHUNKS: int = 5
+    SIMILARITY_THRESHOLD: float = 0.65
+    CHROMA_PERSIST_DIR: str = "./chroma_db"
+    GCS_BUCKET_DOCUMENTS: Optional[str] = None
+    RAG_CHAT_RATE_LIMIT_PER_MINUTE: int = 30
+    RAG_MAX_UPLOAD_BYTES: int = 20 * 1024 * 1024
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Accept JSON arrays or comma-separated values from hosting panels."""

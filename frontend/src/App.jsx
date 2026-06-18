@@ -14,6 +14,7 @@ import Proyecciones from "./pages/Proyecciones";
 import EquipoVentas from "./pages/EquipoVentas";
 import InteligenciaMercado from "./pages/InteligenciaMercado";
 import AnalisisCompetencia from "./pages/AnalisisCompetencia";
+import AsistenteEncipharm from "./pages/AsistenteEncipharm";
 import Configuracion from "./pages/Configuracion";
 import NotFound from "./pages/NotFound";
 import "./App.css";
@@ -122,6 +123,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <InteligenciaMercado />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/asistente"
+            element={
+              <ProtectedRoute>
+                <AsistenteEncipharm />
               </ProtectedRoute>
             }
           />

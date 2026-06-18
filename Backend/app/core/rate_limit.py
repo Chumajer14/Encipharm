@@ -8,9 +8,10 @@ from starlette.responses import JSONResponse, Response
 class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
     """Reject oversized requests before endpoint parsing."""
 
-    def __init__(self, app, max_body_bytes: int = 1_000_000):
+    def __init__(self, app, max_body_bytes: int = 1_000_000, path_limits: dict[str, int] | None = None):
         super().__init__(app)
         self.max_body_bytes = max_body_bytes
+        self.path_limits = path_limits or {}
 
     async def dispatch(self, request: Request, call_next) -> Response:
         content_length = request.headers.get("content-length")
@@ -22,7 +23,9 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Header Content-Length invalido."},
             )
 
-        if request_size > self.max_body_bytes:
+        max_body_bytes = self.path_limits.get(request.url.path, self.max_body_bytes)
+
+        if request_size > max_body_bytes:
             return JSONResponse(
                 status_code=413,
                 content={"detail": "El request supera el tamano maximo permitido."},

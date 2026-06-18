@@ -7,7 +7,7 @@ from app.models.user import normalize_user_role
 from app.services.firebase import verify_token
 from app.services.firestore import get_db
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def normalize_client_platform(value: str | None) -> str:
@@ -37,9 +37,16 @@ def ensure_platform_access(user_data: dict, platform: str | None) -> None:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     x_enci_client: str | None = Header(default="web"),
 ) -> dict:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalido o expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = credentials.credentials
     try:
         decoded = await verify_token(token)

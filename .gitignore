@@ -26,6 +26,8 @@ Thumbs.db
 serviceAccountKey.json
 *serviceAccount*.json
 *service-account*.json
+service_account*.json
+firebase-adminsdk*.json
 
 
 # =========================
@@ -67,6 +69,8 @@ backend/*.sqlite3
 Backend/*.sqlite3
 backend/*.db
 Backend/*.db
+chroma_db/
+Backend/chroma_db/
 
 # =========================
 # Frontend (Vue / Node / Vite)

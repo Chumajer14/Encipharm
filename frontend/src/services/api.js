@@ -299,6 +299,53 @@ export function getCompetitionRepository(token) {
   return apiFetch("/competencia/repository", { token });
 }
 
+export function sendRagMessage(token, payload) {
+  return apiFetch("/rag/chat", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getRagConversations(token) {
+  return apiFetch("/rag/conversations", { token });
+}
+
+export function getRagDocuments(token) {
+  return apiFetch("/rag/documents", { token });
+}
+
+export async function uploadRagDocument(token, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE_URL}/rag/documents/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-Enci-Client": CLIENT_PLATFORM,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    notifyAuthExpired(response.status);
+    throw new ApiError(errorBody.detail || errorBody.error || `Error ${response.status}`, response.status);
+  }
+
+  clearApiGetCache();
+  notifyDataMutated();
+  return response.json();
+}
+
+export function reindexRagDocuments(token) {
+  return apiFetch("/rag/documents/reindex", {
+    method: "POST",
+    token,
+  });
+}
+
 export function createPropuesta(token, propuesta) {
   return apiFetch("/propuestas", {
     method: "POST",
