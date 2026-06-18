@@ -1,0 +1,9 @@
+.git
+.vs
+.pytest_cache
+Backend/.venv
+frontend/node_modules
+vendedor-app/node_modules
+frontend/dist
+vendedor-app/dist
+nuevo modelo visual
