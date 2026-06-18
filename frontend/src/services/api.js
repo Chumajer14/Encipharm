@@ -10,8 +10,12 @@ const getCacheMemory = new Map();
  * The trailing slash is removed to keep endpoint composition stable in Vercel.
  */
 function getApiBaseUrl() {
-  if (typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app")) {
-    return "/api";
+  if (typeof window !== "undefined") {
+    const { hostname, protocol } = window.location;
+    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+    if (hostname.endsWith(".vercel.app") || (protocol === "https:" && !isLocalhost)) {
+      return "/api";
+    }
   }
 
   const configuredUrl = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL;
