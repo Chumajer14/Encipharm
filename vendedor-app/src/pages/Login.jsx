@@ -1,4 +1,4 @@
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { auth, googleProvider } from "../services/firebase";
 import { loginBackend } from "../services/api";
 import Icon from "../components/Icon";
@@ -7,6 +7,22 @@ import { ensureMobileAccess } from "../utils/access";
 
 function Login({ authError = "", isFirebaseConfigured = true }) {
   const { t } = useAppSettings();
+
+  function getFriendlyLoginError(error) {
+    if (error?.code === "auth/unauthorized-domain") {
+      return t("Este dominio no esta autorizado en Firebase Authentication.");
+    }
+
+    if (error?.code === "auth/operation-not-allowed") {
+      return t("El proveedor Google no esta habilitado en Firebase Authentication.");
+    }
+
+    if (error?.code === "auth/internal-error") {
+      return t("Firebase no pudo abrir el login con popup. Reintentando con redireccion segura.");
+    }
+
+    return error.message || t("No se pudo iniciar sesion");
+  }
 
   const login = async () => {
     if (!auth) return;
@@ -18,7 +34,11 @@ function Login({ authError = "", isFirebaseConfigured = true }) {
       ensureMobileAccess(backendUser);
     } catch (error) {
       console.error("Error login:", error);
-      alert(error.message || t("No se pudo iniciar sesion"));
+      if (["auth/internal-error", "auth/popup-blocked", "auth/cancelled-popup-request"].includes(error?.code)) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      alert(getFriendlyLoginError(error));
     }
   };
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   onIdTokenChanged,
+  signInWithRedirect,
   signInWithPopup,
   signOut as firebaseSignOut,
 } from "firebase/auth";
@@ -27,6 +28,10 @@ function friendlyAuthError(authError) {
 
   if (code === "auth/operation-not-allowed") {
     return "El proveedor Google no esta habilitado en Firebase Authentication.";
+  }
+
+  if (code === "auth/internal-error") {
+    return "Firebase no pudo abrir el login con popup. Verifica que el dominio este autorizado en Firebase Authentication o intenta nuevamente; se usara redireccion segura cuando el navegador bloquee la ventana.";
   }
 
   if (authError?.message?.includes("Failed to fetch")) {
@@ -141,6 +146,10 @@ export function AuthProvider({ children }) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (loginError) {
+      if (["auth/internal-error", "auth/popup-blocked", "auth/cancelled-popup-request"].includes(loginError?.code)) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
       setError(friendlyAuthError(loginError));
     }
   };
