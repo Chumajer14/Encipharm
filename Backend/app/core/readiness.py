@@ -1,4 +1,5 @@
 from pathlib import Path
+from importlib.util import find_spec
 
 from pydantic import BaseModel
 
@@ -57,6 +58,26 @@ def build_readiness_report(settings: Settings) -> ReadinessReport:
             "cors_origins",
             bool(settings.cors_origins_list),
             "CORS_ORIGINS debe declarar al menos un origen permitido.",
+        ),
+        _check(
+            "rag_deepseek_api_key",
+            bool(settings.DEEPSEEK_API_KEY and settings.DEEPSEEK_API_KEY.strip()),
+            "DEEPSEEK_API_KEY debe estar configurada en Render para habilitar /rag/chat.",
+        ),
+        _check(
+            "rag_deepseek_base_url",
+            settings.DEEPSEEK_BASE_URL.startswith("https://"),
+            f"DEEPSEEK_BASE_URL activo: {settings.DEEPSEEK_BASE_URL}",
+        ),
+        _check(
+            "rag_deepseek_model",
+            bool(settings.DEEPSEEK_MODEL.strip()),
+            f"DEEPSEEK_MODEL activo: {settings.DEEPSEEK_MODEL}",
+        ),
+        _check(
+            "rag_openai_client",
+            find_spec("openai") is not None,
+            "La dependencia openai debe estar instalada para consumir DeepSeek.",
         ),
     ]
 

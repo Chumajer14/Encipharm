@@ -11,6 +11,7 @@ def _settings(**overrides) -> Settings:
         "CORS_ORIGINS": "https://uat.enci.cl",
         "FIREBASE_PROJECT_ID": "enci-uat",
         "GOOGLE_APPLICATION_CREDENTIALS": __file__,
+        "DEEPSEEK_API_KEY": "test-deepseek-key",
     }
     values.update(overrides)
     return Settings(**values)
@@ -52,5 +53,15 @@ def test_readiness_report_flags_localhost_cors_in_deployed_env():
     assert report.status == "not_ready"
     assert any(
         check.nombre == "cors_deployed_origins" and check.estado == "fail"
+        for check in report.checks
+    )
+
+
+def test_readiness_report_flags_missing_deepseek_key():
+    report = build_readiness_report(_settings(DEEPSEEK_API_KEY=""))
+
+    assert report.status == "not_ready"
+    assert any(
+        check.nombre == "rag_deepseek_api_key" and check.estado == "fail"
         for check in report.checks
     )
