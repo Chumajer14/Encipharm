@@ -359,11 +359,17 @@ def search_similar_chunks(query: str, n_results: int | None = None) -> list[dict
     """Busca fragmentos similares y filtra por umbral configurable."""
 
     settings = get_settings()
-    collection = _get_collection()
+    try:
+        collection = _get_collection()
+    except HTTPException:
+        return []
     if collection.count() == 0:
         return []
 
-    query_embedding = _load_embedding_model().encode([query]).tolist()
+    try:
+        query_embedding = _load_embedding_model().encode([query]).tolist()
+    except HTTPException:
+        return []
     results = collection.query(
         query_embeddings=query_embedding,
         n_results=n_results or settings.MAX_CONTEXT_CHUNKS,

@@ -9,4 +9,4 @@ serviceAccountKey.json
 tests
 scripts
 uv.lock
-
+pyproject.toml

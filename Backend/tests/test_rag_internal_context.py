@@ -138,3 +138,14 @@ def test_internal_context_retrieves_commercial_records(monkeypatch):
 
     assert any("Propuesta bioseguridad anual" in chunk["texto"] for chunk in chunks)
     assert any("Plantel Sur" in chunk["texto"] for chunk in chunks)
+
+
+def test_document_search_degrades_when_semantic_index_is_unavailable(monkeypatch):
+    def raise_index_unavailable():
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=503, detail="Indice semantico no disponible")
+
+    monkeypatch.setattr(rag_service, "_get_collection", raise_index_unavailable)
+
+    assert rag_service.search_similar_chunks("usuarios activos") == []
