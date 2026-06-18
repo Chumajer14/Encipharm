@@ -7,6 +7,37 @@ from app.core.config import get_settings
 logger = logging.getLogger(__name__)
 
 
+def _rag_llm_error(code: str, message: str, details: dict | None = None) -> HTTPException:
+    """Crea errores RAG seguros sin exponer secretos ni payloads internos."""
+
+    return HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail={
+            "codigo": code,
+            "error": message,
+            "detalles": details or {},
+        },
+    )
+
+
+def _classify_llm_error(error: Exception) -> tuple[str, str]:
+    """Clasifica errores del proveedor LLM en codigos operables."""
+
+    error_type = type(error).__name__
+    error_text = str(error).lower()
+    if error_type in {"AuthenticationError", "PermissionDeniedError"} or "unauthorized" in error_text:
+        return "RAG_LLM_AUTH_FAILED", "DeepSeek rechazo las credenciales configuradas en el backend."
+    if error_type == "RateLimitError" or "rate limit" in error_text:
+        return "RAG_LLM_RATE_LIMITED", "DeepSeek limito temporalmente las consultas del asistente."
+    if error_type in {"APITimeoutError", "TimeoutError"} or "timeout" in error_text:
+        return "RAG_LLM_TIMEOUT", "DeepSeek no respondio dentro del tiempo limite del backend."
+    if error_type in {"APIConnectionError", "ConnectError"} or "connection" in error_text:
+        return "RAG_LLM_CONNECTION_FAILED", "El backend no pudo conectar con DeepSeek."
+    if error_type == "BadRequestError":
+        return "RAG_LLM_BAD_REQUEST", "DeepSeek rechazo la solicitud generada por el backend."
+    return "RAG_LLM_PROVIDER_ERROR", "DeepSeek devolvio un error al procesar la consulta."
+
+
 def build_system_prompt() -> str:
     """Construye las instrucciones fijas del asistente interno."""
 
@@ -48,18 +79,26 @@ async def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
     settings = get_settings()
     if not settings.DEEPSEEK_API_KEY:
         logger.error("DEEPSEEK_API_KEY no configurada")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="El asistente no esta disponible en este momento. Intenta mas tarde.",
+        raise _rag_llm_error(
+            "RAG_LLM_NOT_CONFIGURED",
+            "El asistente no tiene DEEPSEEK_API_KEY configurada en el backend.",
+            {
+                "provider": "deepseek",
+                "model": settings.DEEPSEEK_MODEL,
+                "base_url": settings.DEEPSEEK_BASE_URL,
+            },
         )
 
     try:
         from openai import AsyncOpenAI
     except ImportError as error:
         logger.error("Dependencia OpenAI no instalada para RAG")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="El asistente no esta disponible en este momento. Intenta mas tarde.",
+        raise _rag_llm_error(
+            "RAG_OPENAI_CLIENT_MISSING",
+            "El backend no tiene instalada la dependencia openai requerida para DeepSeek.",
+            {
+                "dependency": "openai",
+            },
         ) from error
 
     client = AsyncOpenAI(
@@ -83,8 +122,15 @@ async def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
             "tokens": response.usage.total_tokens if response.usage else 0,
         }
     except Exception as error:
-        logger.error("Error LLM RAG: %s - %s", type(error).__name__, str(error))
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="El asistente no esta disponible en este momento. Intenta mas tarde.",
+        code, message = _classify_llm_error(error)
+        logger.error("Error LLM RAG [%s]: %s - %s", code, type(error).__name__, str(error))
+        raise _rag_llm_error(
+            code,
+            message,
+            {
+                "provider": "deepseek",
+                "model": settings.DEEPSEEK_MODEL,
+                "base_url": settings.DEEPSEEK_BASE_URL,
+                "exception_type": type(error).__name__,
+            },
         ) from error

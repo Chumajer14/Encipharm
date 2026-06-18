@@ -46,6 +46,17 @@ async def http_exception_handler(_request: Request, exc: StarletteHTTPException)
     status_code = exc.status_code
     headers = getattr(exc, "headers", None)
     detail = getattr(exc, "detail", None)
+    if isinstance(detail, dict):
+        return JSONResponse(
+            status_code=status_code,
+            content=error_payload(
+                status_code,
+                detail.get("error") or detail.get("detail") or "Error HTTP",
+                code=detail.get("codigo") or detail.get("code"),
+                details=detail.get("detalles") or detail.get("details"),
+            ),
+            headers=headers,
+        )
     return JSONResponse(
         status_code=status_code,
         content=error_payload(status_code, detail or "Error HTTP"),

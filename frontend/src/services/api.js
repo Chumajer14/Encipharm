@@ -138,6 +138,11 @@ function getErrorDetail(errorBody) {
 
   const details = [];
   if (errorBody.detail) details.push(errorBody.detail);
+  if (errorBody.detalles && typeof errorBody.detalles === "object") {
+    Object.entries(errorBody.detalles).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") details.push(`${key}: ${value}`);
+    });
+  }
   if (errorBody.message) details.push(errorBody.message);
   if (typeof errorBody.error === "string") details.push(errorBody.error);
   if (errorBody.hint) details.push(`Hint: ${errorBody.hint}`);
@@ -205,7 +210,7 @@ export async function apiFetch(path, { token, ...options } = {}) {
     const errorBody = await readErrorBody(response);
     const traceId = response.headers.get("X-Enci-Trace-Id") || errorBody.traceId;
     const upstreamStatus = response.headers.get("X-Enci-Upstream-Status");
-    const code = errorBody.code || `API_HTTP_${response.status}`;
+    const code = errorBody.code || errorBody.codigo || `API_HTTP_${response.status}`;
     const detail = getErrorDetail(errorBody);
     const message = buildDiagnosticMessage({
       code,
