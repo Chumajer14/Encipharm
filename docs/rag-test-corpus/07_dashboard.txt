@@ -1,0 +1,74 @@
+﻿# API - Dashboard base
+
+Base URL desarrollo: `http://127.0.0.1:8000`
+
+Todos los endpoints requieren:
+
+```http
+Authorization: Bearer <firebase_id_token>
+```
+
+## GET `/dashboard/vendedor`
+
+Retorna metricas base de clientes del vendedor autenticado.
+
+Roles permitidos:
+
+- `admin`
+- `supervisor`
+- `vendedor`
+
+## GET `/dashboard/supervisor`
+
+Retorna metricas base consolidadas de todos los clientes.
+
+Roles permitidos:
+
+- `admin`
+- `supervisor`
+
+## Respuesta
+
+```json
+{
+  "totalClientes": 2,
+  "clientesActivos": 2,
+  "clientesPorEstado": [
+    { "clave": "Completado", "total": 1 },
+    { "clave": "En proceso", "total": 1 }
+  ],
+  "clientesPorRubro": [
+    { "clave": "Cerdos", "total": 1 },
+    { "clave": "Rumiantes", "total": 1 }
+  ],
+  "clientesPorRegion": [
+    { "clave": "Biobio", "total": 1 },
+    { "clave": "Maule", "total": 1 }
+  ]
+}
+```
+
+## Alcance
+
+## Metricas comerciales EPIC 3
+
+La respuesta incluye metricas comerciales consolidadas:
+
+| Campo | Descripcion |
+|-------|-------------|
+| `totalOportunidades` | Cantidad de oportunidades visibles |
+| `valorPipeline` | Suma de `valorEstimado` de oportunidades visibles |
+| `totalPropuestas` | Cantidad de propuestas visibles |
+| `valorPropuestasAceptadas` | Suma de `montoTotal` en propuestas aceptadas |
+| `oportunidadesPorEtapa` | Conteo de oportunidades por etapa |
+| `propuestasPorEstado` | Conteo de propuestas por estado |
+
+En dashboard vendedor se filtra por `vendedorUid`. En dashboard supervisor/admin se consolida la vista completa.
+
+## Archivos relacionados
+
+- `Backend/app/api/dashboard.py`
+- `Backend/app/models/dashboard.py`
+- `Backend/app/services/dashboard.py`
+- `Backend/tests/test_clientes_api.py`
+

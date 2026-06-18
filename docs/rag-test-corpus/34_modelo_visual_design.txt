@@ -1,0 +1,198 @@
+﻿---
+name: Clinical Precision B2B
+colors:
+  surface: '#f8f9fb'
+  surface-dim: '#d8dadc'
+  surface-bright: '#f8f9fb'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#f2f4f6'
+  surface-container: '#eceef0'
+  surface-container-high: '#e6e8ea'
+  surface-container-highest: '#e0e3e5'
+  on-surface: '#191c1e'
+  on-surface-variant: '#3e4a41'
+  inverse-surface: '#2d3133'
+  inverse-on-surface: '#eff1f3'
+  outline: '#6e7a71'
+  outline-variant: '#bdcabf'
+  surface-tint: '#006c45'
+  primary: '#006a43'
+  on-primary: '#ffffff'
+  primary-container: '#008656'
+  on-primary-container: '#f6fff6'
+  inverse-primary: '#6ddba2'
+  secondary: '#006874'
+  on-secondary: '#ffffff'
+  secondary-container: '#96f1ff'
+  on-secondary-container: '#006f7b'
+  tertiary: '#465e79'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#5f7693'
+  on-tertiary-container: '#fdfcff'
+  error: '#ba1a1a'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#8af8bc'
+  primary-fixed-dim: '#6ddba2'
+  on-primary-fixed: '#002112'
+  on-primary-fixed-variant: '#005233'
+  secondary-fixed: '#96f1ff'
+  secondary-fixed-dim: '#79d4e2'
+  on-secondary-fixed: '#001f24'
+  on-secondary-fixed-variant: '#004f57'
+  tertiary-fixed: '#d1e4ff'
+  tertiary-fixed-dim: '#b0c9e8'
+  on-tertiary-fixed: '#011d35'
+  on-tertiary-fixed-variant: '#314863'
+  background: '#f8f9fb'
+  on-background: '#191c1e'
+  surface-variant: '#e0e3e5'
+  dark-corporate-green: '#005C3A'
+  light-sanitary-green: '#DFF5EA'
+  text-primary: '#1F2933'
+  text-secondary: '#6B7280'
+  border-gray: '#E5E7EB'
+  alert-yellow: '#F5B942'
+  risk-red: '#D64545'
+  status-prospect: '#334E68'
+  status-negotiation: '#F97316'
+typography:
+  display-lg:
+    fontFamily: Inter
+    fontSize: 32px
+    fontWeight: '700'
+    lineHeight: 40px
+    letterSpacing: -0.02em
+  headline-md:
+    fontFamily: Inter
+    fontSize: 24px
+    fontWeight: '600'
+    lineHeight: 32px
+  headline-sm:
+    fontFamily: Inter
+    fontSize: 20px
+    fontWeight: '600'
+    lineHeight: 28px
+  title-lg:
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: '600'
+    lineHeight: 26px
+  body-md:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: 24px
+  body-sm:
+    fontFamily: Inter
+    fontSize: 14px
+    fontWeight: '400'
+    lineHeight: 20px
+  label-md:
+    fontFamily: IBM Plex Sans
+    fontSize: 13px
+    fontWeight: '500'
+    lineHeight: 18px
+    letterSpacing: 0.01em
+  label-caps:
+    fontFamily: IBM Plex Sans
+    fontSize: 11px
+    fontWeight: '700'
+    lineHeight: 16px
+    letterSpacing: 0.05em
+  headline-md-mobile:
+    fontFamily: Inter
+    fontSize: 20px
+    fontWeight: '600'
+    lineHeight: 28px
+rounded:
+  sm: 0.25rem
+  DEFAULT: 0.5rem
+  md: 0.75rem
+  lg: 1rem
+  xl: 1.5rem
+  full: 9999px
+spacing:
+  base: 4px
+  container-margin: 24px
+  gutter: 16px
+  sidebar-width: 260px
+  card-padding: 20px
+---
+
+## Brand & Style
+
+The design system is engineered for high-stakes B2B environments within the animal health, nutrition, and biosecurity sectors. The brand personality is **Corporate, Technical, and Clinical**, prioritizing clarity and data integrity over decorative elements. It targets professionals in sales management and laboratory logistics who require a high-density information display that remains legible and organized.
+
+The aesthetic follows a **Modern Corporate** style with a focus on:
+- **Clinical Cleanliness:** Utilizing ample whitespace and a "Sanitary Green" palette to evoke biosecurity standards.
+- **Data-First Hierarchy:** A structured layout that emphasizes quantitative metrics and pipeline status.
+- **Professional Trust:** A sober, reliable interface that avoids trends like neomorphism or neon accents in favor of subtle elevation and crisp borders.
+
+## Colors
+
+The color strategy is divided into functional zones to aid navigation in a complex CRM environment. 
+
+- **Primary Institutional Green (#008C5A):** Used for primary actions, success states, and brand reinforcement.
+- **Deep Navy Navigation (#102A43):** Reserved for high-level application structure (Sidebar) to provide a stable anchor for the user.
+- **Technical Teal (#007C89):** Used for secondary interactive elements and data visualization categories.
+- **Background & Surfaces:** The system uses a layering of `Background Gray` (#F6F8FA) for the canvas and `Surface White` (#FFFFFF) for interactive cards to create immediate visual separation.
+- **Status Semantic Palette:** Specific colors are mapped to sales stages (ProspecciÃ³n through Cierre) to allow for instant visual scanning of the pipeline.
+
+## Typography
+
+This design system utilizes **Inter** for all functional UI and body text due to its exceptional legibility and neutral character. **IBM Plex Sans** is introduced for labels and technical metadata to provide a subtle "engineered" feel, characteristic of laboratory and technical documentation.
+
+Headlines should be set with tighter letter-spacing to maintain a professional, compact appearance. Body text defaults to `#1F2933` (Primary Text Gray), while secondary information and "muted" labels use `#6B7280`. Large display sizes are scaled down on mobile devices to prevent layout breaking in data-heavy CRM views.
+
+## Layout & Spacing
+
+The design system employs a **Fixed-Fluid Hybrid Grid**. 
+- **Navigation:** A fixed left-hand sidebar (260px) provides persistent access to Sales, Logistics, and Animal Data.
+- **Content Area:** A fluid 12-column grid with 16px gutters. In data-heavy views (Dashboards), cards should span 3, 4, or 6 columns.
+- **Spacing Rhythm:** Based on a 4px scale. Standard padding for cards is 20px (5 units) to maintain the "generous whitespace" requested, preventing the CRM from feeling claustrophobic.
+- **Mobile Adaptivity:** On mobile, the sidebar collapses into a bottom-sheet or hamburger menu, and grid columns stack into a single-column layout with 16px horizontal margins.
+
+## Elevation & Depth
+
+Visual hierarchy is achieved through **Tonal Layering and Soft Elevation**. 
+- **Level 0 (Background):** `#F6F8FA` â€” The lowest layer.
+- **Level 1 (Cards/Surfaces):** `#FFFFFF` with a 1px border of `#E5E7EB`. This is the primary surface for content.
+- **Shadows:** Use highly diffused, low-opacity shadows for interactive cards. (Example: `0px 4px 12px rgba(16, 42, 67, 0.05)`).
+- **Interactive States:** On hover, a card's shadow should slightly intensify, and the border may transition to `Technical Teal` to indicate clickability.
+- **Sidebar:** While it uses the `Deep Navy` color, it remains flat to appear as part of the application's structural "shell" rather than a floating element.
+
+## Shapes
+
+The shape language is defined by **Soft Precision**. A standard border radius of **12px** (Level 2) is applied to all cards, modal containers, and large input groups to soften the technical nature of the data. 
+
+Smaller elements like buttons and badges use a slightly reduced radius (8px) or remain at 12px for consistency, ensuring the UI feels approachable yet professional. Elements should never be fully sharp (0px) nor fully pill-shaped (except for specific status tags), maintaining a disciplined, geometric appearance.
+
+## Components
+
+### Buttons
+- **Primary:** Solid `#008C5A` with white text. 12px corner radius.
+- **Secondary:** Outlined `#007C89` with 1px stroke.
+- **Tertiary:** Ghost style for low-priority actions (e.g., "Cancel").
+
+### Cards
+- **Base:** White background, 1px `#E5E7EB` border, 12px radius.
+- **Header:** Often includes a subtle 1px bottom border to separate the title from content.
+
+### Badges (Sales Pipeline)
+Badges use a "Soft Background" style: a light tint of the color with dark text for high legibility.
+- **ProspecciÃ³n:** Blue (#334E68 background tint).
+- **CalificaciÃ³n:** Teal (#007C89).
+- **Propuesta:** Yellow (#F5B942).
+- **NegociaciÃ³n:** Orange (#F97316).
+- **Cierre:** Green (#008C5A).
+
+### Input Fields
+- White background, 1px `#E5E7EB` border.
+- On focus: border changes to `#008C5A` with a 2px "Soft Sanitary Green" glow.
+- Labels are positioned above the field in `IBM Plex Sans` (Label-md).
+
+### Charts & Icons
+- **Charts:** Use a palette of Institutional Green, Technical Teal, and Deep Navy. Avoid "hot" colors unless indicating a "Critical Risk."
+- **Icons:** 24px linear icons with a 1.5pt stroke weight. Subject matter includes animal silhouettes, laboratory flasks, and logistics trucks, rendered in `Deep Navy` or `Secondary Text Gray`.

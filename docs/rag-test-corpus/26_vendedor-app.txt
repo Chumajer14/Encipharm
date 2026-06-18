@@ -1,0 +1,236 @@
+﻿# Sprint 02 â€“ AplicaciÃ³n MÃ³vil Vendedor (PWA)
+
+## Resumen
+
+Durante este sprint se desarrollÃ³ una aplicaciÃ³n PWA para vendedores, integrada con la infraestructura existente de Encipharm Ventas. La aplicaciÃ³n utiliza autenticaciÃ³n mediante Google Firebase Authentication y sincroniza informaciÃ³n con el backend FastAPI utilizado por el Dashboard Comercial.
+
+El objetivo principal fue validar el flujo completo vendedor â†’ backend â†’ dashboard, permitiendo registrar oportunidades comerciales desde dispositivos mÃ³viles.
+
+---
+
+# Funcionalidades Implementadas
+
+## AutenticaciÃ³n Firebase
+
+* IntegraciÃ³n con Firebase Authentication.
+* Inicio de sesiÃ³n mediante cuenta Google.
+* ObtenciÃ³n de Firebase ID Token.
+* EnvÃ­o del token al endpoint:
+
+```http
+POST /auth/login
+```
+
+* ValidaciÃ³n de permisos mediante backend FastAPI.
+* Persistencia de sesiÃ³n.
+
+## NavegaciÃ³n Base
+
+Se implementÃ³ la navegaciÃ³n principal de la aplicaciÃ³n:
+
+* Inicio
+* Nueva CotizaciÃ³n
+* Pipeline
+* ProyecciÃ³n
+* ConfiguraciÃ³n
+
+## ConfiguraciÃ³n
+
+* VisualizaciÃ³n del usuario autenticado.
+* VisualizaciÃ³n del correo autenticado.
+* Estado de sincronizaciÃ³n.
+* Cierre de sesiÃ³n.
+
+## Nueva CotizaciÃ³n
+
+Permite registrar oportunidades comerciales mediante:
+
+* Cliente
+* Producto
+* Monto
+* Probabilidad
+* Etapa comercial
+* Comentarios
+
+Al guardar:
+
+1. Se almacena localmente mediante Dexie.
+2. Se crea una oportunidad en el backend.
+3. La informaciÃ³n queda disponible para el Dashboard Comercial.
+
+## IntegraciÃ³n Backend
+
+Se integrÃ³ la aplicaciÃ³n con:
+
+```http
+POST /auth/login
+GET /clientes
+POST /oportunidades
+```
+
+utilizando el mismo backend empleado por la aplicaciÃ³n Dashboard.
+
+## SincronizaciÃ³n Dashboard
+
+ValidaciÃ³n exitosa del flujo:
+
+```text
+App Vendedor
+    â†“
+Firebase Auth
+    â†“
+Backend FastAPI
+    â†“
+Firestore
+    â†“
+Dashboard Comercial
+```
+
+Las oportunidades creadas desde la aplicaciÃ³n mÃ³vil ya aparecen reflejadas dentro del Pipeline del Dashboard.
+
+---
+
+# Problemas Resueltos
+
+## Error Firebase Login
+
+Problema:
+
+```text
+400 Bad Request
+/auth/login
+```
+
+Causa:
+
+* ConfiguraciÃ³n CORS incompleta.
+* Puerto local no autorizado.
+
+SoluciÃ³n:
+
+* InclusiÃ³n de puertos 5174 y 5175 en configuraciÃ³n CORS.
+* Reinicio de FastAPI.
+
+## Error "Failed to Fetch"
+
+Causa:
+
+* Preflight OPTIONS bloqueado.
+
+SoluciÃ³n:
+
+* Ajuste de configuraciÃ³n CORS del backend.
+
+## Error Login.js
+
+Causa:
+
+* Uso incorrecto de JSX en archivo .js.
+
+SoluciÃ³n:
+
+* MigraciÃ³n a Login.jsx.
+
+---
+
+# Pendientes TÃ©cnicos
+
+## Despliegue
+
+Pendiente desplegar la aplicaciÃ³n vendedor en Vercel.
+
+Actividades:
+
+* Crear proyecto Vercel.
+* Configurar Root Directory.
+* Configurar variables de entorno.
+* Validar autenticaciÃ³n en producciÃ³n.
+
+## Variables de Entorno
+
+Configurar:
+
+```env
+VITE_API_BASE_URL=
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+## Pipeline
+
+Revisar:
+
+* ActualizaciÃ³n de etapas.
+* EdiciÃ³n de oportunidades.
+* Cambio de estado desde aplicaciÃ³n mÃ³vil.
+
+## ProyecciÃ³n
+
+Validar:
+
+* FÃ³rmulas comerciales.
+* CÃ¡lculo de probabilidad.
+* ProyecciÃ³n ponderada.
+* Consistencia con Dashboard.
+
+## Clientes
+
+Pendiente:
+
+* Relacionar clientes reales de Firestore.
+* Eliminar identificador temporal:
+
+```js
+clienteId: "legacy-cliente"
+```
+
+## UX Mobile
+
+Pendiente aproximar interfaz al wireframe entregado por el cliente:
+
+* Tarjetas rÃ¡pidas.
+* Indicador de sincronizaciÃ³n.
+* Dashboard mÃ³vil.
+* Historial comercial.
+
+## PWA
+
+Pendiente validar:
+
+* InstalaciÃ³n Android.
+* InstalaciÃ³n iOS.
+* Funcionamiento offline.
+* SincronizaciÃ³n al recuperar conexiÃ³n.
+
+---
+
+# Estado Actual
+
+## Completado
+
+* Firebase Authentication
+* IntegraciÃ³n Backend
+* SincronizaciÃ³n Dashboard
+* Nueva CotizaciÃ³n
+* NavegaciÃ³n Base
+* ConfiguraciÃ³n
+* Pipeline conectado
+
+## En Progreso
+
+* ProyecciÃ³n
+* Experiencia mÃ³vil
+* Despliegue Vercel
+
+## Pendiente
+
+* FÃ³rmulas comerciales
+* Clientes reales
+* PWA final
+* PublicaciÃ³n producciÃ³n
+* QA final
+

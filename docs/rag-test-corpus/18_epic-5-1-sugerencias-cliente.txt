@@ -1,0 +1,77 @@
+﻿# Epic 5.1 - Sugerencias de cliente y preparacion UAT visual
+
+## Objetivo
+
+Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al HTML de referencia entregado, manteniendo la conexion con datos reales de Firestore y preparando vistas no definidas para UAT sin habilitar flujos operativos incompletos.
+
+## Alcance implementado
+
+- Replica visual del Command Center del HTML de referencia en dashboard, pipeline, proyecciones, equipo de ventas, configuracion, inteligencia de mercado y analisis de competencia.
+- Cambio de marca visible desde Encipharm a Enci en la experiencia principal.
+- Sidebar ajustado a las secciones solicitadas:
+  - Principal: Dashboard, Pipeline & Funnels, Proyecciones.
+  - Gestion: Equipo de Ventas, Inteligencia de Mercado, Analisis de Competencia.
+  - Sistema: Configuracion.
+- Perfil inferior del usuario con iniciales, nombre normalizado, rango laboral y zona comercial.
+- Dashboard con KPIs conectados a datos reales, forecast, embudo por zona, rendimiento de equipo y alertas derivadas de oportunidades/propuestas.
+- Pipeline & Funnels con filtros por cliente, vendedor y etapa, resumen de funnel, tabla de oportunidades, calculo ponderado y modal de detalle de oportunidad.
+- Proyecciones con selector de periodo, grafico proyectado vs realizado, seleccion de vendedor y detalle operativo de ventas cerradas/negociaciones.
+- Equipo de Ventas con matriz vendedor x etapa, valores por etapa, conteo de oportunidades, total por vendedor y zona.
+- Configuracion con gestion de usuarios, rangos laborales, zonas, apariencia e idioma persistidos por usuario.
+- Modo claro/oscuro aplicado inmediatamente con guardado optimista en segundo plano.
+- Traduccion global de interfaz a ingles/portugues, excluyendo nombres de vendedores, empresas y datos comerciales propios.
+- Modo ahorro Firebase para reducir consultas repetitivas en plan gratuito, con cache temporal, invalidacion al guardar y nota visible al usuario.
+- Loader central para consultas pendientes, evitando mostrar estados vacios antes de recibir respuesta de backend.
+- Endurecimiento de seguridad MVP: validacion de usuarios activos, bloqueo de funciones temporales en produccion, sanitizacion/validacion de payloads, headers, CORS, docs protegidas y tests de autorizacion.
+- Repositorio de competencia preparado en backend y frontend para futura carga de datos de competencia, sin formulario de ingreso hasta definicion del cliente.
+
+## Datos y funcionalidad conectada
+
+- Clientes, oportunidades, propuestas, usuarios, forecast, pipeline, win rate y totales se calculan desde backend/Firestore.
+- Administradores y supervisores visualizan datos agregados de todos los vendedores.
+- Vendedores mantienen alcance limitado a sus datos segun backend.
+- El embudo del dashboard puede filtrarse por zona de empresa: todas las empresas, zona norte, zona centro y zona sur.
+- La configuracion de idioma y tema se guarda en el usuario y se aplica inmediatamente en la UI.
+
+## Elementos marcados como no operativos
+
+- Notificaciones: modal "No operativo." porque aun no existe definicion de flujo, origen ni reglas de lectura de notificaciones.
+- Calendario: modal "No operativo." porque aun no existe definicion de agenda, integraciones o persistencia de eventos.
+- Mapa de Alertas y Actividad: mantiene la variante visual del HTML, pero se marca "No operativo." porque no hay definicion de georreferenciacion ni fuente de mapa.
+- Inteligencia de Mercado: replica visual estatica con datos de referencia y overlay "No operativo." porque el asistente/RAG no esta definido para produccion.
+- Analisis de Competencia: replica visual preparada y repositorio listo, pero muestra "Datos no determinados." porque el cliente aun no define origen, metodo legal de captura ni responsables de carga de datos competitivos.
+
+## Riesgos controlados
+
+- El endpoint temporal de cambio de rol queda documentado como utilidad de desarrollo, bloqueado en produccion y restringido a la cuenta autenticada.
+- Se evita escritura directa cliente-Firestore: el frontend opera contra FastAPI con Firebase ID Token.
+- Se agregan controles para mass assignment, acceso por propietario/rol y usuarios inactivos.
+- Se limita la exposicion de Swagger/docs en produccion.
+- Se reduce consumo de Firebase en plan gratuito con cache local de GET y sin refetch repetitivo por foco/remontaje.
+
+## Validacion esperada
+
+- Frontend:
+  - `npm.cmd run lint`
+  - `npm.cmd run build`
+- Backend:
+  - `.\Backend\.venv\Scripts\python.exe -m pytest`
+
+## Estado Vercel
+
+- Configuracion Vercel declarada para Vite en `vercel.json` y `frontend/vercel.json`.
+- Guia de despliegue actualizada en `docs/deploy-vercel-frontend.md`.
+- El deploy por CLI requiere una sesion/token Vercel valido:
+  - `npx vercel login`
+  - `npx vercel --prod --yes`
+- En la ultima ejecucion local, Vercel rechazo el token configurado. El build fue validado localmente; el bloqueo corresponde a credenciales de Vercel, no a error de compilacion.
+
+## Pendiente para UAT
+
+- Confirmar textos finales con cliente.
+- Confirmar si inteligencia de mercado tendra IA/RAG, fuente manual o integracion externa.
+- Definir proceso de ingreso y gobierno de datos de competencia.
+- Definir flujo de notificaciones y calendario.
+- Retirar control temporal de rol antes de produccion final.
+- Desactivar nota de modo ahorro Firebase cuando el proyecto pase a un plan con cuota suficiente.
+

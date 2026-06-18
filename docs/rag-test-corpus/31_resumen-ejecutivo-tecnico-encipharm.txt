@@ -1,0 +1,553 @@
+﻿ 
+ 
+ 
+   
+   Resumen Ejecutivo y TÃ©cnico - Enci 
+   
+ 
+ 
+   
+     Resumen Ejecutivo y TÃ©cnico 
+     Proyecto Enci / Enci Ventas 
+     
+      Documento preparado para reuniÃ³n ejecutiva con cliente. Consolida alcance funcional,
+      estado de desarrollo, cumplimiento, arquitectura, seguridad, QA realizado, riesgos,
+      mejoras recomendadas y preguntas de validaciÃ³n.
+     
+     
+        Fecha:  18 de mayo de 2026 
+        Repositorio:  Enci 
+        Tipo de sistema:  MiniCRM comercial web 
+        Estado:  MVP web avanzado, previo a UAT/go-live 
+        Backend:  FastAPI + Firebase Admin + Firestore 
+        Frontend:  React + Vite + Firebase Auth 
+     
+     
+       ValidaciÃ³n local actual:  backend con 54 pruebas aprobadas, build frontend exitoso y lint frontend sin errores.
+     
+     
+      Este documento es de uso interno para preparaciÃ³n ejecutiva. No representa acta de aceptaciÃ³n final del cliente.
+     
+   
+
+   1. Resumen Ejecutivo 
+   
+    Enci / Enci Ventas es un sistema web de gestiÃ³n comercial y MiniCRM diseÃ±ado para centralizar
+    la operaciÃ³n del equipo de ventas. Permite administrar clientes, registrar interacciones, controlar
+    oportunidades, gestionar propuestas y visualizar indicadores mediante dashboards diferenciados por rol.
+   
+   
+    El MVP estÃ¡ construido con una arquitectura web primero: frontend React/Vite, backend FastAPI,
+    autenticaciÃ³n con Firebase Auth y persistencia en Cloud Firestore. El backend actÃºa como capa
+    obligatoria de autorizaciÃ³n, validaciÃ³n, seguridad y escritura de datos.
+   
+   
+     Estado general:  las capacidades principales del MVP estÃ¡n cerradas para Development.
+    El proyecto estÃ¡ en etapa de preparaciÃ³n de UAT, validaciÃ³n con usuarios reales y salida controlada.
+   
+
+   2. QuÃ© Hace El Sistema 
+   
+     Autentica usuarios mediante Google SSO usando Firebase Auth. 
+     Valida tokens Firebase en el backend antes de permitir acceso a endpoints protegidos. 
+     Sincroniza usuarios autenticados en Firestore. 
+     Controla acceso segÃºn rol:  vendedor ,  supervisor  y  admin . 
+     Permite crear, listar, buscar, filtrar, editar y eliminar lÃ³gicamente clientes. 
+     Restringe a vendedores para que operen solo clientes propios. 
+     Permite registrar interacciones comerciales asociadas a clientes. 
+     Gestiona oportunidades comerciales mediante etapas de pipeline. 
+     Permite crear propuestas vinculadas a oportunidades y calcular montos finales en backend. 
+     Entrega dashboards con mÃ©tricas propias para vendedores y consolidadas para supervisores/admin. 
+     Expone documentaciÃ³n tÃ©cnica y consola Swagger protegida para pruebas. 
+     Incluye endpoint de readiness para validar condiciones mÃ­nimas antes de UAT/go-live. 
+   
+
+   3. Alcance Del MVP 
+   Incluido 
+   
+     AplicaciÃ³n web comercial funcional. 
+     Backend API protegido por Firebase JWT. 
+     Persistencia en Firestore. 
+     GestiÃ³n de usuarios y roles. 
+     CRM de clientes. 
+     Interacciones comerciales. 
+     Pipeline de oportunidades. 
+     Propuestas bÃ¡sicas con estados y cÃ¡lculo de descuento/total. 
+     Dashboards vendedor y supervisor/admin. 
+     ImportaciÃ³n CSV de clientes a nivel backend para admin. 
+     Hardening de seguridad y resiliencia. 
+     DocumentaciÃ³n tÃ©cnica, QA y go-live. 
+   
+
+   Fuera De Alcance Actual 
+   
+     AplicaciÃ³n mobile Flutter. 
+     IA, RAG o inteligencia competitiva avanzada. 
+     IntegraciÃ³n con SAP/ERP. 
+     IntegraciÃ³n con Google Calendar. 
+     Reportes extendidos y BI avanzado. 
+     MigraciÃ³n histÃ³rica de datos sin fuente aprobada. 
+     AutomatizaciÃ³n E2E completa con credenciales Firebase reales. 
+   
+
+   4. Funcionalidades Implementadas 
+   
+     
+       
+         MÃ³dulo 
+         Funcionalidades 
+         Estado 
+       
+     
+     
+       
+         AutenticaciÃ³n 
+         Login Google, token Firebase, sincronizaciÃ³n backend, bloqueo por usuario inactivo. 
+         Implementado 
+       
+       
+         Clientes 
+         CRUD, bÃºsqueda, filtros, detalle, ediciÃ³n, eliminaciÃ³n lÃ³gica, visibilidad por vendedor. 
+         Implementado 
+       
+       
+         Usuarios y roles 
+         Listado, detalle, cambio de rol, activaciÃ³n/desactivaciÃ³n, jerarquÃ­a de permisos. 
+         Implementado 
+       
+       
+         Interacciones 
+         Registro y listado de llamadas, correos, reuniones, visitas u otros contactos comerciales. 
+         Implementado 
+       
+       
+         Oportunidades 
+         CreaciÃ³n, listado, filtros, cambio de etapa, detalle con historial relacionado. 
+         Implementado 
+       
+       
+         Propuestas 
+         CreaciÃ³n vinculada a oportunidad, estados, cÃ¡lculo server-side de descuento y total. 
+         Implementado 
+       
+       
+         Dashboards 
+         MÃ©tricas propias de vendedor y agregados de supervisor/admin. 
+         Implementado 
+       
+       
+         Readiness 
+         ValidaciÃ³n no sensible de configuraciÃ³n mÃ­nima para UAT/go-live. 
+         Implementado 
+       
+     
+   
+
+   5. Desarrollo Actual Y Cumplimiento 
+   
+     
+       
+         Etapa 
+         Objetivo 
+         Estado 
+         Cumplimiento estimado 
+       
+     
+     
+       
+         EPIC 1 
+         Base tÃ©cnica, autenticaciÃ³n y modelo de usuarios. 
+         Cerrado 
+         100% 
+       
+       
+         EPIC 2 
+         CRM, roles, dashboard base, importaciÃ³n CSV. 
+         Cerrado funcionalmente 
+         100% 
+       
+       
+         EPIC 3 
+         Interacciones, oportunidades, propuestas y flujo comercial. 
+         Cerrado para Development 
+         100% 
+       
+       
+         EPIC 4 
+         Hardening, QA, dashboards y navegaciÃ³n por rol. 
+         Cerrado para Development 
+         100% 
+       
+       
+         EPIC 5 
+         UAT, readiness, documentaciÃ³n, go-live y rollback. 
+         En desarrollo 
+         40-50% 
+       
+     
+   
+   
+    Cumplimiento tÃ©cnico para Development:  90-95% . Cumplimiento estimado para salida productiva:
+     75-80% , condicionado por UAT real, ambiente final, usuarios autorizados y aprobaciÃ³n formal de defectos.
+   
+
+   6. Desarrollo En El Tiempo 
+   
+      Sprint 01:  estructura backend, Firebase Admin, JWT, usuarios, endpoints base y Swagger. 
+      Sprint 02:  CRM real con Firestore, roles, permisos, dashboard base, CSV y hardening inicial. 
+      Sprint 03:  interacciones, oportunidades, propuestas, detalle comercial y dashboard supervisor. 
+      Sprint 04:  seguridad, resiliencia visual, sesiÃ³n expirada, 403/404, dashboards y QA documentado. 
+      Sprint 05:  UAT/go-live, readiness backend, checklist funcional, smoke test y rollback. 
+   
+
+   7. Detalle TÃ©cnico 
+   Stack TecnolÃ³gico 
+   
+     
+       
+         Capa 
+         TecnologÃ­a 
+         Uso 
+       
+     
+     
+       
+         Frontend 
+         React + Vite 
+         Interfaz web SPA del MVP comercial. 
+       
+       
+         AutenticaciÃ³n frontend 
+         Firebase Auth 
+         Login Google y obtenciÃ³n de ID Token. 
+       
+       
+         Backend 
+         FastAPI + Python 
+         API, validaciones, permisos, documentaciÃ³n Swagger. 
+       
+       
+         AutenticaciÃ³n backend 
+         Firebase Admin 
+         ValidaciÃ³n de tokens Firebase. 
+       
+       
+         Base de datos 
+         Cloud Firestore 
+         Persistencia de usuarios, clientes y flujo comercial. 
+       
+       
+         Dependencias backend 
+         uv 
+         InstalaciÃ³n reproducible y ejecuciÃ³n de tests. 
+       
+       
+         Deploy previsto 
+         Cloud Run / Vercel frontend 
+         Backend en GCP y frontend web independiente. 
+       
+     
+   
+
+   Arquitectura Funcional 
+   
+     El usuario entra al frontend y ejecuta login con Google. 
+     Firebase Auth entrega un ID Token al frontend. 
+     El frontend envÃ­a el token al backend en  Authorization: Bearer &lt;token&gt; . 
+     FastAPI valida el token con Firebase Admin. 
+     El backend consulta Firestore para obtener rol, estado y permisos. 
+     Las operaciones de negocio se ejecutan Ãºnicamente a travÃ©s de la API. 
+     Firestore no queda expuesto como escritura directa desde cliente. 
+   
+
+   Endpoints Principales 
+   
+     
+       
+         Ãrea 
+         Endpoints 
+       
+     
+     
+       
+         Salud y readiness 
+          GET /health ,  GET /readiness  
+       
+       
+         Usuario actual 
+          GET /me  
+       
+       
+         AutenticaciÃ³n 
+          POST /auth/login ,  POST /auth/register  
+       
+       
+         Clientes 
+          GET /clientes ,  POST /clientes ,  GET /clientes/{id} ,  PATCH /clientes/{id} ,  DELETE /clientes/{id} ,  POST /clientes/import-csv  
+       
+       
+         Flujo comercial 
+          GET/POST /interacciones ,  GET/POST /oportunidades ,  PATCH /oportunidades/{id} ,  GET /oportunidades/{id}/detalle ,  GET/POST /propuestas ,  PATCH /propuestas/{id}  
+       
+       
+         Dashboard 
+          GET /dashboard/vendedor ,  GET /dashboard/supervisor  
+       
+       
+         Usuarios 
+          GET /users ,  GET /users/{uid} ,  PATCH /users/{uid} ,  PATCH /users/{uid}/role ,  PATCH /users/{uid}/status  
+       
+     
+   
+
+   Reglas De AutorizaciÃ³n 
+   
+      vendedor : opera clientes, interacciones, oportunidades y propuestas propias. 
+      supervisor : accede a informaciÃ³n consolidada y funciones de supervisiÃ³n. 
+      admin : accede a gestiÃ³n completa, cambios de rol/estado e importaciÃ³n CSV. 
+     La autorizaciÃ³n definitiva vive en backend; el frontend solo mejora la experiencia de navegaciÃ³n. 
+   
+
+   8. Seguridad Y Protecciones Extra 
+   
+     
+       
+         Riesgo 
+         Control implementado 
+       
+     
+     
+       
+         Acceso sin sesiÃ³n 
+         Endpoints protegidos exigen token Bearer Firebase vÃ¡lido. 
+       
+       
+         Usuario desactivado sigue usando token 
+          activo=false  bloquea login,  /me  y endpoints protegidos. 
+       
+       
+         Acceso a datos ajenos 
+         Control de propiedad por  vendedorUid  y rol. 
+       
+       
+         EliminaciÃ³n irreversible 
+         Clientes usan baja lÃ³gica con  deletedAt . 
+       
+       
+         Uso directo de Firestore desde cliente 
+         Reglas Firestore versionadas con denegaciÃ³n total. 
+       
+       
+         RÃ¡fagas o abuso bÃ¡sico 
+         Rate limit de 120 solicitudes por minuto por IP. 
+       
+       
+         Payloads sobredimensionados 
+         LÃ­mite global de 1 MB por request. 
+       
+       
+         CSV gigante o invÃ¡lido 
+         CSV limitado a 1 MB, 1000 filas y UTF-8. 
+       
+       
+         Formula injection 
+         Rechazo de textos iniciados con  = ,  + ,  -  o  @ . 
+       
+       
+         CORS permisivo 
+         ConfiguraciÃ³n rechaza  *  en producciÃ³n. 
+       
+       
+         Token persistente en Swagger 
+         Uso de  sessionStorage  y no persistencia permanente. 
+       
+       
+         SesiÃ³n expirada 
+         Evento global frontend fuerza logout y retorno a login. 
+       
+       
+         Rutas incorrectas o sin permiso 
+         PÃ¡ginas 404 y 403 controladas. 
+       
+       
+         Click doble o errores silenciosos 
+         Controles de guardado, disabled states y manejo de errores en pantallas comerciales. 
+       
+     
+   
+
+   9. QA Realizado 
+   ValidaciÃ³n Automatizada Actual 
+   
+     
+       
+         Ãrea 
+         Comando 
+         Resultado 
+       
+     
+     
+       
+         Backend 
+          uv run pytest  
+         54 pruebas aprobadas. 
+       
+       
+         Frontend build 
+          npm.cmd run build  
+         Build productivo exitoso. 
+       
+       
+         Frontend lint 
+          npm.cmd run lint  
+         Sin errores de ESLint. 
+       
+     
+   
+
+   Cobertura Backend 
+   
+     Permisos de clientes y visibilidad por vendedor. 
+     Bloqueo de acceso a cliente ajeno. 
+     Alta, ediciÃ³n y baja lÃ³gica de clientes. 
+     ImportaciÃ³n CSV vÃ¡lida e invÃ¡lida. 
+     Duplicados en CSV y duplicados contra CRM existente. 
+     Usuarios activos/inactivos. 
+     Cambios de rol y estado. 
+     Flujo de interacciones, oportunidades y propuestas. 
+     ValidaciÃ³n de propuesta asociada a oportunidad visible. 
+     Readiness para UAT/go-live. 
+     Hardening de seguridad: lÃ­mites, CORS, headers y errores. 
+   
+
+   QA Documentado 
+   
+     QA EPIC 2 backend. 
+     AuditorÃ­a QA y seguridad EPIC 3. 
+     Hardening de seguridad y resiliencia. 
+     QA EPIC 4 de rutas, dashboards y navegaciÃ³n por rol. 
+     Checklist UAT EPIC 5. 
+     Matriz de defectos UAT por severidad. 
+     Runbook de go-live y rollback. 
+   
+
+   Pendiente QA 
+   
+     Prueba manual completa con usuarios Firebase reales. 
+     E2E automatizado con Playwright o herramienta equivalente. 
+     ValidaciÃ³n visual completa en ambiente UAT. 
+     Smoke test post despliegue. 
+     Pruebas de carga o volumen antes de escalar datos reales. 
+   
+
+   10. Observaciones 
+   
+     El sistema estÃ¡ en condiciones de demo ejecutiva y UAT controlado. 
+     La principal brecha actual es operativa, no funcional: falta validaciÃ³n con ambiente y usuarios reales. 
+     El backend concentra las reglas crÃ­ticas, por lo que no depende de controles visuales del frontend para proteger datos. 
+     El uso de filtros en memoria sobre Firestore es aceptable para MVP, pero debe evolucionar con Ã­ndices y queries server-side al crecer el volumen. 
+     La importaciÃ³n CSV estÃ¡ disponible en backend para admin; debe confirmarse si el cliente necesita interfaz visual para esa operaciÃ³n. 
+     La migraciÃ³n histÃ³rica debe mantenerse fuera de alcance hasta recibir fuente de datos, reglas de normalizaciÃ³n y criterios de calidad. 
+     Mobile, SAP, IA, Calendar y reportes avanzados deben tratarse como Fase 2. 
+   
+
+   11. Riesgos Residuales 
+   
+     
+       
+         Riesgo 
+         Impacto 
+         MitigaciÃ³n recomendada 
+       
+     
+     
+       
+         Firebase real no validado en UAT 
+         Bloqueo de login o permisos en ambiente cliente. 
+         Crear cuentas de prueba por rol y ejecutar checklist UAT. 
+       
+       
+         Consultas Firestore en memoria 
+         Riesgo de rendimiento al aumentar volumen. 
+         Migrar a queries con Ã­ndices por  vendedorUid ,  clienteId ,  estado  y  etapa . 
+       
+       
+         Sin E2E automatizado 
+         Mayor riesgo de regresiÃ³n visual o de navegaciÃ³n. 
+         Implementar Playwright con login mockeado o ambiente de prueba. 
+       
+       
+         MigraciÃ³n histÃ³rica indefinida 
+         Datos incompletos al iniciar operaciÃ³n real. 
+         Solicitar fuente, diccionario, reglas de limpieza y piloto de importaciÃ³n. 
+       
+       
+         Reglas comerciales pendientes de confirmaciÃ³n 
+         Ajustes tardÃ­os en estados, permisos o aprobaciones. 
+         Validar pipeline, estados, roles y aprobaciones en reuniÃ³n ejecutiva. 
+       
+     
+   
+
+   12. Mejoras Recomendadas 
+   
+     Agregar pruebas frontend con Vitest y React Testing Library. 
+     Agregar pruebas E2E con Playwright para flujos crÃ­ticos. 
+     Migrar filtros Firestore a consultas optimizadas con Ã­ndices. 
+     Agregar unicidad de email en alta manual si el negocio lo exige. 
+     Crear pantalla de importaciÃ³n CSV para admin si serÃ¡ usada por operaciÃ³n. 
+     Agregar exportaciÃ³n de clientes, oportunidades y propuestas. 
+     Mejorar dashboards con tendencias temporales y mÃ©tricas de conversiÃ³n. 
+     Agregar recordatorios de seguimiento comercial. 
+     Permitir configuraciÃ³n de etapas de pipeline si el cliente tiene proceso propio. 
+     Preparar integraciÃ³n futura con ERP/SAP. 
+     Planificar mÃ³dulo mobile como Fase 2. 
+     Centralizar logger frontend y reducir mensajes no necesarios en producciÃ³n. 
+   
+
+   13. Preguntas Para El Cliente 
+   
+     Â¿Los roles  vendedor ,  supervisor  y  admin  cubren la operaciÃ³n real? 
+     Â¿QuÃ© estados de cliente, oportunidad y propuesta usan hoy? 
+     Â¿El pipeline actual refleja sus etapas reales de venta? 
+     Â¿QuÃ© campos son obligatorios para registrar un cliente? 
+     Â¿El email del cliente debe ser Ãºnico? 
+     Â¿Necesitan importaciÃ³n CSV desde interfaz o basta con operaciÃ³n tÃ©cnica/admin? 
+     Â¿QuÃ© reportes son indispensables para gerencia? 
+     Â¿QuÃ© mÃ©tricas definen Ã©xito comercial: monto, probabilidad, cierre, actividad o conversiÃ³n? 
+     Â¿QuiÃ©n puede aprobar propuestas y bajo quÃ© condiciones? 
+     Â¿QuÃ© datos histÃ³ricos deben migrarse y desde quÃ© fuente? 
+     Â¿QuÃ© acciones requieren auditorÃ­a formal? 
+     Â¿QuÃ© volumen estimado de clientes, oportunidades y propuestas esperan en 6 y 12 meses? 
+     Â¿QuÃ© dominios, usuarios y roles se usarÃ¡n para UAT? 
+     Â¿CuÃ¡l serÃ¡ el criterio formal de salida productiva? 
+   
+
+   14. Preguntas Para Frontend 
+   
+     Â¿Se mantendrÃ¡ el diseÃ±o actual o habrÃ¡ lineamientos visuales del cliente? 
+     Â¿Se necesita UI para administraciÃ³n de usuarios y roles? 
+     Â¿Se necesita pantalla de importaciÃ³n CSV para admin? 
+     Â¿El pipeline debe ser Kanban con drag and drop o basta con selector de etapa? 
+     Â¿QuÃ© acciones deben ocultarse por rol ademÃ¡s del bloqueo backend? 
+     Â¿Se requieren estados de carga/error mÃ¡s uniformes entre pantallas? 
+     Â¿QuÃ© vistas deben optimizarse primero para mobile? 
+     Â¿QuÃ© campos deben mostrarse en tablas y cuÃ¡les solo en detalle? 
+     Â¿Se necesita exportar clientes, oportunidades o propuestas desde frontend? 
+     Â¿Se implementarÃ¡ Vitest/RTL para pruebas unitarias de interfaz? 
+     Â¿Se implementarÃ¡ Playwright para E2E? 
+     Â¿Se requiere branding Enci mÃ¡s formal para demo ejecutiva? 
+   
+
+   15. Mensaje Ejecutivo Sugerido 
+   
+    El sistema ya cuenta con un MVP web funcional para gestiÃ³n comercial: autenticaciÃ³n segura,
+    CRM de clientes, roles, pipeline de oportunidades, propuestas, interacciones y dashboards.
+    TÃ©cnicamente, las etapas principales de desarrollo estÃ¡n cerradas para Development y las
+    pruebas locales actuales pasan correctamente. El foco pendiente es validar con usuarios reales
+    en UAT, confirmar reglas comerciales finales, priorizar mejoras de interfaz y preparar el
+    go-live controlado con smoke test y rollback documentados.
+   
+ 
+ 
+

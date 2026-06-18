@@ -1,0 +1,61 @@
+﻿# Sprint 01 â€” EPIC 1: AutenticaciÃ³n y Modelo de Usuarios
+
+**Fecha:** 24 de abril 2026  
+**Estado:** âœ… Completado  
+**Rama:** `feature/auth-users` â†’ mergeada a `main`
+
+---
+
+## Objetivo
+
+Establecer la base tÃ©cnica del backend: estructura del proyecto, autenticaciÃ³n con Firebase y modelo de usuarios en Firestore.
+
+---
+
+## Tareas completadas
+
+| Ticket | DescripciÃ³n | Estado |
+|--------|-------------|--------|
+| EV-001 | Setup proyecto con uv y pyproject.toml | âœ… |
+| EV-002 | Estructura de carpetas `app/core`, `app/api`, `app/models`, `app/services` | âœ… |
+| EV-003 | ConfiguraciÃ³n de variables de entorno con Pydantic Settings v2 | âœ… |
+| EV-004 | InicializaciÃ³n Firebase Admin SDK | âœ… |
+| EV-005 | Middleware JWT (`app/core/auth.py`) | âœ… |
+| EV-006 | Modelo Pydantic de usuarios (`UserBase`, `UserCreate`, `UserResponse`) | âœ… |
+| EV-007 | Servicio Firestore (`app/services/firestore.py`) | âœ… |
+| EV-008 | Endpoint `POST /auth/register` | âœ… |
+| EV-009 | Endpoints `GET /me`, `GET /health`, `GET /` | âœ… |
+| EV-010 | ValidaciÃ³n en Swagger UI | âœ… |
+
+---
+
+## Problemas encontrados y soluciones
+
+| Problema | SoluciÃ³n |
+|----------|----------|
+| `NameError: name 'app' is not defined` | `include_router` estaba antes de `app = FastAPI()` en `main.py` â€” se reordenÃ³ |
+| MÃ³dulo `email-validator` faltante | Se agregÃ³ `pydantic[email]` a `pyproject.toml` vÃ­a `uv add` |
+
+---
+
+## Archivos creados
+app/
+â”œâ”€â”€ core/
+â”‚ â”œâ”€â”€ config.py
+â”‚ â””â”€â”€ auth.py
+â”œâ”€â”€ models/
+â”‚ â””â”€â”€ user.py
+â”œâ”€â”€ services/
+â”‚ â”œâ”€â”€ firebase.py
+â”‚ â””â”€â”€ firestore.py
+â”œâ”€â”€ api/
+â”‚ â””â”€â”€ auth.py
+â””â”€â”€ main.py
+
+
+---
+
+## Resultado
+
+Swagger UI operativo en `/docs` con 4 endpoints funcionales y autenticaciÃ³n JWT integrada. Base lista para Sprint 02.
+

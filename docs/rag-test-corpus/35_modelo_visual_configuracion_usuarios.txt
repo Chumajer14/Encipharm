@@ -1,0 +1,468 @@
+﻿ 
+
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Encipharm 
+ Sales Command 
+ 
+ 
+ menu 
+ 
+ 
+ 
+ 
+ dashboard 
+ Dashboard 
+ Dashboard 
+ 
+ 
+ analytics 
+ Pipeline & Funnels 
+ Pipeline & Funnels 
+ 
+ 
+ trending_up 
+ Proyecciones 
+ Proyecciones 
+ 
+ 
+ groups 
+ Equipo de Ventas 
+ Equipo de Ventas 
+ 
+ 
+ insights 
+ Inteligencia de Mercado 
+ Inteligencia de Mercado 
+ 
+ 
+ compare_arrows 
+ AnÃ¡lisis de Competencia 
+ AnÃ¡lisis de Competencia 
+ 
+ 
+ 
+ 
+ 
+ settings 
+ ConfiguraciÃ³n 
+ ConfiguraciÃ³n 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ search 
+ 
+ 
+ 
+ 
+ 
+ calendar_month 
+ 
+ 
+ notifications 
+  
+ 
+  
+ 
+ 
+ 
+ Dr. Aris Thorne 
+ Admin Global 
+ 
+ expand_more 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ConfiguraciÃ³n 
+ 
+ 
+ person 
+ Usuarios 
+ 
+ 
+ admin_panel_settings 
+ Roles y permisos 
+ 
+ 
+ palette 
+ Apariencia 
+ 
+ 
+ language 
+ Idioma 
+ 
+ 
+ notifications_active 
+ Notificaciones 
+ 
+ 
+ extension 
+ Integraciones 
+ 
+ 
+ shield 
+ Seguridad 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ GestiÃ³n de Usuarios 
+ Visualiza y gestiona los colaboradores de la plataforma 
+ 
+ 
+ person_add 
+                    Invitar Usuario
+                 
+ 
+ 
+ 
+ 
+ 
+ Usuario 
+ Rol 
+ Estado 
+ Ãšltimo Acceso 
+ Acciones 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Dra. Elena MartÃ­nez 
+ e.martinez@encipharm.com 
+ 
+ 
+ 
+ 
+ Admin Global 
+ 
+ 
+ 
+  
+ Activo 
+ 
+ 
+ Hoy, 09:42 AM 
+ 
+ 
+ more_vert 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Ing. Ricardo Salles 
+ r.salles@encipharm.com 
+ 
+ 
+ 
+ 
+ Sales Manager 
+ 
+ 
+ 
+  
+ Activo 
+ 
+ 
+ Ayer, 18:20 PM 
+ 
+ 
+ more_vert 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Marco BenÃ­tez 
+ m.benitez@encipharm.com 
+ 
+ 
+ 
+ 
+ Vendedor Sr. 
+ 
+ 
+ 
+  
+ Inactivo 
+ 
+ 
+ Hace 12 dÃ­as 
+ 
+ 
+ more_vert 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Mostrando 3 de 15 usuarios registrados 
+ 
+  chevron_left  
+  chevron_right  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Roles y Permisos 
+ Define los niveles de acceso para los diferentes miembros del equipo. 
+ 
+ lock_open 
+ MÃ³dulo de gestiÃ³n de roles avanzado disponible en la versiÃ³n Enterprise. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Apariencia 
+ Personaliza el entorno visual 
+ 
+ brush 
+ 
+ 
+ 
+ 
+  
+ Tema Institucional Encipharm 
+ 
+ lock 
+ 
+ 
+ 
+ 
+  
+  
+  
+ 
+ Modo Claro (Default) 
+ 
+ 
+ 
+  
+  
+  
+ 
+ Modo Oscuro 
+ 
+ 
+ 
+ 
+ Guardar cambios 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Idioma 
+ Selecciona el lenguaje del sistema 
+ 
+ translate 
+ 
+ 
+ 
+ 
+ ðŸ‡ªðŸ‡¸ 
+ EspaÃ±ol 
+ check_circle 
+ 
+ 
+ 
+ 
+ ðŸ‡ºðŸ‡¸ 
+ English 
+ 
+ 
+ 
+ 
+ ðŸ‡§ðŸ‡· 
+ PortuguÃªs 
+ 
+ 
+ 
+ 
+ Guardar cambios 
+ 
+ 
+ 
+ 
+ 
+ 
+ Preferencias de NotificaciÃ³n 
+ 
+ 
+ 
+ Alertas de ventas crÃ­ticas 
+ Recibir notificaciones cuando un KPI caiga por debajo del 10% 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ Resumen semanal por correo 
+ Informe de desempeÃ±o de la semana pasada 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ security 
+                            Controles de Seguridad
+                         
+ 
+ 
+ 
+ AutenticaciÃ³n (2FA) 
+ Requerido para administradores 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ Sesiones Activas 
+ Cerrar todas las sesiones 
+ 
+ Cerrar todo 
+ 
+ 
+                            Cambiar contraseÃ±a
+                         
+ 
+ 
+ 
+ 
+ 
+ 
+ history 
+                            Historial de Cambios (Audit Log)
+                         
+ Exportar CSV 
+ 
+ 
+ 
+ update 
+ 
+ 
+ ActualizaciÃ³n de permisos 
+ Hace 15 min 
+ 
+ Dra. Elena MartÃ­nez cambiÃ³ el rol de 'Marco BenÃ­tez' de Vendedor a Inactivo. 
+ 
+ 
+ 
+ login 
+ 
+ 
+ Inicio de sesiÃ³n detectado 
+ Hoy, 09:42 AM 
+ 
+ Acceso exitoso desde nueva direcciÃ³n IP (186.23.45.1) - Dr. Aris Thorne. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ MÃ³dulos e Integraciones 
+ Conecta Encipharm con tus herramientas de laboratorio y logÃ­stica. 
+ 
+ 
+ 
+ science 
+ 
+ 
+ Lab-Logistics API 
+ Conectado 
+ 
+  settings  
+ 
+ 
+ 
+ database 
+ 
+ 
+ ERP Institutional 
+ No configurado 
+ 
+ Conectar 
+ 
+ 
+ 
+ 
+ 
+ Â© 2024 Encipharm Sales Command. Todos los derechos reservados. 
+ 
+ TÃ©rminos de Servicio 
+ PolÃ­ticas de Privacidad 
+ Soporte TÃ©cnico 
+ 
+ 
+ 
+ 
+ 
+  

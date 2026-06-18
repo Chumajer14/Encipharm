@@ -1,0 +1,111 @@
+﻿# Sprint 02.1 â€” Avance EPIC 2: CRM, Usuarios y Datos Base
+
+## Estado del proyecto
+
+Durante este avance se continuÃ³ trabajando en el EPIC 2, enfocado en autenticaciÃ³n, navegaciÃ³n protegida, dashboard y gestiÃ³n base de clientes.
+
+Actualmente el sistema cuenta con:
+
+- Login con Google mediante Firebase Authentication.
+- ConexiÃ³n del frontend con el backend FastAPI.
+- ValidaciÃ³n de sesiÃ³n mediante token Firebase.
+- Rutas protegidas para evitar acceso sin autenticaciÃ³n.
+- Dashboard base implementado.
+- Vista CRM Clientes conectada al backend.
+- CreaciÃ³n de clientes desde formulario.
+- Listado de clientes reales desde la API.
+- BÃºsqueda y filtrado de clientes por nombre, empresa, rubro o regiÃ³n.
+- NavegaciÃ³n entre Dashboard, Clientes y Nuevo Cliente.
+- BotÃ³n de retorno desde CRM Clientes hacia Dashboard.
+- Ajustes visuales en botones, encabezados y flujo de navegaciÃ³n.
+
+## Cambios realizados
+
+### Frontend
+
+Se modificaron los siguientes archivos:
+
+- `frontend/src/App.jsx`
+- `frontend/src/App.css`
+- `frontend/src/pages/Login.jsx`
+- `frontend/src/pages/Dashboard.jsx`
+- `frontend/src/pages/Clientes.jsx`
+- `frontend/src/pages/CrearCliente.jsx`
+- `frontend/src/services/api.js`
+- `frontend/src/services/clientesService.js`
+
+### Funcionalidades agregadas
+
+- Se agregÃ³ la ruta principal `/` redirigiendo al login.
+- Se incorporÃ³ la ruta `/dashboard`.
+- Se agregÃ³ navegaciÃ³n protegida para clientes, dashboard y creaciÃ³n de clientes.
+- Se creÃ³ la pantalla base del dashboard.
+- Se agregÃ³ botÃ³n â€œVolver al Dashboardâ€ en la vista CRM Clientes.
+- Se corrigieron problemas de conexiÃ³n entre frontend y backend.
+
+## Problemas encontrados Y SOLUCIONADOS
+
+Durante el desarrollo se presentaron algunos problemas tÃ©cnicos:
+
+- Pantalla en blanco por falta de ruta `/` en `App.jsx`.
+- Error de conexiÃ³n por diferencia entre puertos `8000` y `8001`.
+- Error al iniciar backend usando `uvicorn main:app`, corregido usando `uvicorn app.main:app`.
+- Conflictos de Git en `Clientes.jsx` y `clientesService.js`.
+- Problemas de CORS y configuraciÃ³n de URL del backend.
+- Riesgo de subir archivos sensibles al repositorio.
+
+## Soluciones aplicadas
+
+- Se agregÃ³ redirecciÃ³n desde `/` hacia `/login`.
+- Se corrigiÃ³ la URL de la API en el frontend.
+- Se mantuvo el uso de variables de entorno para no exponer datos sensibles.
+- Se validÃ³ que no se subieran archivos `.env` ni `serviceAccountKey.json`.
+- Se resolvieron conflictos manualmente eliminando marcas como `<<<<<<< HEAD`.
+- Se continuÃ³ el rebase con `git rebase --continue`.
+
+## Seguridad
+
+Se mantiene la restricciÃ³n de no subir archivos sensibles al repositorio:
+
+- `Backend/.env`
+- `frontend/.env`
+- `Backend/serviceAccountKey.json`
+- Cualquier archivo con credenciales privadas o service account.
+
+Estos archivos deben mantenerse localmente y estar protegidos mediante `.gitignore`.
+
+## Mejoras pendientes
+
+Para mejorar la calidad del sistema, se propone implementar validaciones en formularios:
+
+- No permitir campos vacÃ­os al crear cliente.
+- Validar que nombre, empresa y rubro no contengan caracteres invÃ¡lidos.
+- Validar formato de correo electrÃ³nico.
+- Validar nÃºmero telefÃ³nico si se agrega ese campo.
+- Mostrar mensajes claros cuando el usuario ingrese datos incorrectos.
+- Evitar que se envÃ­e el formulario si los datos no cumplen las reglas.
+- Agregar confirmaciÃ³n visual cuando un cliente se cree correctamente.
+
+
+## PROXIMAS MEJORAS
+
+Los prÃ³ximos pasos dentro del EPIC 2 son:
+
+Completar la gestiÃ³n de clientes.
+Agregar vista de detalle de cliente.
+Implementar ediciÃ³n de clientes.
+Implementar eliminaciÃ³n de clientes.
+Mejorar validaciones del formulario.
+Mejorar mensajes de error y Ã©xito.
+Diferenciar dashboard de vendedor y supervisor.
+Mostrar datos del usuario autenticado.
+Implementar cierre de sesiÃ³n visible desde el dashboard.
+Revisar permisos segÃºn rol de usuario.
+Preparar base para iniciar EPIC 3.
+Estado general
+
+## ESTADO GENERAL
+
+El EPIC 2 se encuentra en avance funcional.
+El sistema ya permite autenticaciÃ³n, navegaciÃ³n principal y gestiÃ³n inicial de clientes reales conectados al backend.
+AÃºn faltan validaciones, ediciÃ³n, eliminaciÃ³n, permisos por rol y mejoras visuales para cerrar completamente este EPIC.
