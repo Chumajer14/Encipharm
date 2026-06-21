@@ -1,122 +1,351 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const EnciApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EnciApp extends StatelessWidget {
+  const EnciApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Enci Vendedor',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'Arial',
+        scaffoldBackgroundColor: const Color(0xFF020817),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF10B981)),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MainShell(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainShell> createState() => _MainShellState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MainShellState extends State<MainShell> {
+  int index = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  final pages = const [
+    HomePage(),
+    NuevaCotizacionPage(),
+    ForecastPage(),
+    IARagPage(),
+    PipelinePage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(child: pages[index]),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: index,
+        onTap: (value) => setState(() => index = value),
+        backgroundColor: const Color(0xFF0F172A),
+        selectedItemColor: const Color(0xFF5EEAD4),
+        unselectedItemColor: const Color(0xFFCBD5E1),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Nuevo'),
+          BottomNavigationBarItem(icon: Icon(Icons.trending_up), label: 'Forecast'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'IA RAG'),
+          BottomNavigationBarItem(icon: Icon(Icons.filter_alt_outlined), label: 'Pipeline'),
+        ],
+      ),
+    );
+  }
+}
+
+class AppHeader extends StatelessWidget {
+  const AppHeader({super.key, required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          height: 44,
+          width: 44,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF10B981), Color(0xFF3B82F6)],
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Center(
+            child: Text('E', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(subtitle, style: const TextStyle(color: Color(0xFF94A3B8))),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.settings_outlined, color: Colors.white),
+        )
+      ],
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  Widget actionCard(IconData icon, String title, String subtitle, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white),
+          const Spacer(),
+          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 6),
+          Text(subtitle, style: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AppHeader(title: 'Enci', subtitle: 'Sales command'),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111827),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF334155)),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+            child: const Column(
+              children: [
+                Text('SESION ACTIVA', style: TextStyle(color: Color(0xFF5EEAD4), fontWeight: FontWeight.bold)),
+                SizedBox(height: 14),
+                Text(
+                  'FALON MARTINA\nBERRÍOS VALENZUELA',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 27, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Gestiona cotizaciones, pipeline y forecast desde terreno.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          GridView.count(
+            shrinkWrap: true,
+            crossAxisCount: 2,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              actionCard(Icons.add, 'Nueva Cotizacion', 'Crear oportunidad', const Color(0xFF10B981)),
+              actionCard(Icons.filter_alt_outlined, 'Pipeline', 'Gestionar etapas', const Color(0xFF7C3AED)),
+              actionCard(Icons.trending_up, 'Proyeccion', 'Forecast ponderado', const Color(0xFFF59E0B)),
+              actionCard(Icons.settings_outlined, 'Configuracion', 'Cuenta y sesion', const Color(0xFF3B82F6)),
+            ],
+          ),
+        ],
       ),
     );
   }
+}
+
+class NuevaCotizacionPage extends StatefulWidget {
+  const NuevaCotizacionPage({super.key});
+
+  @override
+  State<NuevaCotizacionPage> createState() => _NuevaCotizacionPageState();
+}
+
+class _NuevaCotizacionPageState extends State<NuevaCotizacionPage> {
+  double probabilidad = 55;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AppHeader(title: 'Nueva cotizacion', subtitle: 'Carga comercial'),
+          const SizedBox(height: 26),
+          const Text('OPORTUNIDAD', style: TextStyle(color: Color(0xFF5EEAD4), fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          const Text(
+            'Crear propuesta comercial',
+            style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Los datos quedan disponibles para el dashboard y forecast.',
+            style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 17),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111827),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF334155)),
+            ),
+            child: Column(
+              children: [
+                formLabel('Cliente'),
+                dropdown('Selecciona cliente'),
+                formLabel('Producto'),
+                dropdown('Selecciona producto'),
+                formLabel('Monto cotizado'),
+                input('\$'),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF042F2E),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF0F766E)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Probabilidad de exito', style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 16)),
+                      Text('${probabilidad.round()}%', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                Slider(
+                  value: probabilidad,
+                  min: 0,
+                  max: 100,
+                  onChanged: (value) => setState(() => probabilidad = value),
+                ),
+                formLabel('Etapa'),
+                dropdown('Prospeccion'),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      padding: const EdgeInsets.all(18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('Guardar cotizacion', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget formLabel(String text) => Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      );
+
+  Widget dropdown(String text) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: const Color(0xFF020817), borderRadius: BorderRadius.circular(14)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(text, style: const TextStyle(color: Colors.white)),
+            const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+          ],
+        ),
+      );
+
+  Widget input(String hint) => TextField(
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+          filled: true,
+          fillColor: const Color(0xFF020817),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      );
+}
+
+class ForecastPage extends StatelessWidget {
+  const ForecastPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return pagePlaceholder('FORECAST', 'Proyeccion', 'Cotizaciones recientes y forecast comercial.');
+  }
+}
+
+class PipelinePage extends StatelessWidget {
+  const PipelinePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return pagePlaceholder('PIPELINE', 'Pipeline', 'Seguimiento de etapas comerciales.');
+  }
+}
+
+class IARagPage extends StatelessWidget {
+  const IARagPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return pagePlaceholder('IA RAG', 'Asistente Encipharm', 'Espacio reservado para IA con documentos.');
+  }
+}
+
+Widget pagePlaceholder(String tag, String title, String desc) {
+  return Padding(
+    padding: const EdgeInsets.all(22),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppHeader(title: 'Enci', subtitle: 'Sales command'),
+        const SizedBox(height: 28),
+        Text(tag, style: const TextStyle(color: Color(0xFF5EEAD4), fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Text(title, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Text(desc, style: const TextStyle(color: Color(0xFFBFDBFE), fontSize: 17)),
+      ],
+    ),
+  );
 }
