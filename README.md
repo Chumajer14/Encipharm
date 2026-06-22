@@ -202,6 +202,16 @@ Para publicar el frontend en Vercel, configurar el proyecto con Root Directory =
 
 ## Instalacion local
 
+### Inicio rapido en Windows
+
+Ejecutar `iniciar-encipharm-local.bat` desde la raiz del repositorio. El lanzador abre tres terminales independientes y mantiene todos los servicios enlazados exclusivamente a `127.0.0.1`:
+
+- Backend FastAPI: `http://127.0.0.1:8000`.
+- Frontend web: `http://127.0.0.1:5173`.
+- App vendedor: `http://127.0.0.1:5174`.
+
+El navegador abre automaticamente las dos aplicaciones. Para detener el entorno local, cerrar las tres terminales creadas por el lanzador.
+
 ### Backend
 
 ```bash
