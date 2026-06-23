@@ -1,8 +1,8 @@
-﻿# Sprint 02 â€“ AplicaciÃ³n MÃ³vil Vendedor (PWA)
+# Sprint 02 â€“ AplicaciÃ³n MÃ³vil Vendedor (PWA)
 
 ## Resumen
 
-Durante este sprint se desarrollÃ³ una aplicaciÃ³n PWA para vendedores, integrada con la infraestructura existente de Encipharm Ventas. La aplicaciÃ³n utiliza autenticaciÃ³n mediante Google Firebase Authentication y sincroniza informaciÃ³n con el backend FastAPI utilizado por el Dashboard Comercial.
+Durante este sprint se desarrollÃ³ una aplicaciÃ³n PWA para vendedores, integrada con la infraestructura existente de Enci Ventas. La aplicaciÃ³n utiliza autenticaciÃ³n mediante Google Firebase Authentication y sincroniza informaciÃ³n con el backend FastAPI utilizado por el Dashboard Comercial.
 
 El objetivo principal fue validar el flujo completo vendedor â†’ backend â†’ dashboard, permitiendo registrar oportunidades comerciales desde dispositivos mÃ³viles.
 

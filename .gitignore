@@ -71,6 +71,7 @@ backend/*.db
 Backend/*.db
 chroma_db/
 Backend/chroma_db/
+Backend/document_storage/
 
 # =========================
 # Frontend (Vue / Node / Vite)

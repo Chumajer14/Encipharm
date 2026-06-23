@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field, field_validator
 
 
 NO_CONTEXT_RESPONSE = (
-    "No encontre informacion suficiente en los documentos de Encipharm para responder esta pregunta."
+    "Este asistente esta enfocado en consultas tecnicas, comerciales, documentales y datos internos de Enci. "
+    "Puedes preguntarme sobre productos, sanidad animal, clientes, oportunidades, propuestas o interacciones."
 )
 
 
@@ -32,6 +33,16 @@ class RagSource(BaseModel):
     fragmento: str
 
 
+class RagResponseDiagnostics(BaseModel):
+    """Metadatos temporales para validar el origen de respuestas durante la entrega."""
+
+    origen: Literal["deepseek", "local", "other"]
+    proveedor: str
+    modelo: str | None = None
+    fragmentos_documentales: int = 0
+    fragmentos_internos: int = 0
+
+
 class RagChatResponse(BaseModel):
     """Respuesta del asistente RAG con trazabilidad documental."""
 
@@ -40,6 +51,8 @@ class RagChatResponse(BaseModel):
     conversacion_id: str
     tokens_usados: int
     timestamp: datetime
+    diagnostico: RagResponseDiagnostics
+    titulo_conversacion: str | None = None
 
 
 class RagDocumentResponse(BaseModel):
@@ -75,6 +88,7 @@ class RagConversationMessage(BaseModel):
     fuentes: list[RagSource] = []
     tokens_usados: int | None = None
     sin_contexto: bool | None = None
+    diagnostico: RagResponseDiagnostics | None = None
 
 
 class RagConversationResponse(BaseModel):
@@ -84,6 +98,7 @@ class RagConversationResponse(BaseModel):
     usuarioId: str
     usuarioEmail: str | None = None
     rol: str
+    titulo: str | None = None
     mensajes: list[RagConversationMessage] = []
     createdAt: datetime | None = None
     updatedAt: datetime | None = None

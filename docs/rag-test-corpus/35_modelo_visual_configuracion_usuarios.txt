@@ -1,4 +1,4 @@
-﻿ 
+
 
   
  
@@ -13,7 +13,7 @@
  
  
  
- Encipharm 
+ Enci
  Sales Command 
  
  
@@ -267,7 +267,7 @@
  
  
   
- Tema Institucional Encipharm 
+ Tema Institucional Enci
  
  lock 
  
@@ -429,7 +429,7 @@
  
  
  MÃ³dulos e Integraciones 
- Conecta Encipharm con tus herramientas de laboratorio y logÃ­stica. 
+ Conecta Enci con tus herramientas de laboratorio y logÃ­stica.
  
  
  
@@ -455,7 +455,7 @@
  
  
  
- Â© 2024 Encipharm Sales Command. Todos los derechos reservados. 
+ Â© 2024 Enci Sales Command. Todos los derechos reservados.
  
  TÃ©rminos de Servicio 
  PolÃ­ticas de Privacidad 

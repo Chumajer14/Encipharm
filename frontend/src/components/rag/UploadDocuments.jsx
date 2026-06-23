@@ -56,7 +56,7 @@ function UploadDocuments({ token }) {
   }
 
   return (
-    <aside className="rag-admin-panel">
+    <section className="rag-admin-panel">
       <div className="rag-panel-header">
         <div>
           <h2>Corpus documental</h2>
@@ -96,7 +96,7 @@ function UploadDocuments({ token }) {
         ))}
         {!documents.length && <p className="muted-text">Sin documentos indexados.</p>}
       </div>
-    </aside>
+    </section>
   );
 }
 

@@ -10,13 +10,23 @@ from app.models.rag import (
     RagChatResponse,
     RagConversationResponse,
     RagDocumentResponse,
+    RagResponseDiagnostics,
     RagSource,
     RagUploadResponse,
 )
 from app.services.firestore import get_db
-from app.services.llm_service import build_system_prompt, build_user_prompt, call_deepseek
+from app.services.llm_service import (
+    build_system_prompt,
+    build_user_prompt,
+    call_deepseek,
+    generate_conversation_title,
+    generate_conversation_titles,
+    normalize_conversation_title,
+)
 from app.services.rag_service import (
     build_internal_context_chunks,
+    is_conversational_question,
+    is_internal_data_question,
     list_conversations,
     list_documents,
     no_context_payload,
@@ -26,6 +36,7 @@ from app.services.rag_service import (
     sanitize_question,
     save_conversation_turn,
     search_similar_chunks,
+    select_context_chunks,
     upload_and_index_document,
     validate_document_file,
 )
@@ -47,15 +58,27 @@ async def chat_with_rag(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="La pregunta no puede estar vacia")
 
     db = get_db()
-    internal_chunks = await run_in_threadpool(
-        build_internal_context_chunks,
-        db,
+    conversational_question = is_conversational_question(pregunta)
+    document_chunks = [] if conversational_question else await run_in_threadpool(
+        search_similar_chunks,
         pregunta,
-        user,
-        settings.MAX_CONTEXT_CHUNKS * 3,
+        settings.MAX_CONTEXT_CHUNKS,
     )
-    document_chunks = await run_in_threadpool(search_similar_chunks, pregunta, settings.MAX_CONTEXT_CHUNKS)
-    chunks = [*internal_chunks, *document_chunks]
+    internal_chunks = []
+    if not conversational_question and (is_internal_data_question(pregunta) or not document_chunks):
+        internal_chunks = await run_in_threadpool(
+            build_internal_context_chunks,
+            db,
+            pregunta,
+            user,
+            settings.MAX_CONTEXT_CHUNKS * 3,
+        )
+    chunks = select_context_chunks(
+        pregunta,
+        internal_chunks,
+        document_chunks,
+        settings.MAX_CONTEXT_CHUNKS,
+    )
 
     if chunks:
         llm_response = await call_deepseek(build_system_prompt(), build_user_prompt(pregunta, chunks))
@@ -70,8 +93,28 @@ async def chat_with_rag(
             for chunk in chunks
         ]
         sin_contexto = False
+        diagnostico = RagResponseDiagnostics(
+            origen="deepseek",
+            proveedor="DeepSeek",
+            modelo=settings.DEEPSEEK_MODEL,
+            fragmentos_documentales=len(document_chunks),
+            fragmentos_internos=len(internal_chunks),
+        )
     else:
-        respuesta, fuentes, tokens_usados, sin_contexto = no_context_payload()
+        respuesta, fuentes, tokens_usados, sin_contexto = no_context_payload(pregunta)
+        diagnostico = RagResponseDiagnostics(
+            origen="local",
+            proveedor="Motor local Enci",
+            fragmentos_documentales=0,
+            fragmentos_internos=0,
+        )
+
+    conversation_title = None
+    if not payload.conversacion_id:
+        try:
+            conversation_title = await generate_conversation_title(pregunta)
+        except (HTTPException, ValueError, KeyError, TypeError):
+            conversation_title = normalize_conversation_title("", pregunta)
 
     conversation_id = await run_in_threadpool(
         save_conversation_turn,
@@ -82,7 +125,9 @@ async def chat_with_rag(
         fuentes,
         tokens_usados,
         sin_contexto,
+        diagnostico.model_dump(),
         payload.conversacion_id,
+        conversation_title,
     )
 
     return RagChatResponse(
@@ -91,6 +136,9 @@ async def chat_with_rag(
         conversacion_id=conversation_id,
         tokens_usados=tokens_usados,
         timestamp=datetime.now(timezone.utc),
+        # TEMPORAL: retirar diagnostico y su indicador visual antes de la entrega final.
+        diagnostico=diagnostico,
+        titulo_conversacion=conversation_title,
     )
 
 
@@ -101,7 +149,42 @@ async def get_rag_conversations(
 ):
     """Lista conversaciones RAG segun alcance de rol."""
 
-    return await run_in_threadpool(list_conversations, get_db(), user, limit)
+    db = get_db()
+    conversations = await run_in_threadpool(list_conversations, db, user, limit)
+    conversations_without_title = []
+    for conversation in conversations:
+        if conversation.get("titulo"):
+            continue
+        first_question = next(
+            (
+                message.get("texto", "")
+                for message in conversation.get("mensajes", [])
+                if message.get("tipo") == "pregunta" and message.get("texto")
+            ),
+            "",
+        )
+        if first_question:
+            conversations_without_title.append((conversation, first_question))
+
+    if conversations_without_title:
+        try:
+            generated_titles = await generate_conversation_titles(
+                [question for _conversation, question in conversations_without_title]
+            )
+            for (conversation, _question), title in zip(
+                conversations_without_title,
+                generated_titles,
+                strict=True,
+            ):
+                await run_in_threadpool(
+                    db.collection("chatConversaciones").document(conversation["id"]).update,
+                    {"titulo": title},
+                )
+                conversation["titulo"] = title
+        except (HTTPException, ValueError, KeyError, TypeError):
+            pass
+
+    return conversations
 
 
 @router.post("/documents/upload", response_model=RagUploadResponse, status_code=status.HTTP_201_CREATED)

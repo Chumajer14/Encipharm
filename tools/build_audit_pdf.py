@@ -24,7 +24,7 @@ from reportlab.platypus import (
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "docs" / "auditoria"
-OUT_PDF = OUT_DIR / "auditoria-cumplimiento-encipharm.pdf"
+OUT_PDF = OUT_DIR / "auditoria-cumplimiento-enci.pdf"
 
 
 SECTION_TITLES = [
@@ -54,7 +54,7 @@ def _footer(canvas, doc):
     canvas.saveState()
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(colors.HexColor("#5B6472"))
-    canvas.drawString(doc.leftMargin, 0.45 * inch, "Auditoria tecnica-funcional Encipharm Ventas")
+    canvas.drawString(doc.leftMargin, 0.45 * inch, "Auditoria tecnica-funcional Enci Ventas")
     canvas.drawRightString(LETTER[0] - doc.rightMargin, 0.45 * inch, f"Pagina {doc.page}")
     canvas.restoreState()
 
@@ -67,7 +67,7 @@ def make_doc(path: Path) -> BaseDocTemplate:
         rightMargin=0.72 * inch,
         topMargin=0.72 * inch,
         bottomMargin=0.72 * inch,
-        title="Auditoria de Cumplimiento Encipharm Ventas",
+        title="Auditoria de Cumplimiento Enci Ventas",
         author="Equipo tecnico",
     )
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
@@ -221,7 +221,7 @@ def add_section_index(story):
 def build_story():
     story = []
     story.append(p("Auditoria tecnica-funcional de cumplimiento", "TitleMain"))
-    story.append(p("Encipharm Ventas | Contraste de implementacion real contra especificacion oficial consolidada", "Subtitle"))
+    story.append(p("Enci Ventas | Contraste de implementacion real contra especificacion oficial consolidada", "Subtitle"))
     story.append(
         p(
             "<b>Resultado ejecutivo:</b> el repositorio esta listo para demo tecnica y Development, "

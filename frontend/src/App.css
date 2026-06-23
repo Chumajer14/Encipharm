@@ -1356,6 +1356,100 @@ a {
   display: block;
 }
 
+.forecast-seller-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 180px;
+  outline: none;
+  padding: 9px 30px 9px 12px;
+}
+
+.forecast-seller-select:focus {
+  border-color: rgb(139 92 246 / 70%);
+  box-shadow: 0 0 0 3px rgb(139 92 246 / 14%);
+  color: var(--text-primary);
+}
+
+.forecast-export-control {
+  position: relative;
+}
+
+.panel-actions button.forecast-export-trigger {
+  gap: 8px;
+}
+
+.panel-actions button.forecast-export-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.forecast-export-menu {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 18px 46px rgb(0 0 0 / 32%);
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(330px, calc(100vw - 40px));
+  z-index: 20;
+}
+
+.forecast-export-menu > strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.forecast-export-menu > p {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  margin: 0 0 5px;
+}
+
+.panel-actions .forecast-export-menu button {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.panel-actions .forecast-export-menu button:hover {
+  border-color: rgb(139 92 246 / 58%);
+  color: var(--text-primary);
+}
+
+.forecast-export-menu button span {
+  color: var(--text-primary);
+}
+
+.forecast-export-menu button small {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.forecast-export-feedback {
+  color: var(--success);
+  font-size: 11px;
+  margin: 10px 24px 0;
+  text-align: right;
+}
+
+.forecast-export-feedback.muted {
+  color: var(--text-tertiary);
+}
+
 .funnel-scope-select {
   max-width: 180px;
   outline: none;
@@ -4475,7 +4569,8 @@ a {
 }
 
 .rag-chat-panel,
-.rag-admin-panel {
+.rag-admin-panel,
+.rag-history-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
@@ -4492,6 +4587,34 @@ a {
   font-size: 28px;
   line-height: 1.1;
   margin: 6px 0 0;
+}
+
+.rag-sidebar {
+  align-self: start;
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.rag-diagnostic-legend {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.rag-diagnostic-legend span,
+.rag-message-timing {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.rag-diagnostic-legend span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .rag-chat-window {
@@ -4545,12 +4668,47 @@ a {
   justify-content: space-between;
 }
 
-.rag-message-meta span,
+.rag-message-meta > span,
 .rag-message-meta time {
   font-size: 11px;
   font-weight: 800;
   opacity: .76;
   text-transform: uppercase;
+}
+
+.rag-typing-cursor {
+  animation: rag-cursor-blink .7s steps(1) infinite;
+  color: var(--accent-violet);
+  font-weight: 900;
+  margin-left: 1px;
+}
+
+@keyframes rag-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.rag-origin-dot {
+  border: 1px solid rgb(255 255 255 / 38%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 5%);
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 8px;
+  width: 8px;
+}
+
+.rag-origin-dot.deepseek {
+  background: #22c55e;
+}
+
+.rag-origin-dot.local {
+  background: #ef4444;
+}
+
+.rag-origin-dot.other {
+  background: #3b82f6;
 }
 
 .rag-sources {
@@ -4692,6 +4850,56 @@ a {
   align-self: start;
   display: grid;
   gap: 18px;
+}
+
+.rag-history-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.rag-history-panel .rag-panel-header p {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.rag-conversation-list {
+  display: grid;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.rag-conversation-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px;
+  text-align: left;
+}
+
+.rag-conversation-item:hover,
+.rag-conversation-item.active {
+  border-color: var(--accent-violet);
+}
+
+.rag-conversation-item.active {
+  background: rgb(139 92 246 / 12%);
+}
+
+.rag-conversation-item strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.rag-conversation-item span {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .rag-panel-header {
@@ -5164,6 +5372,23 @@ a {
   .pipeline-header-bar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .panel-actions {
+    flex-wrap: wrap;
+  }
+
+  .forecast-seller-select {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .forecast-export-control {
+    flex: 1 1 auto;
+  }
+
+  .panel-actions button.forecast-export-trigger {
+    width: 100%;
   }
 
   .forecast-chart {

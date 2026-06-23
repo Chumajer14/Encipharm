@@ -110,6 +110,10 @@ Regla funcional aplicada en backend:
 - `vendedor`: ve los clientes asociados a su `vendedorUid`.
 - `supervisor` y `admin`: pueden ver todos los clientes.
 
+## Conversaciones del asistente
+
+Las conversaciones de Enci Chat se guardan en Firestore asociadas al UID autenticado. Cada cuenta puede listar y continuar exclusivamente su propio historial. Al crear una conversacion, DeepSeek genera un titulo breve relacionado con la pregunta inicial y el backend lo persiste junto al historial. En la interfaz, `Enter` envia la consulta, `Shift+Enter` agrega una nueva linea y las respuestas nuevas se presentan progresivamente para facilitar su lectura.
+
 ## Endpoints implementados
 
 ### Salud
@@ -196,6 +200,8 @@ VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 VITE_FIREBASE_FREE_TIER_MODE=true
 ```
 
+En desarrollo local, el corpus documental RAG guarda los archivos en `Backend/document_storage` cuando `GCS_BUCKET_DOCUMENTS` no esta configurado. El directorio es local, esta excluido de Git y puede personalizarse con `LOCAL_DOCUMENT_STORAGE_DIR`. En produccion, el backend sigue exigiendo un bucket GCS.
+
 Para publicar el frontend en Vercel, configurar el proyecto con Root Directory = `frontend` y cargar las mismas variables `VITE_*` en Preview/Production. `VITE_API_BASE_URL` debe apuntar a una API publica HTTPS; `localhost` solo sirve para desarrollo local. Guia detallada: `docs/deploy-vercel-frontend.md`.
 
 `VITE_FIREBASE_FREE_TIER_MODE=true` reduce refetches repetitivos mientras el proyecto opera con cuota gratuita de Firebase. En entrega final se puede desactivar para restaurar refrescos automaticos mas frecuentes.
@@ -204,7 +210,7 @@ Para publicar el frontend en Vercel, configurar el proyecto con Root Directory =
 
 ### Inicio rapido en Windows
 
-Ejecutar `iniciar-encipharm-local.bat` desde la raiz del repositorio. El lanzador abre tres terminales independientes y mantiene todos los servicios enlazados exclusivamente a `127.0.0.1`:
+Ejecutar `iniciar-enci-local.bat` desde la raiz del repositorio. El lanzador abre tres terminales independientes y mantiene todos los servicios enlazados exclusivamente a `127.0.0.1`:
 
 - Backend FastAPI: `http://127.0.0.1:8000`.
 - Frontend web: `http://127.0.0.1:5173`.

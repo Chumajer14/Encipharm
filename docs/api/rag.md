@@ -1,4 +1,4 @@
-# API - Asistente Encipharm
+# API - Enci Chat
 
 Base URL desarrollo: `http://127.0.0.1:8000`
 
@@ -53,7 +53,7 @@ Si no hay contexto suficiente, la API responde localmente sin invocar el proveed
 
 ```json
 {
-  "respuesta": "No encontre informacion suficiente en los documentos de Encipharm para responder esta pregunta.",
+  "respuesta": "Este asistente esta enfocado en consultas tecnicas, comerciales, documentales y datos internos de Enci.",
   "fuentes": [],
   "tokens_usados": 0
 }

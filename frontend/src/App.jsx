@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthProvider";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import PageTitle from "./components/PageTitle";
 import Clientes from "./pages/Clientes";
 import ClienteDetalle from "./pages/ClienteDetalle";
 import CrearCliente from "./pages/CrearCliente";
@@ -14,7 +15,7 @@ import Proyecciones from "./pages/Proyecciones";
 import EquipoVentas from "./pages/EquipoVentas";
 import InteligenciaMercado from "./pages/InteligenciaMercado";
 import AnalisisCompetencia from "./pages/AnalisisCompetencia";
-import AsistenteEncipharm from "./pages/AsistenteEncipharm";
+import AsistenteEnci from "./pages/AsistenteEnci";
 import Configuracion from "./pages/Configuracion";
 import NotFound from "./pages/NotFound";
 import "./App.css";
@@ -23,6 +24,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <PageTitle />
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -131,7 +133,7 @@ function App() {
             path="/asistente"
             element={
               <ProtectedRoute>
-                <AsistenteEncipharm />
+                <AsistenteEnci />
               </ProtectedRoute>
             }
           />

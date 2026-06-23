@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-rem Inicia todos los servicios de Encipharm solo en la interfaz local.
+rem Inicia todos los servicios de Enci solo en la interfaz local.
 set "ROOT=%~dp0"
 set "BACKEND=%ROOT%Backend"
 set "FRONTEND=%ROOT%frontend"
@@ -31,13 +31,13 @@ if not exist "%VENDEDOR_APP%\node_modules" (
 )
 
 echo Iniciando backend en http://127.0.0.1:8000...
-start "Encipharm - Backend" /D "%BACKEND%" cmd.exe /k "uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
+start "Enci - Backend" /D "%BACKEND%" cmd.exe /k "uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
 
 echo Iniciando frontend en http://127.0.0.1:5173...
-start "Encipharm - Frontend" /D "%FRONTEND%" cmd.exe /k "npm.cmd run dev -- --host 127.0.0.1 --port 5173"
+start "Enci - Frontend" /D "%FRONTEND%" cmd.exe /k "npm.cmd run dev -- --host 127.0.0.1 --port 5173"
 
 echo Iniciando app vendedor en http://127.0.0.1:5174...
-start "Encipharm - App vendedor" /D "%VENDEDOR_APP%" cmd.exe /k "npm.cmd run dev -- --host 127.0.0.1 --port 5174"
+start "Enci - App vendedor" /D "%VENDEDOR_APP%" cmd.exe /k "npm.cmd run dev -- --host 127.0.0.1 --port 5174"
 
 rem Da tiempo al arranque inicial y abre ambas aplicaciones en el navegador predeterminado.
 timeout /t 3 /nobreak >nul

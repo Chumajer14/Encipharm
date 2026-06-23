@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, getRagDocuments, reindexRagDocuments, sendRagMessage, uploadRagDocument } from "./api";
+import { getRagDocuments, reindexRagDocuments, sendRagMessage, uploadRagDocument } from "./api";
 
 describe("rag api service", () => {
   beforeEach(() => {
@@ -13,6 +13,13 @@ describe("rag api service", () => {
       fuentes: [],
       conversacion_id: "conversation-1",
       tokens_usados: 10,
+      diagnostico: {
+        origen: "deepseek",
+        proveedor: "DeepSeek",
+        modelo: "deepseek-chat",
+        fragmentos_documentales: 1,
+        fragmentos_internos: 0,
+      },
       timestamp: "2026-06-17T23:00:00Z",
     };
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
@@ -60,12 +67,16 @@ describe("rag api service", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
       ok: false,
       status: 403,
-      json: async () => ({ detail: "Sin permisos para esta operacion" }),
+      headers: { get: () => null },
+      text: async () => JSON.stringify({ detail: "Sin permisos para esta operacion" }),
     });
 
-    await expect(getRagDocuments("firebase-token")).rejects.toMatchObject(
-      new ApiError("Sin permisos para esta operacion", 403),
-    );
+    await expect(getRagDocuments("firebase-token")).rejects.toMatchObject({
+      name: "ApiError",
+      status: 403,
+      code: "API_HTTP_403",
+      message: expect.stringContaining("Sin permisos para esta operacion"),
+    });
   });
 
   it("calls the reindex endpoint with POST", async () => {
