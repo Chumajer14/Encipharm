@@ -7,7 +7,7 @@ Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al
 ## Alcance implementado
 
 - Replica visual del Command Center del HTML de referencia en dashboard, pipeline, proyecciones, equipo de ventas, configuracion, inteligencia de mercado y analisis de competencia.
-- Cambio de marca visible desde Encipharm a Enci en la experiencia principal.
+- Consolidacion de la marca visible Enci en la experiencia principal.
 - Sidebar ajustado a las secciones solicitadas:
   - Principal: Dashboard, Pipeline & Funnels, Proyecciones.
   - Gestion: Equipo de Ventas, Inteligencia de Mercado, Analisis de Competencia.

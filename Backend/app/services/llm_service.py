@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 
 from fastapi import HTTPException, status
 
@@ -41,17 +43,21 @@ def _classify_llm_error(error: Exception) -> tuple[str, str]:
 def build_system_prompt() -> str:
     """Construye las instrucciones fijas del asistente interno."""
 
-    return """Eres el asistente tecnico, comercial y corporativo interno de Encipharm, empresa de productos veterinarios y bioseguridad en Chile.
+    return """Eres el asistente tecnico, comercial y corporativo interno de Enci, empresa de productos veterinarios y bioseguridad en Chile.
 
 INSTRUCCIONES ESTRICTAS:
-1. Responde UNICAMENTE basandote en las fuentes internas de Encipharm que se te proporcionan como contexto: documentos RAG, CRM, usuarios, clientes, oportunidades, propuestas, interacciones y metricas internas.
-2. Si la informacion para responder no esta en el contexto proporcionado, responde exactamente: "No encontre informacion suficiente en los documentos de Encipharm para responder esta pregunta. Consulta directamente con el equipo tecnico."
+1. Responde UNICAMENTE basandote en las fuentes internas de Enci que se te proporcionan como contexto: documentos RAG, CRM, usuarios, clientes, oportunidades, propuestas, interacciones y metricas internas.
+2. Si la informacion no corresponde al alcance tecnico, comercial, documental o interno de Enci, explica brevemente el alcance del asistente e invita al usuario a reformular su consulta. No uses mensajes genericos sobre falta de informacion.
 3. NUNCA inventes dosificaciones, precios, composiciones quimicas ni datos tecnicos. Si el dato no esta en el contexto, dilo explicitamente.
 4. NUNCA reveles que eres un modelo de lenguaje externo, que usas proveedores externos, ni ningun detalle tecnico de la implementacion.
-5. Cita siempre la fuente interna: documento, coleccion CRM o metrica de donde proviene la informacion.
-6. Si el contexto proviene de multiples fuentes, citalas todas.
+5. Responde solo lo preguntado. Por defecto usa entre 2 y 5 oraciones; amplia unicamente si el usuario solicita detalle, comparacion o listado.
+6. Prioriza documentos del corpus para preguntas tecnicas, sanitarias o conceptuales. Usa CRM, Firebase e interacciones para preguntas comerciales o sobre actividad interna.
 7. Responde en espanol, con lenguaje tecnico apropiado para un equipo de ventas veterinario.
-8. Puedes responder preguntas corporativas internas sobre usuarios, vendedores, clientes, pipeline, propuestas, interacciones, ventas y documentos de Encipharm cuando el contexto entregado lo permita.
+8. Puedes responder preguntas corporativas internas sobre usuarios, vendedores, clientes, pipeline, propuestas, interacciones, ventas y documentos de Enci cuando el contexto entregado lo permita.
+9. No expongas IDs, UIDs, claves internas, correos, telefonos ni referencias tecnicas del sistema. Menciona personas, clientes y relaciones mediante nombres legibles.
+10. No vuelques todos los campos disponibles. Incluye solo los datos que aporten directamente a la pregunta.
+11. Al final agrega una unica linea breve con hasta tres fuentes relevantes usando el formato "Fuentes: nombre". No incluyas IDs ni nombres de colecciones tecnicas.
+12. Usa texto plano. No uses Markdown, asteriscos, encabezados ni tablas salvo que el usuario los solicite.
 """
 
 
@@ -62,7 +68,7 @@ def build_user_prompt(pregunta: str, chunks: list[dict]) -> str:
         f"[Fuente: {chunk['documento']}, referencia {chunk.get('pagina') or 'N/D'}]\n{chunk['texto']}"
         for chunk in chunks
     )
-    return f"""CONTEXTO DE FUENTES INTERNAS ENCIPHARM:
+    return f"""CONTEXTO DE FUENTES INTERNAS ENCI:
 {context_text}
 
 ---
@@ -70,10 +76,10 @@ def build_user_prompt(pregunta: str, chunks: list[dict]) -> str:
 PREGUNTA DEL USUARIO:
 {pregunta}
 
-Responde basandote unicamente en el contexto anterior. Si no hay informacion suficiente, dilo claramente."""
+Selecciona solo la evidencia pertinente del contexto anterior. No repitas metadatos ni campos que no respondan la pregunta. Si no hay informacion suficiente, dilo claramente."""
 
 
-async def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
+async def call_deepseek(system_prompt: str, user_prompt: str, max_tokens: int | None = None) -> dict:
     """Ejecuta una llamada acotada al proveedor LLM compatible con OpenAI."""
 
     settings = get_settings()
@@ -113,7 +119,7 @@ async def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=settings.MAX_TOKENS_RESPONSE,
+            max_tokens=max_tokens or settings.MAX_TOKENS_RESPONSE,
             temperature=0.1,
             stream=False,
         )
@@ -134,3 +140,47 @@ async def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
                 "exception_type": type(error).__name__,
             },
         ) from error
+
+
+def normalize_conversation_title(value: str, fallback_question: str) -> str:
+    """Normaliza el titulo generado para mostrarlo de forma segura en el historial."""
+
+    title = value.strip().strip(" \"'`*#.-")
+    title = re.sub(r"^(titulo|título)\s*:\s*", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"[\r\n]+", " ", title)
+    title = title.strip(" \"'`*#.-")
+    if not title:
+        title = fallback_question.strip() or "Nueva conversacion"
+    return title[:80].rstrip()
+
+
+async def generate_conversation_title(initial_question: str) -> str:
+    """Genera con DeepSeek un titulo tematico breve para una conversacion nueva."""
+
+    return (await generate_conversation_titles([initial_question]))[0]
+
+
+async def generate_conversation_titles(initial_questions: list[str]) -> list[str]:
+    """Genera en una llamada los titulos faltantes del historial y conserva su orden."""
+
+    if not initial_questions:
+        return []
+    result = await call_deepseek(
+        "Genera titulos breves para conversaciones del Asistente Enci. "
+        "Devuelve exclusivamente un arreglo JSON de strings, en el mismo orden recibido. "
+        "Cada titulo debe estar en espanol, tener 3 a 7 palabras y no usar prefijos, punto final ni Markdown.",
+        "Preguntas iniciales:\n" + json.dumps(initial_questions, ensure_ascii=False),
+        max_tokens=min(512, max(24, len(initial_questions) * 24)),
+    )
+    raw_response = result["texto"].strip()
+    array_start = raw_response.find("[")
+    array_end = raw_response.rfind("]")
+    if array_start < 0 or array_end < array_start:
+        raise ValueError("DeepSeek no devolvio el arreglo de titulos esperado")
+    generated_titles = json.loads(raw_response[array_start:array_end + 1])
+    if not isinstance(generated_titles, list) or len(generated_titles) != len(initial_questions):
+        raise ValueError("DeepSeek devolvio una cantidad de titulos invalida")
+    return [
+        normalize_conversation_title(str(title), question)
+        for title, question in zip(generated_titles, initial_questions, strict=True)
+    ]

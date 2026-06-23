@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { label: "Inicio", path: "/", icon: "home" },
   { label: "Nuevo", path: "/cotizacion", icon: "add" },
   { label: "Forecast", path: "/proyeccion", icon: "forecast" },
-  { label: "IA RAG", path: "/ia-rag", icon: "spark" },
+  { label: "Enci Chat", path: "/enci-chat", icon: "spark" },
   { label: "Pipeline", path: "/pipeline", icon: "pipeline" },
 ];
 

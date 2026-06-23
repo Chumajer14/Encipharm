@@ -6,6 +6,17 @@ import LoadingState from "../components/LoadingState";
 import useCachedQuery from "../hooks/useCachedQuery";
 import { getClientes, getDashboardVendedor, getDashboardSupervisor, getOportunidades, getPropuestas, getUsers } from "../services/api";
 import { buildSellerRows, compactMoney, money, STAGE_LABELS, STAGES, weightedValue } from "../utils/commercialAnalytics";
+import {
+  buildForecastFilename,
+  buildForecastMetadata,
+  buildForecastSeries,
+  calculateForecastTarget,
+  downloadCsv,
+  enrichForecastSeries,
+  serializeAnalyticalForecastCsv,
+  serializeSimpleForecastCsv,
+  summarizeForecast,
+} from "../utils/forecastExport";
 
 function getCount(items = [], key) {
   return items.find((item) => item.clave === key)?.total ?? 0;
@@ -130,65 +141,34 @@ function KpiCard({ accent = "violet", helper, icon, label, metaLeft, metaRight, 
   );
 }
 
-function recordDate(record) {
-  const raw = record?.updatedAt || record?.createdAt || record?.fecha;
-  const date = raw ? new Date(raw) : null;
-  return date && !Number.isNaN(date.getTime()) ? date : null;
-}
-
-function monthLabel(date) {
-  return ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][date.getMonth()];
-}
-
-function buildMonthlyForecast(oportunidades = [], propuestas = []) {
-  const base = new Date();
-  base.setDate(1);
-  return Array.from({ length: 5 }, (_, index) => {
-    const date = new Date(base.getFullYear(), base.getMonth() - (4 - index), 1);
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-    const matchesMonth = (record) => {
-      const itemDate = recordDate(record);
-      return itemDate && `${itemDate.getFullYear()}-${itemDate.getMonth()}` === key;
-    };
-    return {
-      etiqueta: monthLabel(date),
-      proyeccionPonderada: oportunidades.filter(matchesMonth).reduce((sum, item) => sum + weightedValue(item), 0),
-      ventaReal: propuestas
-        .filter((item) => item.estado === "aceptada" && matchesMonth(item))
-        .reduce((sum, item) => sum + Number(item.montoTotal || 0), 0),
-    };
-  });
-}
-
-function downloadForecastCsv(points, mode) {
-  const rows = [
-    ["Periodo", "Proyeccion ponderada", "Venta real"],
-    ...points.map((point) => [point.etiqueta, point.proyeccionPonderada, point.ventaReal]),
-  ];
-  const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `forecast-${mode}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function ForecastChart({ forecast = [], pipelineValue = 0, acceptedValue = 0, mode, onModeChange, onDownload }) {
+export function ForecastChart({
+  canFilterSeller,
+  exportMessage,
+  exportOpen,
+  exporting,
+  forecast = [],
+  mode,
+  onDownload,
+  onExportToggle,
+  onModeChange,
+  onSellerChange,
+  selectedSeller,
+  sellerOptions,
+  targetValue = 0,
+}) {
   const fallbackPoints = Array.from({ length: 5 }, (_, index) => ({
       etiqueta: `Sem ${index + 1}`,
       proyeccionPonderada: 0,
       ventaReal: 0,
     }));
   const points = forecast.length > 0 ? forecast : fallbackPoints;
+  const hasData = points.some((point) => Number(point.proyeccionPonderada || 0) > 0 || Number(point.ventaReal || 0) > 0);
   const maxValue = Math.max(
-    pipelineValue,
-    acceptedValue,
+    targetValue,
     ...points.flatMap((point) => [point.proyeccionPonderada, point.ventaReal]),
     1,
   );
-  const target = formatCompactMoney(Math.max(pipelineValue, acceptedValue));
+  const target = formatCompactMoney(targetValue);
   const axisValues = [1, 0.75, 0.5, 0.25, 0].map((factor) => formatCompactMoney(maxValue * factor));
 
   return (
@@ -199,13 +179,52 @@ function ForecastChart({ forecast = [], pipelineValue = 0, acceptedValue = 0, mo
           <h2>Forecast vs Real (Ponderado)</h2>
         </div>
         <div className="panel-actions">
+          {canFilterSeller && (
+            <select
+              aria-label="Filtrar forecast por vendedor"
+              className="forecast-seller-select"
+              onChange={(event) => onSellerChange(event.target.value)}
+              value={selectedSeller}
+            >
+              <option value="">Equipo completo</option>
+              {sellerOptions.map((seller) => <option key={seller.uid} value={seller.uid}>{seller.name}</option>)}
+            </select>
+          )}
           <button className={mode === "semanal" ? "active" : ""} onClick={() => onModeChange("semanal")} type="button">Semanal</button>
           <button className={mode === "mensual" ? "active" : ""} onClick={() => onModeChange("mensual")} type="button">Mensual</button>
-          <button className="icon-action" onClick={onDownload} type="button" aria-label="Descargar forecast">
-            <PanelSvgIcon name="download" />
-          </button>
+          <div className="forecast-export-control">
+            <button
+              aria-expanded={exportOpen}
+              aria-haspopup="menu"
+              className="icon-action forecast-export-trigger"
+              disabled={!hasData || exporting}
+              onClick={onExportToggle}
+              title="Incluye forecast, real, meta, brechas y filtros aplicados"
+              type="button"
+            >
+              <PanelSvgIcon name="download" />
+              <span>{exporting ? "Generando..." : "Exportar"}</span>
+            </button>
+            {exportOpen && (
+              <div className="forecast-export-menu" role="menu">
+                <strong>Descargar forecast actual</strong>
+                <p>Respeta la vista, vendedor y período visibles.</p>
+                <button onClick={() => onDownload("analitico")} role="menuitem" type="button">
+                  <span>CSV analítico</span>
+                  <small>Metadata, resumen, meta, brechas y cumplimiento</small>
+                </button>
+                <button onClick={() => onDownload("simple")} role="menuitem" type="button">
+                  <span>CSV simple</span>
+                  <small>Periodo, forecast ponderado y venta real</small>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {!hasData && <p className="forecast-export-feedback muted">No hay datos en la vista actual para exportar.</p>}
+      {exportMessage && <p className="forecast-export-feedback" role="status">{exportMessage}</p>}
 
       <div className="chart-legend">
         <span><i className="legend-projected" />Proyeccion Ponderada</span>
@@ -462,9 +481,14 @@ function Dashboard() {
   const [clients, setClients] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [proposals, setProposals] = useState([]);
+  const [users, setUsers] = useState([]);
   const [sellerRows, setSellerRows] = useState([]);
   const [activityAlerts, setActivityAlerts] = useState([]);
   const [forecastMode, setForecastMode] = useState("mensual");
+  const [forecastSellerUid, setForecastSellerUid] = useState("");
+  const [forecastExportOpen, setForecastExportOpen] = useState(false);
+  const [forecastExporting, setForecastExporting] = useState(false);
+  const [forecastExportMessage, setForecastExportMessage] = useState("");
   const [selectedFunnelZone, setSelectedFunnelZone] = useState("");
   const [selectedFunnelStage, setSelectedFunnelStage] = useState(null);
   const [showMapUnavailable, setShowMapUnavailable] = useState(false);
@@ -506,6 +530,7 @@ function Dashboard() {
       setClients(clientsData);
       setOpportunities(opportunitiesData);
       setProposals(proposalsData);
+      setUsers(users);
       setSellerRows(visibleRows);
       setActivityAlerts([
         ...opportunitiesData
@@ -524,9 +549,75 @@ function Dashboard() {
     });
   }, [backendUser?.uid, dashboardQuery.data, isSupervisorView]);
 
-  const forecastPoints = forecastMode === "semanal"
-    ? data?.forecastMensual || []
-    : buildMonthlyForecast(opportunities, proposals);
+  const effectiveForecastSellerUid = isSupervisorView ? forecastSellerUid : backendUser?.uid || "";
+  const forecastPoints = useMemo(() => buildForecastSeries({
+    granularity: forecastMode,
+    opportunities,
+    proposals,
+    sellerUid: effectiveForecastSellerUid,
+  }), [effectiveForecastSellerUid, forecastMode, opportunities, proposals]);
+  const forecastTarget = useMemo(() => calculateForecastTarget({
+    opportunities,
+    proposals,
+    sellerUid: effectiveForecastSellerUid,
+  }), [effectiveForecastSellerUid, opportunities, proposals]);
+  const forecastSellerOptions = useMemo(
+    () => buildSellerRows({ oportunidades: opportunities, propuestas: proposals, users }),
+    [opportunities, proposals, users],
+  );
+  const selectedForecastSeller = forecastSellerOptions.find((seller) => seller.uid === effectiveForecastSellerUid);
+  const forecastSellerLabel = isSupervisorView
+    ? selectedForecastSeller?.name || "equipo completo"
+    : backendUser?.nombre || backendUser?.email || "vendedor actual";
+  const forecastPeriod = forecastPoints.length
+    ? `${forecastPoints[0].periodo}_a_${forecastPoints.at(-1).periodo}`
+    : "sin-periodo";
+
+  async function handleForecastDownload(format) {
+    setForecastExporting(true);
+    setForecastExportMessage("");
+
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+      const generatedAt = new Date();
+      const simple = format === "simple";
+      const filename = buildForecastFilename({
+        generatedAt,
+        granularity: forecastMode,
+        period: forecastPeriod,
+        seller: forecastSellerLabel,
+        simple,
+      });
+
+      if (simple) {
+        downloadCsv(serializeSimpleForecastCsv(forecastPoints), filename);
+      } else {
+        const rows = enrichForecastSeries(forecastPoints, forecastTarget);
+        const metadata = buildForecastMetadata({
+          generatedAt,
+          granularity: forecastMode,
+          period: forecastPeriod,
+          role: rol,
+          seller: forecastSellerLabel,
+          user: backendUser?.nombre || backendUser?.email,
+          zone: selectedForecastSeller?.zone || backendUser?.zona,
+        });
+        downloadCsv(serializeAnalyticalForecastCsv({
+          metadata,
+          rows,
+          summary: summarizeForecast(rows, forecastTarget),
+        }), filename);
+      }
+
+      setForecastExportMessage(`Descarga ${simple ? "simple" : "analítica"} generada correctamente.`);
+      setForecastExportOpen(false);
+    } catch (exportError) {
+      console.error("No se pudo exportar el forecast:", exportError);
+      setForecastExportMessage("No se pudo generar la descarga. Intenta nuevamente.");
+    } finally {
+      setForecastExporting(false);
+    }
+  }
   const clientsById = useMemo(() => new Map(clients.map((client) => [client.id, client])), [clients]);
   const visibleFunnelOpportunities = selectedFunnelZone
     ? opportunities.filter((item) => normalizeCompanyZone(clientsById.get(item.clienteId)?.region) === selectedFunnelZone)
@@ -580,12 +671,22 @@ function Dashboard() {
 
       {!loading && <section className="command-main-grid">
         <ForecastChart
-          acceptedValue={acceptedValue}
+          canFilterSeller={isSupervisorView}
+          exportMessage={forecastExportMessage}
+          exportOpen={forecastExportOpen}
+          exporting={forecastExporting}
           forecast={forecastPoints}
           mode={forecastMode}
-          onDownload={() => downloadForecastCsv(forecastPoints, forecastMode)}
+          onDownload={handleForecastDownload}
+          onExportToggle={() => setForecastExportOpen((open) => !open)}
           onModeChange={setForecastMode}
-          pipelineValue={pipelineValue}
+          onSellerChange={(sellerUid) => {
+            setForecastSellerUid(sellerUid);
+            setForecastExportMessage("");
+          }}
+          selectedSeller={forecastSellerUid}
+          sellerOptions={forecastSellerOptions}
+          targetValue={forecastTarget}
         />
         <SalesFunnel
           onStageSelect={setSelectedFunnelStage}

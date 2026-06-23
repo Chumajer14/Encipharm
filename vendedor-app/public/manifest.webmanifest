@@ -1,7 +1,7 @@
 {
   "name": "Enci Vendedor",
   "short_name": "Enci",
-  "description": "Aplicacion movil PWA para vendedores Encipharm.",
+  "description": "Aplicacion movil PWA para vendedores Enci.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

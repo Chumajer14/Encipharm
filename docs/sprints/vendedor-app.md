@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Durante este sprint se desarrolló una aplicación PWA para vendedores, integrada con la infraestructura existente de Encipharm Ventas. La aplicación utiliza autenticación mediante Google Firebase Authentication y sincroniza información con el backend FastAPI utilizado por el Dashboard Comercial.
+Durante este sprint se desarrolló una aplicación PWA para vendedores, integrada con la infraestructura existente de Enci Ventas. La aplicación utiliza autenticación mediante Google Firebase Authentication y sincroniza información con el backend FastAPI utilizado por el Dashboard Comercial.
 
 El objetivo principal fue validar el flujo completo vendedor → backend → dashboard, permitiendo registrar oportunidades comerciales desde dispositivos móviles.
 
