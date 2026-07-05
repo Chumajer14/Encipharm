@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "86873070835",
+    "project_id": "encipharm-c33ac",
+    "storage_bucket": "encipharm-c33ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86873070835:android:2123bba4d7a6b595242b86",
+        "android_client_info": {
+          "package_name": "com.enci_utem"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "86873070835-mc93uo4fa0kn895f0t3cvt3tnu8e09fd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enci_utem",
+            "certificate_hash": "cb2eedc905c8b5d617feac62312bf8fd554961e9"
+          }
+        },
+        {
+          "client_id": "86873070835-ioik40oouprs8fsu6l6r0tfo8ejo03lk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfTC4pTGfbPF83ru2yawp5cVuePGFfkOM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "86873070835-ioik40oouprs8fsu6l6r0tfo8ejo03lk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "86873070835-mi7u5sjjan39s084rnjjp7u0do8bmvf8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterVendedor"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
