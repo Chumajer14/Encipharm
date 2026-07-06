@@ -1,45 +1,47 @@
-﻿# Enci Ventas
+# Enci Ventas
 
-Sistema de gestion de ventas y MiniCRM para Enci, desarrollado bajo metodologia Scrumban.
-El enfoque actual es **MVP web primero con preparacion UAT**, incorporando las sugerencias visuales y funcionales levantadas con el cliente en la Epic 5.1.
+Sistema web de gestion comercial y MiniCRM para Enci.
+
+## Estado de cierre
+
+El proyecto queda en **cierre del MVP web** y preparado para UAT/go-live controlado. El alcance cerrado considera frontend web, backend API, autenticacion, Firestore, flujos comerciales, dashboards, readiness, QA y documentacion operativa.
+
+Documentacion principal de cierre:
+
+- `docs/cierre-proyecto.md`
+- `docs/evm/cierre-proyecto.md`
+- `docs/qa/epic-05-uat-go-live.md`
+- `docs/architecture.md`
 
 ## Objetivo
 
-Construir una plataforma interna para el equipo comercial que permita gestionar clientes, interacciones, oportunidades, propuestas, usuarios y dashboard supervisor desde una solucion web.
+Entregar una plataforma interna para que el equipo comercial pueda gestionar clientes, interacciones, oportunidades, propuestas, usuarios, roles, forecast y dashboards desde una solucion web.
 
-## Alcance del MVP
-
-Incluye las capacidades bloqueantes para operar el sistema:
+## Alcance cerrado del MVP web
 
 - Autenticacion web con Firebase Auth y Google SSO.
 - Validacion de ID Token/JWT en backend con Firebase Admin.
+- Sincronizacion de usuarios autenticados en Firestore.
+- Control de roles `vendedor`, `supervisor` y `admin`.
+- Bloqueo de usuarios con `activo=false`.
 - CRM de clientes conectado a Firestore.
-- Creacion, listado, busqueda, filtros, detalle, edicion y eliminacion de clientes reales.
-- Registro de usuarios autenticados en Firestore.
-- Gestion base de usuarios y roles.
-- Base tecnica para dashboard vendedor/supervisor.
-- Base tecnica para importacion CSV y validaciones futuras.
+- Creacion, listado, busqueda, filtros, paginacion, detalle, edicion y eliminacion logica de clientes.
+- Unicidad de email para clientes activos en alta y edicion manual.
+- Importacion CSV admin con validacion defensiva, duplicados y auditoria.
 - Interacciones comerciales.
-- Pipeline de oportunidades.
-- Propuestas basicas con estados y calculos.
-- Command Center web alineado al HTML de referencia del cliente.
-- Dashboard con forecast, embudo, KPIs, rendimiento de equipo y alertas desde datos reales.
-- Pipeline & Funnels con filtros, resumen, tabla y modal de detalle de oportunidad.
-- Proyecciones por periodo y vendedor, con detalle de ventas cerradas y negociaciones.
-- Equipo de ventas con matriz vendedor x etapa, valores, conteos y zonas.
-- Configuracion de usuarios, rangos laborales, zonas, tema claro/oscuro e idioma.
-- Modo ahorro Firebase para operar temporalmente con plan gratuito.
+- Pipeline de oportunidades con creacion, edicion, filtros y detalle.
+- Propuestas vinculadas a oportunidad con estados y calculo server-side.
+- Dashboard vendedor y supervisor/admin.
+- Proyecciones, forecast y exportacion CSV.
+- Equipo de ventas, configuracion de usuarios, tema e idioma.
+- Asistente documental RAG entregado en estado operativo documentado.
+- Readiness, smoke test, hardening y documentacion de cierre.
+- Frontend con code splitting por ruta y build sin warning de bundle grande.
+- Dependencias frontend sin vulnerabilidades reportadas por `npm audit --audit-level=low`.
 
-Quedan fuera de esta fase:
+## No considerado en el cierre web
 
-- IA / RAG operativo.
-- Flutter nativo.
-- ERP SAP.
-- Google Calendar operativo.
-- Inteligencia competitiva avanzada operativa.
-- Reportes extendidos.
-- Ingreso formal de datos de competencia hasta definicion del cliente.
-- Notificaciones, calendario y mapa operativo hasta definir reglas de negocio.
+No forman parte del cierre del CRM web: ERP SAP, calendario operativo, notificaciones push, OCR, firma digital, geolocalizacion avanzada, BI extendido, migracion historica sin fuente aprobada ni integraciones externas no documentadas.
 
 ## Stack tecnologico
 
@@ -48,106 +50,65 @@ Quedan fuera de esta fase:
 - **Base de datos:** Cloud Firestore.
 - **Autenticacion:** Firebase Auth con Google SSO.
 - **Autorizacion:** Bearer token validado con Firebase Admin.
-- **Infraestructura prevista:** GCP Cloud Run, Cloud Build, Artifact Registry.
-- **Preview frontend:** Vercel para publicar la app web React/Vite de forma independiente.
-- **Documentacion y despliegue:** README vivo y variables seguras fuera del repositorio.
+- **Deploy backend previsto:** Cloud Run o runtime compatible.
+- **Deploy frontend:** Vercel.
 
 ## Estructura del repositorio
 
 ```text
 /
-â”œâ”€â”€ Backend/
-â”œâ”€â”€ frontend/
-â”œâ”€â”€ mobile/
-â”œâ”€â”€ docs/
-â”œâ”€â”€ .gitignore
-â””â”€â”€ README.md
+├── Backend/
+├── frontend/
+├── docs/
+├── tools/
+├── firebase.json
+├── firestore.rules
+└── README.md
 ```
-
-> Nota: `mobile/` queda reservado para Fase 2. Actualmente el MVP se concentra en la web.
 
 ## Flujo de autenticacion
 
-1. El usuario entra al frontend y presiona `Login con Google`.
-2. Firebase Auth abre el flujo Google SSO.
-3. Firebase entrega un ID Token al frontend.
-4. El frontend envia ese token al backend en el header:
+1. El usuario entra al frontend y usa login Google.
+2. Firebase Auth emite un ID Token.
+3. El frontend envia el token al backend:
 
 ```http
-Authorization: Bearer <firebase-id-token>
+Authorization: Bearer <firebase_id_token>
 ```
 
-5. FastAPI valida el token con Firebase Admin.
-6. El backend crea o actualiza el usuario en la coleccion `users`.
-7. La sesion queda autorizada para consumir endpoints protegidos.
+4. FastAPI valida el token con Firebase Admin.
+5. El backend consulta o crea el usuario en Firestore.
+6. Las reglas de rol, propiedad y estado activo se aplican en backend.
 
-## Flujo de clientes
+## Endpoints principales
 
-La pantalla `CRM Clientes` ya no usa datos mock como fuente principal.
-Los clientes se leen y escriben mediante API protegida:
-
-- `GET /clientes`: lista clientes visibles para el usuario autenticado.
-- `GET /clientes/{cliente_id}`: consulta un cliente visible para el usuario.
-- `POST /clientes`: crea un cliente en Firestore.
-- `PATCH /clientes/{cliente_id}`: actualiza un cliente visible para el usuario.
-- `DELETE /clientes/{cliente_id}`: da de baja logicamente un cliente visible para el usuario.
-
-Cada cliente queda almacenado en la coleccion `clientes` con:
-
-- `nombre`
-- `empresa`
-- `email`
-- `telefono`
-- `rubro`
-- `region`
-- `estado`
-- `vendedorUid`
-- `createdAt`
-- `updatedAt`
-
-Regla funcional aplicada en backend:
-
-- `vendedor`: ve los clientes asociados a su `vendedorUid`.
-- `supervisor` y `admin`: pueden ver todos los clientes.
-
-## Endpoints implementados
-
-### Salud
+### Salud y readiness
 
 ```http
 GET /health
 GET /readiness
 ```
 
-Verifica que la API este activa.
-`/readiness` valida condiciones minimas de UAT/go-live sin exponer secretos.
+`/readiness` valida configuracion minima de UAT/go-live sin exponer secretos. En ambientes desplegados falla si el cambio temporal de rol queda habilitado o si CORS contiene origenes locales.
 
-### Usuario autenticado
+### Usuario y autenticacion
 
 ```http
 GET /me
-```
-
-Valida el token y retorna datos basicos del usuario autenticado.
-
-### Autenticacion
-
-```http
 POST /auth/login
 POST /auth/register
 ```
-
-Ambos endpoints validan el token Firebase y sincronizan el usuario en Firestore.
-`/auth/login` es el flujo usado por el frontend.
 
 ### Clientes
 
 ```http
 GET /clientes
 POST /clientes
+GET /clientes/{id}
+PATCH /clientes/{id}
+DELETE /clientes/{id}
+POST /clientes/import-csv
 ```
-
-Ambos requieren `Authorization: Bearer <token>`.
 
 ### Flujo comercial
 
@@ -163,12 +124,20 @@ POST /propuestas
 PATCH /propuestas/{id}
 ```
 
-Todos requieren `Authorization: Bearer <token>`.
+### Usuarios y RAG
+
+```http
+GET /users
+GET /users/{uid}
+PATCH /users/{uid}
+POST /rag/chat
+GET /rag/conversations
+POST /rag/documents/upload
+POST /rag/documents/reindex
+GET /rag/documents
+```
 
 ## Variables de entorno
-
-Cada proyecto debe tener su propio archivo `.env.example`.
-Los archivos `.env`, service accounts y credenciales reales no deben versionarse.
 
 ### Backend
 
@@ -176,6 +145,7 @@ Los archivos `.env`, service accounts y credenciales reales no deben versionarse
 APP_NAME=Enci Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
+ENABLE_TEMPORARY_ROLE_SWITCHER=false
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"]
 FIREBASE_PROJECT_ID=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
@@ -186,21 +156,27 @@ GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 ```env
 VITE_APP_NAME=Enci Ventas
 VITE_API_BASE_URL=http://localhost:8000
+VITE_ENABLE_TEMP_ROLE_SWITCHER=false
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
 VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
-VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
-VITE_FIREBASE_FREE_TIER_MODE=true
 ```
 
-Para publicar el frontend en Vercel, configurar el proyecto con Root Directory = `frontend` y cargar las mismas variables `VITE_*` en Preview/Production. `VITE_API_BASE_URL` debe apuntar a una API publica HTTPS; `localhost` solo sirve para desarrollo local. Guia detallada: `docs/deploy-vercel-frontend.md`.
-
-`VITE_FIREBASE_FREE_TIER_MODE=true` reduce refetches repetitivos mientras el proyecto opera con cuota gratuita de Firebase. En entrega final se puede desactivar para restaurar refrescos automaticos mas frecuentes.
-
 ## Instalacion local
+
+### Inicio rapido en Windows
+
+```powershell
+.\iniciar-enci-local.bat
+```
+
+Servicios esperados:
+
+- Backend FastAPI: `http://127.0.0.1:8000`.
+- Frontend web: `http://127.0.0.1:5173`.
 
 ### Backend
 
@@ -218,149 +194,53 @@ npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Con esto, el backend queda disponible en `http://localhost:8000`.
-La consola definitiva de pruebas esta en `http://localhost:8000/docs`.
-El frontend web, si se requiere para revisar navegacion de usuario, queda en `http://127.0.0.1:5173`.
-
-## Consola de testing y verificacion
-
-La ruta principal para testing y presentacion es:
-
-```text
-http://localhost:8000/docs
-```
-
-Esta consola incluye:
-
-- Login con Google desde Firebase Auth.
-- Obtencion de ID Token Firebase.
-- Aplicacion automatica del token al esquema `HTTPBearer`.
-- Uso del boton `Authorize` de Swagger con el token precargado.
-- Pruebas de endpoints protegidos con respuestas reales de API.
-
-## QA tecnica local
-
-Comandos tecnicos usados para validar la integracion durante desarrollo:
+## QA tecnica
 
 ```bash
 cd frontend
+npm audit --audit-level=low
 npm run lint
 npm run build
 ```
 
 ```bash
-cd Backend
-uv run pytest
+python -m pytest Backend\tests\test_clientes_permissions.py Backend\tests\test_readiness.py Backend\tests\test_security_hardening.py
+python -m py_compile tools\smoke_crm_web.py
 ```
 
-En Windows, con el entorno virtual local del backend:
+## Smoke test de cierre
 
-```powershell
-.\Backend\.venv\Scripts\python.exe -m pytest
+```bash
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com
 ```
 
-Checklist funcional:
+Con token Firebase real:
 
-- Login Google abre popup y autentica contra Firebase.
-- El frontend obtiene ID Token y llama a `/auth/login`.
-- El backend valida el token con Firebase Admin.
-- El usuario queda creado o actualizado en `users`.
-- La ruta del CRM queda protegida.
-- `GET /clientes` lista clientes reales desde Firestore.
-- `GET /clientes/{cliente_id}` consulta detalle de cliente.
-- `POST /clientes` guarda clientes nuevos en Firestore.
-- `PATCH /clientes/{cliente_id}` edita clientes.
-- `DELETE /clientes/{cliente_id}` da de baja clientes sin perdida irreversible.
-- El formulario `Nuevo Cliente` vuelve al CRM despues de guardar.
-- `POST /interacciones` registra llamadas, visitas, correos y reuniones.
-- `POST /oportunidades` crea oportunidades y `PATCH /oportunidades/{id}` cambia etapa.
-- `POST /propuestas` exige oportunidad asociada, calcula descuento y monto total.
+```bash
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com --token <firebase_id_token>
+```
 
-## Convenciones de trabajo
+## Estado por epic
 
-- Trabajar con ramas por feature.
-- Abrir Pull Request antes de mergear.
-- Mantener lint, build y tests limpios.
-- Actualizar documentacion si cambia un endpoint o flujo.
-- Seguir la definicion de Done del proyecto.
-
-## Roadmap general
-
-### Ciclo 1
-
-Definicion de alcance, arquitectura base y setup tecnico.
-
-### Ciclo 2
-
-CRM, autenticacion, roles y datos base.
-
-### Ciclo 3
-
-Interacciones, pipeline y propuestas basicas.
-
-### Ciclo 4
-
-Dashboards, hardening y QA. La migracion de datos queda diferida.
-
-### Ciclo 5
-
-UAT, correcciones, documentacion y salida.
+- EPIC 1: cerrado con base tecnica, Firebase Auth/JWT y estructura backend.
+- EPIC 2: cerrado con login, CRM, roles, permisos, CSV y dashboards base.
+- EPIC 3: cerrado con interacciones, oportunidades, propuestas y detalle comercial.
+- EPIC 4: cerrado con hardening, 403/404, navegacion por rol, QA y dashboards estabilizados.
+- EPIC 5: cerrado para Development con readiness, smoke test, UAT docs, paginacion de clientes, creacion/edicion de oportunidades, cierre de vulnerabilidades y code splitting frontend.
 
 ## Definition of Done
 
-Un ticket se considera completo solo si:
+Un cambio se considera completo si:
 
-- El codigo esta en la rama correspondiente.
-- Existe PR aprobado.
-- Los tests pasan.
-- QA valida la funcionalidad.
-- Los criterios de aceptacion se cumplen.
-- La documentacion queda actualizada si aplica.
+- El codigo esta versionado en la rama correspondiente.
+- Existe PR revisable.
+- Tests, lint, build y audit aplicables pasan.
+- La documentacion queda actualizada.
+- El cambio respeta el alcance del cierre web.
 
-## Riesgos principales
+## Riesgos y condiciones externas
 
-- El alcance debe mantenerse acotado para cumplir el plazo.
-- La integracion con ERP SAP puede diferirse si falta informacion tecnica.
-- La migracion de datos historicos queda diferida hasta definir archivos fuente y reglas de limpieza.
-- Flutter y las capacidades avanzadas quedan para Fase 2.
+- UAT depende de usuarios reales, dominios, credenciales y ambiente final del cliente.
 - Las credenciales Firebase Admin no deben exponerse ni versionarse.
-- El token local de Vercel debe mantenerse vigente para deploy por CLI.
-- Las secciones marcadas como `No operativo` o `Datos no determinados` requieren definicion de negocio antes de habilitarse.
-
-## Estado actual
-
-- EPIC 1: base tecnica, Firebase Auth/JWT y estructura backend completada.
-- EPIC 2: cerrado funcionalmente para MVP web con login, sesion, CRM Firestore, busqueda/filtros, detalle, edicion, eliminacion, roles/permisos, importacion CSV backend y dashboard vendedor/supervisor.
-- EPIC 3: cerrado para Development con interacciones, oportunidades/pipeline, propuestas vinculadas a oportunidad, detalle comercial y dashboard supervisor.
-- EPIC 4: cerrado para Development con hardening de sesion, 404/403 controlados, navegacion por rol, estados vacios en dashboards y plan QA/E2E documentado. Migracion fuera de alcance por ahora.
-- EPIC 5: iniciado con readiness backend, checklist UAT, runbook de go-live y matriz de defectos.
-- EPIC 5.1: cerrado para rama `feature/epic-5-1-client-suggestions` con replica visual del HTML de referencia, datos reales en metricas comerciales, configuracion funcional, modo ahorro Firebase, traduccion global, vistas no operativas controladas y hardening defensivo.
-- Pendiente MVP: renovar token/sesion de Vercel para deploy CLI, ejecucion UAT, ajustes finales aprobados y salida productiva.
-
-## Epic 5.1 - resumen de entrega
-
-La Epic 5.1 concentra las sugerencias del cliente y deja documentado el alcance en:
-
-```text
-docs/sprints/epic-5-1-sugerencias-cliente.md
-```
-
-Validaciones de la entrega:
-
-- Frontend lint: OK.
-- Frontend build: OK.
-- Backend pytest: 67 tests pasando.
-
-El despliegue Vercel por CLI se intento con:
-
-```powershell
-npx vercel --prod --yes
-```
-
-El build no fallo, pero Vercel rechazo el token local configurado. Para publicar, ejecutar:
-
-```powershell
-npx vercel login
-npx vercel --prod --yes
-```
-
+- Firestore debe mantener reglas deny-all para acceso directo desde cliente.
+- Las reglas comerciales finales de estados, etapas y aprobaciones deben confirmarse con el cliente.

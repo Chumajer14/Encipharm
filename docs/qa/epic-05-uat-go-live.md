@@ -1,8 +1,8 @@
 # QA - EPIC 5 UAT, documentacion y go-live
 
-Rama: `feature/epic-5-uat-go-live`  
-Estado: en desarrollo.  
-Alcance: UAT funcional, readiness backend, documentacion operativa, smoke test y salida controlada sin cambios de frontend.
+Rama de cierre: `cierre-proyecto`  
+Estado: cerrado para Development.  
+Alcance: UAT funcional, readiness backend, documentacion operativa, smoke test, cierre CRM web y salida controlada.
 
 ## Resultado esperado
 
@@ -42,18 +42,18 @@ Respuesta esperada antes de UAT:
 
 | Caso | Rol | Resultado esperado | Estado |
 |------|-----|--------------------|--------|
-| Login Google real | vendedor | Sesion iniciada y usuario sincronizado en Firestore | Pendiente |
-| Dashboard vendedor | vendedor | Metricas propias visibles sin error API | Pendiente |
-| CRM clientes | vendedor | Lista solo clientes asignados | Pendiente |
-| Crear cliente | vendedor | Cliente guardado con vendedor asignado | Pendiente |
-| Registrar interaccion | vendedor | Interaccion vinculada al cliente visible | Pendiente |
-| Crear oportunidad | vendedor | Oportunidad creada en etapa inicial | Pendiente |
-| Crear propuesta | vendedor | Monto total calculado en backend | Pendiente |
-| Dashboard supervisor | supervisor | Metricas agregadas visibles | Pendiente |
-| Revision de propuestas | supervisor | Puede leer y aprobar propuestas segun permisos | Pendiente |
-| Importacion CSV | admin | Endpoint acepta archivo valido y rechaza duplicados | Pendiente |
-| Usuarios y roles | admin | Puede listar usuarios y ajustar rol operativo | Pendiente |
-| Ruta sin permiso | vendedor | Backend responde 403 para acciones restringidas | Pendiente |
+| Login Google real | vendedor | Sesion iniciada y usuario sincronizado en Firestore | Listo para UAT |
+| Dashboard vendedor | vendedor | Metricas propias visibles sin error API | Listo para UAT |
+| CRM clientes | vendedor | Lista solo clientes asignados | Listo para UAT |
+| Crear cliente | vendedor | Cliente guardado con vendedor asignado | Listo para UAT |
+| Registrar interaccion | vendedor | Interaccion vinculada al cliente visible | Listo para UAT |
+| Crear oportunidad | vendedor | Oportunidad creada en etapa inicial | Listo para UAT |
+| Crear propuesta | vendedor | Monto total calculado en backend | Listo para UAT |
+| Dashboard supervisor | supervisor | Metricas agregadas visibles | Listo para UAT |
+| Revision de propuestas | supervisor | Puede leer y aprobar propuestas segun permisos | Listo para UAT |
+| Importacion CSV | admin | Endpoint acepta archivo valido y rechaza duplicados | Listo para UAT |
+| Usuarios y roles | admin | Puede listar usuarios y ajustar rol operativo | Listo para UAT |
+| Ruta sin permiso | vendedor | Backend responde 403 para acciones restringidas | Listo para UAT |
 
 ## Smoke test post despliegue
 
@@ -111,5 +111,5 @@ Aplicar rollback cuando aparezca un S1 o S2 sin mitigacion:
 
 - Credenciales Firebase reales deben validarse fuera del repositorio.
 - UAT depende de usuarios reales o cuentas de prueba autorizadas.
-- La migracion historica sigue fuera de alcance hasta recibir fuente de datos aprobada.
+- La migracion historica no forma parte del cierre web hasta recibir fuente de datos aprobada.
 - La automatizacion completa de login con navegador real queda fuera del criterio de salida actual; el smoke test valida backend, frontend publicado y endpoints autenticados cuando existe token real.

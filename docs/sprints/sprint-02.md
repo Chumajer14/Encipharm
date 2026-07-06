@@ -2,7 +2,7 @@
 
 **Fecha de corte:** 2 mayo 2026
 
-**Estado:** Backend completado / Frontend parcialmente completado
+**Estado:** Cerrado en consolidado MVP web
 
 **Rama de trabajo backend:** `feature/backend-users-roles`
 
@@ -27,12 +27,12 @@ Habilitar la base funcional del CRM y del control de permisos para el MVP web: u
 | EV-021 | Dashboard vendedor/supervisor base via API | Backend | Completado |
 | EV-022 | QA automatizado backend EPIC 2 | QA | Completado |
 
-## Fuera de esta entrega
+## Continuidad cerrada en consolidado
 
-- Pantallas de login y sesion frontend.
-- Integracion visual del CRM con los endpoints reales.
-- Dashboard UI del vendedor y supervisor.
-- Pipeline, interacciones y propuestas, planificados para EPIC 3.
+- Pantallas de login y sesion frontend: completadas en cierre EPIC 2.
+- Integracion visual del CRM con endpoints reales: completada.
+- Dashboard UI del vendedor y supervisor: completado.
+- Pipeline, interacciones y propuestas: completados en EPIC 3.
 
 ## Backend implementado
 
@@ -104,3 +104,5 @@ Resultado:
 - `docs/api/clientes.md`
 - `docs/api/dashboard.md`
 - `docs/qa/epic-02-backend.md`
+- `docs/sprints/sprint-02-cierre.md`
+- `docs/cierre-proyecto.md`

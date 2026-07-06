@@ -35,7 +35,7 @@ Cerrar EPIC 2: CRM, autenticacion, usuarios/roles, datos base, importacion CSV b
 - Se corrigio el consumo frontend del contrato real del dashboard.
 - Se agrego `/clientes/:clienteId` para detalle y edicion.
 - Se centralizaron validaciones de formulario en `frontend/src/utils/clienteForm.js`.
-- Se agregaron pantallas protegidas de estado pendiente para rutas de EPIC 3, evitando pantallas vacias desde accesos rapidos.
+- Se agregaron pantallas protegidas de continuidad para rutas que se completaron en EPIC 3, evitando pantallas vacias desde accesos rapidos.
 
 ## Criterios de aceptacion
 
@@ -47,7 +47,7 @@ Cerrar EPIC 2: CRM, autenticacion, usuarios/roles, datos base, importacion CSV b
 - Formularios bloquean datos obligatorios vacios, email invalido y telefono chileno invalido.
 - Documentacion refleja endpoints y flujo actualizado.
 
-## Pendiente para EPIC 3
+## Continuidad completada en EPIC 3
 
 - Interacciones y visitas.
 - Pipeline/Kanban de oportunidades.

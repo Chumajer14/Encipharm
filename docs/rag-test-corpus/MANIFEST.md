@@ -31,6 +31,11 @@ Rutas principales:
 - `33_frontend-demo-guide.pdf`
 - `34_modelo_visual_design.txt`
 - `35_modelo_visual_configuracion_usuarios.txt`
+- `36_cierre-proyecto.txt`
+- `37_evm-cierre-proyecto.txt`
+- `38_semana-03.txt`
+- `39_semana-04.txt`
+- `40_semana-05.txt`
 
 ## Contenido externo oficial
 
@@ -59,6 +64,11 @@ Fuentes SAG extraidas para pruebas:
    - `12_auditoria-seguridad-defensiva-2026-05-19.txt`
    - `14_epic-03-auditoria.txt`
    - `31_resumen-ejecutivo-tecnico-enci.txt`
+   - `36_cierre-proyecto.txt`
+   - `37_evm-cierre-proyecto.txt`
+   - `38_semana-03.txt`
+   - `39_semana-04.txt`
+   - `40_semana-05.txt`
 4. Cargar PDFs al final:
    - `32_resumen-ejecutivo-tecnico-enci.pdf`
    - `33_frontend-demo-guide.pdf`

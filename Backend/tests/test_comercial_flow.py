@@ -81,12 +81,13 @@ class FakeDb:
 
 
 def _cliente(db, vendedor_uid="seller-1"):
+    suffix = len(db.collection("clientes").rows) + 1
     return create_cliente(
         db,
         ClienteCreate(
             nombre="Maria Soto",
             empresa="Granja Los Pinos",
-            email="maria@lospinos.cl",
+            email=f"maria{suffix}@lospinos.cl",
             rubro="Cerdos",
             region="Maule",
             vendedorUid=vendedor_uid,

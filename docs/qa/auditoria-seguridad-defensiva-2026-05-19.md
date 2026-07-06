@@ -2,7 +2,7 @@
 
 Fecha: 2026-05-19  
 Alcance: frontend React/Vite/Firebase Auth, backend FastAPI/Firebase Admin/Firestore, reglas Firebase, configuracion y pruebas automatizadas.  
-Estado: MVP avanzado previo a UAT/go-live.
+Estado: evidencia historica incorporada al cierre MVP web.
 
 ## Resumen ejecutivo
 
@@ -83,7 +83,7 @@ Admin:
 
 Temporal de desarrollo:
 
-- `PATCH /auth/temporary-role`
+- `PATCH /auth/temporary-role` solo en desarrollo y deshabilitado por defecto en despliegues.
 
 ### Middlewares y controles transversales
 
@@ -175,7 +175,7 @@ Correccion:
 - Solo actualiza `user["uid"]` del token autenticado.
 - Registra `temporary_role_change` en `audit_logs`.
 - `Settings` rechaza produccion con `ENABLE_TEMPORARY_ROLE_SWITCHER=true`.
-- Documentado como control temporal pendiente de retiro.
+- Documentado como control temporal deshabilitado por defecto y bloqueado por readiness en despliegues.
 
 Tests:
 
@@ -187,7 +187,7 @@ Tests:
 
 Estado:
 
-Riesgo aceptado temporalmente para desarrollo. Debe retirarse antes de produccion.
+Riesgo controlado para desarrollo. En despliegues de cierre debe permanecer deshabilitado.
 
 ### Media - Docs/OpenAPI custom podian quedar disponibles en produccion
 

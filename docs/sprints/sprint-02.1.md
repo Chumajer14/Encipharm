@@ -1,23 +1,27 @@
-# Sprint 02.1 — Avance EPIC 2: CRM, Usuarios y Datos Base
+# Sprint 02.1 - Avance EPIC 2: CRM, Usuarios y Datos Base
 
-## Estado del proyecto
+## Estado de cierre
 
-Durante este avance se continuó trabajando en el EPIC 2, enfocado en autenticación, navegación protegida, dashboard y gestión base de clientes.
+Este documento queda como bitacora historica del avance intermedio del EPIC 2. Las brechas registradas en ese momento fueron cerradas dentro del alcance del MVP web y quedan consolidadas en `docs/sprints/sprint-02-cierre.md`, `docs/sprints/sprint-05.md`, `docs/cierre-proyecto.md` y `docs/evm/cierre-proyecto.md`.
 
-Actualmente el sistema cuenta con:
+## Estado del proyecto en el avance
+
+Durante este avance se continuo trabajando en el EPIC 2, enfocado en autenticacion, navegacion protegida, dashboard y gestion base de clientes.
+
+El sistema contaba con:
 
 - Login con Google mediante Firebase Authentication.
-- Conexión del frontend con el backend FastAPI.
-- Validación de sesión mediante token Firebase.
-- Rutas protegidas para evitar acceso sin autenticación.
+- Conexion del frontend con el backend FastAPI.
+- Validacion de sesion mediante token Firebase.
+- Rutas protegidas para evitar acceso sin autenticacion.
 - Dashboard base implementado.
 - Vista CRM Clientes conectada al backend.
-- Creación de clientes desde formulario.
+- Creacion de clientes desde formulario.
 - Listado de clientes reales desde la API.
-- Búsqueda y filtrado de clientes por nombre, empresa, rubro o región.
-- Navegación entre Dashboard, Clientes y Nuevo Cliente.
-- Botón de retorno desde CRM Clientes hacia Dashboard.
-- Ajustes visuales en botones, encabezados y flujo de navegación.
+- Busqueda y filtrado de clientes por nombre, empresa, rubro o region.
+- Navegacion entre Dashboard, Clientes y Nuevo Cliente.
+- Boton de retorno desde CRM Clientes hacia Dashboard.
+- Ajustes visuales en botones, encabezados y flujo de navegacion.
 
 ## Cambios realizados
 
@@ -36,76 +40,49 @@ Se modificaron los siguientes archivos:
 
 ### Funcionalidades agregadas
 
-- Se agregó la ruta principal `/` redirigiendo al login.
-- Se incorporó la ruta `/dashboard`.
-- Se agregó navegación protegida para clientes, dashboard y creación de clientes.
-- Se creó la pantalla base del dashboard.
-- Se agregó botón “Volver al Dashboard” en la vista CRM Clientes.
-- Se corrigieron problemas de conexión entre frontend y backend.
+- Ruta principal `/` redirigiendo al login.
+- Ruta `/dashboard`.
+- Navegacion protegida para clientes, dashboard y creacion de clientes.
+- Pantalla base del dashboard.
+- Boton "Volver al Dashboard" en la vista CRM Clientes.
+- Correcciones de conexion entre frontend y backend.
 
-## Problemas encontrados Y SOLUCIONADOS
-
-Durante el desarrollo se presentaron algunos problemas técnicos:
+## Problemas encontrados y solucionados
 
 - Pantalla en blanco por falta de ruta `/` en `App.jsx`.
-- Error de conexión por diferencia entre puertos `8000` y `8001`.
+- Error de conexion por diferencia entre puertos `8000` y `8001`.
 - Error al iniciar backend usando `uvicorn main:app`, corregido usando `uvicorn app.main:app`.
 - Conflictos de Git en `Clientes.jsx` y `clientesService.js`.
-- Problemas de CORS y configuración de URL del backend.
+- Problemas de CORS y configuracion de URL del backend.
 - Riesgo de subir archivos sensibles al repositorio.
 
 ## Soluciones aplicadas
 
-- Se agregó redirección desde `/` hacia `/login`.
-- Se corrigió la URL de la API en el frontend.
-- Se mantuvo el uso de variables de entorno para no exponer datos sensibles.
-- Se validó que no se subieran archivos `.env` ni `serviceAccountKey.json`.
-- Se resolvieron conflictos manualmente eliminando marcas como `<<<<<<< HEAD`.
-- Se continuó el rebase con `git rebase --continue`.
+- Redireccion desde `/` hacia `/login`.
+- Correccion de URL de API en frontend.
+- Uso de variables de entorno para no exponer datos sensibles.
+- Proteccion de `.env` y `serviceAccountKey.json` mediante `.gitignore`.
+- Resolucion manual de conflictos.
 
 ## Seguridad
 
-Se mantiene la restricción de no subir archivos sensibles al repositorio:
+Se mantiene la restriccion de no subir archivos sensibles al repositorio:
 
 - `Backend/.env`
 - `frontend/.env`
 - `Backend/serviceAccountKey.json`
 - Cualquier archivo con credenciales privadas o service account.
 
-Estos archivos deben mantenerse localmente y estar protegidos mediante `.gitignore`.
+## Validaciones cerradas en consolidado
 
-## Mejoras pendientes
+- Validaciones de formularios de clientes.
+- Mensajes claros de error y exito.
+- Edicion y eliminacion logica de clientes.
+- Dashboard diferenciado por rol.
+- Datos del usuario autenticado.
+- Cierre de sesion visible.
+- Revision de permisos por rol.
 
-Para mejorar la calidad del sistema, se propone implementar validaciones en formularios:
+## Estado general
 
-- No permitir campos vacíos al crear cliente.
-- Validar que nombre, empresa y rubro no contengan caracteres inválidos.
-- Validar formato de correo electrónico.
-- Validar número telefónico si se agrega ese campo.
-- Mostrar mensajes claros cuando el usuario ingrese datos incorrectos.
-- Evitar que se envíe el formulario si los datos no cumplen las reglas.
-- Agregar confirmación visual cuando un cliente se cree correctamente.
-
-
-## PROXIMAS MEJORAS
-
-Los próximos pasos dentro del EPIC 2 son:
-
-Completar la gestión de clientes.
-Agregar vista de detalle de cliente.
-Implementar edición de clientes.
-Implementar eliminación de clientes.
-Mejorar validaciones del formulario.
-Mejorar mensajes de error y éxito.
-Diferenciar dashboard de vendedor y supervisor.
-Mostrar datos del usuario autenticado.
-Implementar cierre de sesión visible desde el dashboard.
-Revisar permisos según rol de usuario.
-Preparar base para iniciar EPIC 3.
-Estado general
-
-## ESTADO GENERAL
-
-El EPIC 2 se encuentra en avance funcional.
-El sistema ya permite autenticación, navegación principal y gestión inicial de clientes reales conectados al backend.
-Aún faltan validaciones, edición, eliminación, permisos por rol y mejoras visuales para cerrar completamente este EPIC.
+El EPIC 2 queda cerrado para el MVP web. El avance intermedio se conserva solo como trazabilidad del proceso.

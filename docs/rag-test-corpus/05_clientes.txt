@@ -1,4 +1,4 @@
-﻿# API - Clientes e importacion CSV
+# API - Clientes e importacion CSV
 
 Base URL desarrollo: `http://127.0.0.1:8000`
 
@@ -63,6 +63,7 @@ Validaciones defensivas:
 - `region`: max 80 caracteres.
 - `estado`: solo `En proceso`, `Completado` o `Inactivo`.
 - Campos de texto no pueden iniciar con `=`, `+`, `-` o `@` para evitar formula injection en futuras exportaciones.
+- `email`: debe ser unico entre clientes activos; si ya existe, la API responde `409`.
 
 ## PATCH `/clientes/{cliente_id}`
 
@@ -76,6 +77,8 @@ Actualiza parcialmente un cliente.
 ```
 
 Si el usuario autenticado tiene rol `vendedor`, el backend fuerza `vendedorUid` y `ownerUid` al UID autenticado para evitar reasignaciones manuales.
+
+Si se actualiza `email`, el nuevo correo debe ser unico entre clientes activos. Mantener el mismo email del cliente actual esta permitido.
 
 ## DELETE `/clientes/{cliente_id}`
 
@@ -115,6 +118,7 @@ Comportamiento:
 - Rechaza archivos sobre 1000 filas.
 - Rechaza archivos que no esten codificados en UTF-8.
 - Registra evento tecnico de auditoria con total de filas, importados y fallidos.
+- Rechaza emails duplicados dentro del archivo y emails ya existentes en clientes activos.
 
 Respuesta exitosa:
 
@@ -148,5 +152,4 @@ Respuesta con errores de validacion:
 - `Backend/app/api/clientes.py`
 - `Backend/app/models/cliente.py`
 - `Backend/app/services/clientes.py`
-- `Backend/tests/test_clientes_api.py`
-
+- `Backend/tests/test_clientes_permissions.py`

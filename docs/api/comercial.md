@@ -89,6 +89,8 @@ Alias aceptados desde la terminologia del cliente:
 
 Actualiza parcialmente etapa, titulo, valor, probabilidad o descripcion.
 
+La interfaz web expone alta y edicion de oportunidades desde `Pipeline & Funnels`, usando `POST /oportunidades` y `PATCH /oportunidades/{oportunidad_id}`. En edicion, el cliente asociado se mantiene fijo para preservar trazabilidad.
+
 ### GET `/oportunidades/{oportunidad_id}/detalle`
 
 Retorna la oportunidad visible para el usuario con:

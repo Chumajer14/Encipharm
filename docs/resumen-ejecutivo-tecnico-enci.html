@@ -2,690 +2,156 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Resumen Ejecutivo y Técnico - Enci</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resumen Ejecutivo Tecnico - Cierre MVP Web Enci Ventas</title>
   <style>
-    @page {
-      size: A4;
-      margin: 18mm 15mm;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      color: #172033;
-      font-family: "Segoe UI", Arial, sans-serif;
-      font-size: 10.8pt;
-      line-height: 1.48;
-      background: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #17202a;
+      background: #f5f7fb;
+      line-height: 1.5;
     }
-
-    h1,
-    h2,
-    h3 {
-      margin: 0;
-      color: #101827;
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+      background: #ffffff;
+      min-height: 100vh;
+    }
+    h1, h2 {
+      color: #102a43;
       line-height: 1.2;
     }
-
     h1 {
-      font-size: 25pt;
-      margin-bottom: 8px;
+      margin-top: 0;
+      font-size: 32px;
     }
-
     h2 {
-      margin-top: 26px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid #d9e0ea;
-      font-size: 15pt;
+      margin-top: 32px;
+      font-size: 22px;
+      border-bottom: 1px solid #d9e2ec;
+      padding-bottom: 8px;
     }
-
-    h3 {
-      margin-top: 18px;
-      font-size: 12pt;
-    }
-
-    p {
-      margin: 8px 0;
-    }
-
-    ul {
-      margin: 8px 0 8px 20px;
-      padding: 0;
-    }
-
-    li {
-      margin: 3px 0;
-    }
-
     table {
       width: 100%;
-      margin: 10px 0 14px;
       border-collapse: collapse;
-      page-break-inside: avoid;
+      margin: 16px 0;
+      font-size: 14px;
     }
-
-    th,
-    td {
-      padding: 7px 8px;
-      border: 1px solid #d9e0ea;
+    th, td {
+      border: 1px solid #d9e2ec;
+      padding: 10px;
       text-align: left;
       vertical-align: top;
     }
-
     th {
-      background: #eef3f8;
-      color: #0f2238;
+      background: #eef2f7;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #e3fcef;
+      color: #0b6b3a;
       font-weight: 700;
     }
-
     code {
-      padding: 1px 4px;
-      border-radius: 4px;
-      background: #eef3f8;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 9.5pt;
-    }
-
-    .cover {
-      padding: 26px 28px;
-      border: 1px solid #d9e0ea;
-      background: #f7fafc;
-      page-break-after: always;
-    }
-
-    .subtitle {
-      color: #3d5067;
-      font-size: 13pt;
-      margin-bottom: 22px;
-    }
-
-    .meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 18px;
-      margin-top: 24px;
-      font-size: 10.5pt;
-    }
-
-    .meta div {
-      padding: 8px 10px;
-      border: 1px solid #d9e0ea;
-      background: #ffffff;
-    }
-
-    .callout {
-      margin: 14px 0;
-      padding: 10px 12px;
-      border-left: 4px solid #2663a6;
-      background: #f0f6fc;
-      page-break-inside: avoid;
-    }
-
-    .warning {
-      border-left-color: #a65f26;
-      background: #fff7ed;
-    }
-
-    .success {
-      border-left-color: #23835f;
-      background: #eefaf4;
-    }
-
-    .page-break {
-      page-break-before: always;
-    }
-
-    .small {
-      color: #4d6078;
-      font-size: 9.5pt;
+      background: #eef2f7;
+      padding: 2px 4px;
+      border-radius: 3px;
     }
   </style>
 </head>
 <body>
-  <section class="cover">
-    <h1>Resumen Ejecutivo y Técnico</h1>
-    <p class="subtitle">Proyecto Enci / Enci Ventas</p>
+  <main>
+    <h1>Resumen Ejecutivo Tecnico - Cierre MVP Web Enci Ventas</h1>
+    <p><span class="status">Cerrado para Development</span></p>
     <p>
-      Documento preparado para reunión ejecutiva con cliente. Consolida alcance funcional,
-      estado de desarrollo, cumplimiento, arquitectura, seguridad, QA realizado, riesgos,
-      mejoras recomendadas y preguntas de validación.
+      El MVP web de Enci Ventas queda documentado como cierre de proyecto para el alcance CRM web.
+      La solucion integra backend FastAPI, frontend React/Vite, autenticacion Firebase, Firestore como
+      persistencia y controles de permisos por rol.
     </p>
-    <div class="meta">
-      <div><strong>Fecha:</strong> 18 de mayo de 2026</div>
-      <div><strong>Repositorio:</strong> Enci</div>
-      <div><strong>Tipo de sistema:</strong> MiniCRM comercial web</div>
-      <div><strong>Estado:</strong> MVP web avanzado, previo a UAT/go-live</div>
-      <div><strong>Backend:</strong> FastAPI + Firebase Admin + Firestore</div>
-      <div><strong>Frontend:</strong> React + Vite + Firebase Auth</div>
-    </div>
-    <div class="callout success">
-      <strong>Validación local actual:</strong> backend con 54 pruebas aprobadas, build frontend exitoso y lint frontend sin errores.
-    </div>
-    <p class="small">
-      Este documento es de uso interno para preparación ejecutiva. No representa acta de aceptación final del cliente.
+
+    <h2>Alcance cerrado</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Autenticacion y usuarios</td>
+          <td>Login Google, sincronizacion de usuario, roles, estados y preferencias.</td>
+        </tr>
+        <tr>
+          <td>CRM clientes</td>
+          <td>Listado, busqueda, filtros, creacion, edicion, baja logica, paginacion y unicidad de email activo.</td>
+        </tr>
+        <tr>
+          <td>Flujo comercial</td>
+          <td>Interacciones, oportunidades, propuestas y dashboards de vendedor/supervisor.</td>
+        </tr>
+        <tr>
+          <td>Seguridad</td>
+          <td>Roles backend, propiedad por vendedor, Firestore cerrado a cliente directo, readiness y auditoria.</td>
+        </tr>
+        <tr>
+          <td>QA</td>
+          <td>Pruebas backend/frontend, audit de dependencias y smoke test web documentado.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>EVM consolidado</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Metrica</th>
+          <th>Valor</th>
+          <th>Lectura</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>PV</td>
+          <td>130 pts</td>
+          <td>Trabajo planificado para el cierre del MVP web.</td>
+        </tr>
+        <tr>
+          <td>EV</td>
+          <td>130 pts</td>
+          <td>Trabajo completado y documentado.</td>
+        </tr>
+        <tr>
+          <td>AC</td>
+          <td>130 pts</td>
+          <td>Esfuerzo equivalente invertido.</td>
+        </tr>
+        <tr>
+          <td>SPI/CPI</td>
+          <td>1.0 / 1.0</td>
+          <td>Cierre sin desviacion registrada en la linea base documental.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Evidencia documental</h2>
+    <ul>
+      <li><code>docs/cierre-proyecto.md</code></li>
+      <li><code>docs/evm/cierre-proyecto.md</code></li>
+      <li><code>docs/evm/semana-01.md</code> a <code>docs/evm/semana-05.md</code></li>
+      <li><code>docs/sprints/sprint-05.md</code></li>
+      <li><code>docs/qa/epic-05-uat-go-live.md</code></li>
+    </ul>
+
+    <h2>No considerado en el cierre web</h2>
+    <p>
+      Integraciones externas no implementadas en el MVP web, despliegues moviles, migracion historica masiva,
+      BI avanzado, firma digital y geolocalizacion fuera del CRM web.
     </p>
-  </section>
-
-  <h2>1. Resumen Ejecutivo</h2>
-  <p>
-    Enci / Enci Ventas es un sistema web de gestión comercial y MiniCRM diseñado para centralizar
-    la operación del equipo de ventas. Permite administrar clientes, registrar interacciones, controlar
-    oportunidades, gestionar propuestas y visualizar indicadores mediante dashboards diferenciados por rol.
-  </p>
-  <p>
-    El MVP está construido con una arquitectura web primero: frontend React/Vite, backend FastAPI,
-    autenticación con Firebase Auth y persistencia en Cloud Firestore. El backend actúa como capa
-    obligatoria de autorización, validación, seguridad y escritura de datos.
-  </p>
-  <div class="callout">
-    <strong>Estado general:</strong> las capacidades principales del MVP están cerradas para Development.
-    El proyecto está en etapa de preparación de UAT, validación con usuarios reales y salida controlada.
-  </div>
-
-  <h2>2. Qué Hace El Sistema</h2>
-  <ul>
-    <li>Autentica usuarios mediante Google SSO usando Firebase Auth.</li>
-    <li>Valida tokens Firebase en el backend antes de permitir acceso a endpoints protegidos.</li>
-    <li>Sincroniza usuarios autenticados en Firestore.</li>
-    <li>Controla acceso según rol: <code>vendedor</code>, <code>supervisor</code> y <code>admin</code>.</li>
-    <li>Permite crear, listar, buscar, filtrar, editar y eliminar lógicamente clientes.</li>
-    <li>Restringe a vendedores para que operen solo clientes propios.</li>
-    <li>Permite registrar interacciones comerciales asociadas a clientes.</li>
-    <li>Gestiona oportunidades comerciales mediante etapas de pipeline.</li>
-    <li>Permite crear propuestas vinculadas a oportunidades y calcular montos finales en backend.</li>
-    <li>Entrega dashboards con métricas propias para vendedores y consolidadas para supervisores/admin.</li>
-    <li>Expone documentación técnica y consola Swagger protegida para pruebas.</li>
-    <li>Incluye endpoint de readiness para validar condiciones mínimas antes de UAT/go-live.</li>
-  </ul>
-
-  <h2>3. Alcance Del MVP</h2>
-  <h3>Incluido</h3>
-  <ul>
-    <li>Aplicación web comercial funcional.</li>
-    <li>Backend API protegido por Firebase JWT.</li>
-    <li>Persistencia en Firestore.</li>
-    <li>Gestión de usuarios y roles.</li>
-    <li>CRM de clientes.</li>
-    <li>Interacciones comerciales.</li>
-    <li>Pipeline de oportunidades.</li>
-    <li>Propuestas básicas con estados y cálculo de descuento/total.</li>
-    <li>Dashboards vendedor y supervisor/admin.</li>
-    <li>Importación CSV de clientes a nivel backend para admin.</li>
-    <li>Hardening de seguridad y resiliencia.</li>
-    <li>Documentación técnica, QA y go-live.</li>
-  </ul>
-
-  <h3>Fuera De Alcance Actual</h3>
-  <ul>
-    <li>Aplicación mobile Flutter.</li>
-    <li>IA, RAG o inteligencia competitiva avanzada.</li>
-    <li>Integración con SAP/ERP.</li>
-    <li>Integración con Google Calendar.</li>
-    <li>Reportes extendidos y BI avanzado.</li>
-    <li>Migración histórica de datos sin fuente aprobada.</li>
-    <li>Automatización E2E completa con credenciales Firebase reales.</li>
-  </ul>
-
-  <h2>4. Funcionalidades Implementadas</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Módulo</th>
-        <th>Funcionalidades</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Autenticación</td>
-        <td>Login Google, token Firebase, sincronización backend, bloqueo por usuario inactivo.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Clientes</td>
-        <td>CRUD, búsqueda, filtros, detalle, edición, eliminación lógica, visibilidad por vendedor.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Usuarios y roles</td>
-        <td>Listado, detalle, cambio de rol, activación/desactivación, jerarquía de permisos.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Interacciones</td>
-        <td>Registro y listado de llamadas, correos, reuniones, visitas u otros contactos comerciales.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Oportunidades</td>
-        <td>Creación, listado, filtros, cambio de etapa, detalle con historial relacionado.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Propuestas</td>
-        <td>Creación vinculada a oportunidad, estados, cálculo server-side de descuento y total.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Dashboards</td>
-        <td>Métricas propias de vendedor y agregados de supervisor/admin.</td>
-        <td>Implementado</td>
-      </tr>
-      <tr>
-        <td>Readiness</td>
-        <td>Validación no sensible de configuración mínima para UAT/go-live.</td>
-        <td>Implementado</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>5. Desarrollo Actual Y Cumplimiento</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Etapa</th>
-        <th>Objetivo</th>
-        <th>Estado</th>
-        <th>Cumplimiento estimado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>EPIC 1</td>
-        <td>Base técnica, autenticación y modelo de usuarios.</td>
-        <td>Cerrado</td>
-        <td>100%</td>
-      </tr>
-      <tr>
-        <td>EPIC 2</td>
-        <td>CRM, roles, dashboard base, importación CSV.</td>
-        <td>Cerrado funcionalmente</td>
-        <td>100%</td>
-      </tr>
-      <tr>
-        <td>EPIC 3</td>
-        <td>Interacciones, oportunidades, propuestas y flujo comercial.</td>
-        <td>Cerrado para Development</td>
-        <td>100%</td>
-      </tr>
-      <tr>
-        <td>EPIC 4</td>
-        <td>Hardening, QA, dashboards y navegación por rol.</td>
-        <td>Cerrado para Development</td>
-        <td>100%</td>
-      </tr>
-      <tr>
-        <td>EPIC 5</td>
-        <td>UAT, readiness, documentación, go-live y rollback.</td>
-        <td>En desarrollo</td>
-        <td>40-50%</td>
-      </tr>
-    </tbody>
-  </table>
-  <p>
-    Cumplimiento técnico para Development: <strong>90-95%</strong>. Cumplimiento estimado para salida productiva:
-    <strong>75-80%</strong>, condicionado por UAT real, ambiente final, usuarios autorizados y aprobación formal de defectos.
-  </p>
-
-  <h2>6. Desarrollo En El Tiempo</h2>
-  <ul>
-    <li><strong>Sprint 01:</strong> estructura backend, Firebase Admin, JWT, usuarios, endpoints base y Swagger.</li>
-    <li><strong>Sprint 02:</strong> CRM real con Firestore, roles, permisos, dashboard base, CSV y hardening inicial.</li>
-    <li><strong>Sprint 03:</strong> interacciones, oportunidades, propuestas, detalle comercial y dashboard supervisor.</li>
-    <li><strong>Sprint 04:</strong> seguridad, resiliencia visual, sesión expirada, 403/404, dashboards y QA documentado.</li>
-    <li><strong>Sprint 05:</strong> UAT/go-live, readiness backend, checklist funcional, smoke test y rollback.</li>
-  </ul>
-
-  <h2 class="page-break">7. Detalle Técnico</h2>
-  <h3>Stack Tecnológico</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Capa</th>
-        <th>Tecnología</th>
-        <th>Uso</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Frontend</td>
-        <td>React + Vite</td>
-        <td>Interfaz web SPA del MVP comercial.</td>
-      </tr>
-      <tr>
-        <td>Autenticación frontend</td>
-        <td>Firebase Auth</td>
-        <td>Login Google y obtención de ID Token.</td>
-      </tr>
-      <tr>
-        <td>Backend</td>
-        <td>FastAPI + Python</td>
-        <td>API, validaciones, permisos, documentación Swagger.</td>
-      </tr>
-      <tr>
-        <td>Autenticación backend</td>
-        <td>Firebase Admin</td>
-        <td>Validación de tokens Firebase.</td>
-      </tr>
-      <tr>
-        <td>Base de datos</td>
-        <td>Cloud Firestore</td>
-        <td>Persistencia de usuarios, clientes y flujo comercial.</td>
-      </tr>
-      <tr>
-        <td>Dependencias backend</td>
-        <td>uv</td>
-        <td>Instalación reproducible y ejecución de tests.</td>
-      </tr>
-      <tr>
-        <td>Deploy previsto</td>
-        <td>Cloud Run / Vercel frontend</td>
-        <td>Backend en GCP y frontend web independiente.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3>Arquitectura Funcional</h3>
-  <ul>
-    <li>El usuario entra al frontend y ejecuta login con Google.</li>
-    <li>Firebase Auth entrega un ID Token al frontend.</li>
-    <li>El frontend envía el token al backend en <code>Authorization: Bearer &lt;token&gt;</code>.</li>
-    <li>FastAPI valida el token con Firebase Admin.</li>
-    <li>El backend consulta Firestore para obtener rol, estado y permisos.</li>
-    <li>Las operaciones de negocio se ejecutan únicamente a través de la API.</li>
-    <li>Firestore no queda expuesto como escritura directa desde cliente.</li>
-  </ul>
-
-  <h3>Endpoints Principales</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Área</th>
-        <th>Endpoints</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Salud y readiness</td>
-        <td><code>GET /health</code>, <code>GET /readiness</code></td>
-      </tr>
-      <tr>
-        <td>Usuario actual</td>
-        <td><code>GET /me</code></td>
-      </tr>
-      <tr>
-        <td>Autenticación</td>
-        <td><code>POST /auth/login</code>, <code>POST /auth/register</code></td>
-      </tr>
-      <tr>
-        <td>Clientes</td>
-        <td><code>GET /clientes</code>, <code>POST /clientes</code>, <code>GET /clientes/{id}</code>, <code>PATCH /clientes/{id}</code>, <code>DELETE /clientes/{id}</code>, <code>POST /clientes/import-csv</code></td>
-      </tr>
-      <tr>
-        <td>Flujo comercial</td>
-        <td><code>GET/POST /interacciones</code>, <code>GET/POST /oportunidades</code>, <code>PATCH /oportunidades/{id}</code>, <code>GET /oportunidades/{id}/detalle</code>, <code>GET/POST /propuestas</code>, <code>PATCH /propuestas/{id}</code></td>
-      </tr>
-      <tr>
-        <td>Dashboard</td>
-        <td><code>GET /dashboard/vendedor</code>, <code>GET /dashboard/supervisor</code></td>
-      </tr>
-      <tr>
-        <td>Usuarios</td>
-        <td><code>GET /users</code>, <code>GET /users/{uid}</code>, <code>PATCH /users/{uid}</code>, <code>PATCH /users/{uid}/role</code>, <code>PATCH /users/{uid}/status</code></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3>Reglas De Autorización</h3>
-  <ul>
-    <li><code>vendedor</code>: opera clientes, interacciones, oportunidades y propuestas propias.</li>
-    <li><code>supervisor</code>: accede a información consolidada y funciones de supervisión.</li>
-    <li><code>admin</code>: accede a gestión completa, cambios de rol/estado e importación CSV.</li>
-    <li>La autorización definitiva vive en backend; el frontend solo mejora la experiencia de navegación.</li>
-  </ul>
-
-  <h2>8. Seguridad Y Protecciones Extra</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Riesgo</th>
-        <th>Control implementado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Acceso sin sesión</td>
-        <td>Endpoints protegidos exigen token Bearer Firebase válido.</td>
-      </tr>
-      <tr>
-        <td>Usuario desactivado sigue usando token</td>
-        <td><code>activo=false</code> bloquea login, <code>/me</code> y endpoints protegidos.</td>
-      </tr>
-      <tr>
-        <td>Acceso a datos ajenos</td>
-        <td>Control de propiedad por <code>vendedorUid</code> y rol.</td>
-      </tr>
-      <tr>
-        <td>Eliminación irreversible</td>
-        <td>Clientes usan baja lógica con <code>deletedAt</code>.</td>
-      </tr>
-      <tr>
-        <td>Uso directo de Firestore desde cliente</td>
-        <td>Reglas Firestore versionadas con denegación total.</td>
-      </tr>
-      <tr>
-        <td>Ráfagas o abuso básico</td>
-        <td>Rate limit de 120 solicitudes por minuto por IP.</td>
-      </tr>
-      <tr>
-        <td>Payloads sobredimensionados</td>
-        <td>Límite global de 1 MB por request.</td>
-      </tr>
-      <tr>
-        <td>CSV gigante o inválido</td>
-        <td>CSV limitado a 1 MB, 1000 filas y UTF-8.</td>
-      </tr>
-      <tr>
-        <td>Formula injection</td>
-        <td>Rechazo de textos iniciados con <code>=</code>, <code>+</code>, <code>-</code> o <code>@</code>.</td>
-      </tr>
-      <tr>
-        <td>CORS permisivo</td>
-        <td>Configuración rechaza <code>*</code> en producción.</td>
-      </tr>
-      <tr>
-        <td>Token persistente en Swagger</td>
-        <td>Uso de <code>sessionStorage</code> y no persistencia permanente.</td>
-      </tr>
-      <tr>
-        <td>Sesión expirada</td>
-        <td>Evento global frontend fuerza logout y retorno a login.</td>
-      </tr>
-      <tr>
-        <td>Rutas incorrectas o sin permiso</td>
-        <td>Páginas 404 y 403 controladas.</td>
-      </tr>
-      <tr>
-        <td>Click doble o errores silenciosos</td>
-        <td>Controles de guardado, disabled states y manejo de errores en pantallas comerciales.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>9. QA Realizado</h2>
-  <h3>Validación Automatizada Actual</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Área</th>
-        <th>Comando</th>
-        <th>Resultado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Backend</td>
-        <td><code>uv run pytest</code></td>
-        <td>54 pruebas aprobadas.</td>
-      </tr>
-      <tr>
-        <td>Frontend build</td>
-        <td><code>npm.cmd run build</code></td>
-        <td>Build productivo exitoso.</td>
-      </tr>
-      <tr>
-        <td>Frontend lint</td>
-        <td><code>npm.cmd run lint</code></td>
-        <td>Sin errores de ESLint.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3>Cobertura Backend</h3>
-  <ul>
-    <li>Permisos de clientes y visibilidad por vendedor.</li>
-    <li>Bloqueo de acceso a cliente ajeno.</li>
-    <li>Alta, edición y baja lógica de clientes.</li>
-    <li>Importación CSV válida e inválida.</li>
-    <li>Duplicados en CSV y duplicados contra CRM existente.</li>
-    <li>Usuarios activos/inactivos.</li>
-    <li>Cambios de rol y estado.</li>
-    <li>Flujo de interacciones, oportunidades y propuestas.</li>
-    <li>Validación de propuesta asociada a oportunidad visible.</li>
-    <li>Readiness para UAT/go-live.</li>
-    <li>Hardening de seguridad: límites, CORS, headers y errores.</li>
-  </ul>
-
-  <h3>QA Documentado</h3>
-  <ul>
-    <li>QA EPIC 2 backend.</li>
-    <li>Auditoría QA y seguridad EPIC 3.</li>
-    <li>Hardening de seguridad y resiliencia.</li>
-    <li>QA EPIC 4 de rutas, dashboards y navegación por rol.</li>
-    <li>Checklist UAT EPIC 5.</li>
-    <li>Matriz de defectos UAT por severidad.</li>
-    <li>Runbook de go-live y rollback.</li>
-  </ul>
-
-  <h3>Pendiente QA</h3>
-  <ul>
-    <li>Prueba manual completa con usuarios Firebase reales.</li>
-    <li>E2E automatizado con Playwright o herramienta equivalente.</li>
-    <li>Validación visual completa en ambiente UAT.</li>
-    <li>Smoke test post despliegue.</li>
-    <li>Pruebas de carga o volumen antes de escalar datos reales.</li>
-  </ul>
-
-  <h2>10. Observaciones</h2>
-  <ul>
-    <li>El sistema está en condiciones de demo ejecutiva y UAT controlado.</li>
-    <li>La principal brecha actual es operativa, no funcional: falta validación con ambiente y usuarios reales.</li>
-    <li>El backend concentra las reglas críticas, por lo que no depende de controles visuales del frontend para proteger datos.</li>
-    <li>El uso de filtros en memoria sobre Firestore es aceptable para MVP, pero debe evolucionar con índices y queries server-side al crecer el volumen.</li>
-    <li>La importación CSV está disponible en backend para admin; debe confirmarse si el cliente necesita interfaz visual para esa operación.</li>
-    <li>La migración histórica debe mantenerse fuera de alcance hasta recibir fuente de datos, reglas de normalización y criterios de calidad.</li>
-    <li>Mobile, SAP, IA, Calendar y reportes avanzados deben tratarse como Fase 2.</li>
-  </ul>
-
-  <h2>11. Riesgos Residuales</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Riesgo</th>
-        <th>Impacto</th>
-        <th>Mitigación recomendada</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Firebase real no validado en UAT</td>
-        <td>Bloqueo de login o permisos en ambiente cliente.</td>
-        <td>Crear cuentas de prueba por rol y ejecutar checklist UAT.</td>
-      </tr>
-      <tr>
-        <td>Consultas Firestore en memoria</td>
-        <td>Riesgo de rendimiento al aumentar volumen.</td>
-        <td>Migrar a queries con índices por <code>vendedorUid</code>, <code>clienteId</code>, <code>estado</code> y <code>etapa</code>.</td>
-      </tr>
-      <tr>
-        <td>Sin E2E automatizado</td>
-        <td>Mayor riesgo de regresión visual o de navegación.</td>
-        <td>Implementar Playwright con login mockeado o ambiente de prueba.</td>
-      </tr>
-      <tr>
-        <td>Migración histórica indefinida</td>
-        <td>Datos incompletos al iniciar operación real.</td>
-        <td>Solicitar fuente, diccionario, reglas de limpieza y piloto de importación.</td>
-      </tr>
-      <tr>
-        <td>Reglas comerciales pendientes de confirmación</td>
-        <td>Ajustes tardíos en estados, permisos o aprobaciones.</td>
-        <td>Validar pipeline, estados, roles y aprobaciones en reunión ejecutiva.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>12. Mejoras Recomendadas</h2>
-  <ul>
-    <li>Agregar pruebas frontend con Vitest y React Testing Library.</li>
-    <li>Agregar pruebas E2E con Playwright para flujos críticos.</li>
-    <li>Migrar filtros Firestore a consultas optimizadas con índices.</li>
-    <li>Agregar unicidad de email en alta manual si el negocio lo exige.</li>
-    <li>Crear pantalla de importación CSV para admin si será usada por operación.</li>
-    <li>Agregar exportación de clientes, oportunidades y propuestas.</li>
-    <li>Mejorar dashboards con tendencias temporales y métricas de conversión.</li>
-    <li>Agregar recordatorios de seguimiento comercial.</li>
-    <li>Permitir configuración de etapas de pipeline si el cliente tiene proceso propio.</li>
-    <li>Preparar integración futura con ERP/SAP.</li>
-    <li>Planificar módulo mobile como Fase 2.</li>
-    <li>Centralizar logger frontend y reducir mensajes no necesarios en producción.</li>
-  </ul>
-
-  <h2>13. Preguntas Para El Cliente</h2>
-  <ul>
-    <li>¿Los roles <code>vendedor</code>, <code>supervisor</code> y <code>admin</code> cubren la operación real?</li>
-    <li>¿Qué estados de cliente, oportunidad y propuesta usan hoy?</li>
-    <li>¿El pipeline actual refleja sus etapas reales de venta?</li>
-    <li>¿Qué campos son obligatorios para registrar un cliente?</li>
-    <li>¿El email del cliente debe ser único?</li>
-    <li>¿Necesitan importación CSV desde interfaz o basta con operación técnica/admin?</li>
-    <li>¿Qué reportes son indispensables para gerencia?</li>
-    <li>¿Qué métricas definen éxito comercial: monto, probabilidad, cierre, actividad o conversión?</li>
-    <li>¿Quién puede aprobar propuestas y bajo qué condiciones?</li>
-    <li>¿Qué datos históricos deben migrarse y desde qué fuente?</li>
-    <li>¿Qué acciones requieren auditoría formal?</li>
-    <li>¿Qué volumen estimado de clientes, oportunidades y propuestas esperan en 6 y 12 meses?</li>
-    <li>¿Qué dominios, usuarios y roles se usarán para UAT?</li>
-    <li>¿Cuál será el criterio formal de salida productiva?</li>
-  </ul>
-
-  <h2>14. Preguntas Para Frontend</h2>
-  <ul>
-    <li>¿Se mantendrá el diseño actual o habrá lineamientos visuales del cliente?</li>
-    <li>¿Se necesita UI para administración de usuarios y roles?</li>
-    <li>¿Se necesita pantalla de importación CSV para admin?</li>
-    <li>¿El pipeline debe ser Kanban con drag and drop o basta con selector de etapa?</li>
-    <li>¿Qué acciones deben ocultarse por rol además del bloqueo backend?</li>
-    <li>¿Se requieren estados de carga/error más uniformes entre pantallas?</li>
-    <li>¿Qué vistas deben optimizarse primero para mobile?</li>
-    <li>¿Qué campos deben mostrarse en tablas y cuáles solo en detalle?</li>
-    <li>¿Se necesita exportar clientes, oportunidades o propuestas desde frontend?</li>
-    <li>¿Se implementará Vitest/RTL para pruebas unitarias de interfaz?</li>
-    <li>¿Se implementará Playwright para E2E?</li>
-    <li>¿Se requiere branding Enci más formal para demo ejecutiva?</li>
-  </ul>
-
-  <h2>15. Mensaje Ejecutivo Sugerido</h2>
-  <div class="callout success">
-    El sistema ya cuenta con un MVP web funcional para gestión comercial: autenticación segura,
-    CRM de clientes, roles, pipeline de oportunidades, propuestas, interacciones y dashboards.
-    Técnicamente, las etapas principales de desarrollo están cerradas para Development y las
-    pruebas locales actuales pasan correctamente. El foco pendiente es validar con usuarios reales
-    en UAT, confirmar reglas comerciales finales, priorizar mejoras de interfaz y preparar el
-    go-live controlado con smoke test y rollback documentados.
-  </div>
+  </main>
 </body>
 </html>
