@@ -1,6 +1,6 @@
-# Corpus de prueba RAG Encipharm
+# Corpus de prueba RAG Enci
 
-Carpeta para cargar documentos desde el panel admin del Asistente Encipharm.
+Carpeta para cargar documentos desde el panel admin de Enci Chat.
 
 Formatos aceptados por el backend:
 
@@ -10,7 +10,7 @@ Formatos aceptados por el backend:
 
 ## Contenido local del proyecto
 
-Incluye documentación técnica, API, arquitectura, QA, sprints, hardening y guías del sistema Encipharm.
+Incluye documentación técnica, API, arquitectura, QA, sprints, hardening y guías del sistema Enci.
 
 Rutas principales:
 
@@ -26,8 +26,8 @@ Rutas principales:
 - `15_epic-04-hardening.txt`
 - `16_epic-05-uat-go-live.txt`
 - `27_architecture.txt`
-- `31_resumen-ejecutivo-tecnico-encipharm.txt`
-- `32_resumen-ejecutivo-tecnico-encipharm.pdf`
+- `31_resumen-ejecutivo-tecnico-enci.txt`
+- `32_resumen-ejecutivo-tecnico-enci.pdf`
 - `33_frontend-demo-guide.pdf`
 - `34_modelo_visual_design.txt`
 - `35_modelo_visual_configuracion_usuarios.txt`
@@ -58,9 +58,9 @@ Fuentes SAG extraidas para pruebas:
 3. Cargar documentos largos:
    - `12_auditoria-seguridad-defensiva-2026-05-19.txt`
    - `14_epic-03-auditoria.txt`
-   - `31_resumen-ejecutivo-tecnico-encipharm.txt`
+   - `31_resumen-ejecutivo-tecnico-enci.txt`
 4. Cargar PDFs al final:
-   - `32_resumen-ejecutivo-tecnico-encipharm.pdf`
+   - `32_resumen-ejecutivo-tecnico-enci.pdf`
    - `33_frontend-demo-guide.pdf`
 
 ## Preguntas de prueba
@@ -69,7 +69,7 @@ Sistema interno:
 
 - Que endpoints tiene el modulo RAG?
 - Como se autentican los endpoints del backend?
-- Que roles existen en Encipharm Ventas?
+- Que roles existen en Enci Ventas?
 - Como funciona el flujo comercial de oportunidades y propuestas?
 - Que reglas de seguridad tiene el sistema?
 - Que incluye el hardening de seguridad?

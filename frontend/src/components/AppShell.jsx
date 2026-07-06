@@ -17,7 +17,7 @@ const NAV_SECTIONS = [
     title: "Gestion",
     items: [
       { label: "Equipo de Ventas", path: "/equipo", icon: "team" },
-      { label: "Asistente Encipharm", path: "/asistente", icon: "spark" },
+      { label: "Enci Chat", path: "/asistente", icon: "spark" },
       { label: "Inteligencia de Mercado", path: "/inteligencia", icon: "shield" },
       { label: "Análisis de Competencia", path: "/competencia", icon: "analysis" },
     ],

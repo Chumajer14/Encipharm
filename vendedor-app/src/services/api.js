@@ -217,3 +217,7 @@ export function sendRagMessage(token, payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function getRagConversations(token) {
+  return apiFetch("/rag/conversations", token);
+}

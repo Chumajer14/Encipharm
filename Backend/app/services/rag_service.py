@@ -1,6 +1,7 @@
 import html
 import io
 import re
+import unicodedata
 import uuid
 from collections import Counter
 from datetime import datetime, timezone
@@ -65,6 +66,49 @@ STOPWORDS = {
     "una",
     "y",
 }
+INTERNAL_DATA_TERMS = {
+    "cliente",
+    "clientes",
+    "contacto",
+    "crm",
+    "firebase",
+    "forecast",
+    "interaccion",
+    "interacciones",
+    "llamada",
+    "oportunidad",
+    "oportunidades",
+    "pipeline",
+    "propuesta",
+    "propuestas",
+    "reunion",
+    "seguimiento",
+    "usuario",
+    "usuarios",
+    "vendedor",
+    "vendedores",
+    "venta",
+    "ventas",
+}
+CONVERSATIONAL_QUESTIONS = {
+    "adios",
+    "buenas",
+    "buenas noches",
+    "buenas tardes",
+    "buenos dias",
+    "chao",
+    "como estas",
+    "como te encuentras",
+    "gracias",
+    "hasta luego",
+    "hola",
+    "hola como estas",
+    "muchas gracias",
+    "necesito ayuda",
+    "saludos",
+    "tengo una duda",
+    "tengo una pregunta",
+}
 
 
 class UserRateLimiter:
@@ -104,7 +148,12 @@ def sanitize_question(value: str) -> str:
 
 
 def _tokens(value: str) -> set[str]:
-    words = re.findall(r"[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9_@.-]{3,}", value.lower())
+    value = "".join(
+        character
+        for character in unicodedata.normalize("NFKD", value)
+        if not unicodedata.combining(character)
+    )
+    words = re.findall(r"[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9]{3,}", value.lower())
     return {word for word in words if word not in STOPWORDS}
 
 
@@ -140,7 +189,7 @@ def _count_by(items: list[dict], key: str) -> str:
 
 def _format_user(user: dict) -> str:
     return (
-        f"Usuario: {user.get('nombre')} | email: {user.get('email')} | rol: {user.get('rol')} | "
+        f"Usuario: {user.get('nombre')} | rol: {user.get('rol')} | "
         f"cargo: {user.get('cargo')} | rango: {user.get('rango')} | zona: {user.get('zona')} | "
         f"activo: {user.get('activo')} | webApp: {user.get('webApp')} | appMovil: {user.get('appMovil')}"
     )
@@ -148,36 +197,68 @@ def _format_user(user: dict) -> str:
 
 def _format_cliente(cliente: dict) -> str:
     return (
-        f"Cliente: {cliente.get('nombre')} | empresa: {cliente.get('empresa')} | email: {cliente.get('email')} | "
-        f"telefono: {cliente.get('telefono')} | rubro: {cliente.get('rubro')} | region: {cliente.get('region')} | "
-        f"estado: {cliente.get('estado')} | vendedorUid: {cliente.get('vendedorUid') or cliente.get('ownerUid')}"
+        f"Cliente: {cliente.get('nombre')} | empresa: {cliente.get('empresa')} | "
+        f"rubro: {cliente.get('rubro')} | region: {cliente.get('region')} | estado: {cliente.get('estado')}"
     )
 
 
-def _format_opportunity(opportunity: dict) -> str:
+def _format_opportunity(opportunity: dict, client_name: str) -> str:
     return (
-        f"Oportunidad: {opportunity.get('titulo')} | clienteId: {opportunity.get('clienteId')} | "
+        f"Oportunidad: {opportunity.get('titulo')} | cliente: {client_name} | "
         f"etapa: {opportunity.get('etapa')} | valorEstimado: {opportunity.get('valorEstimado')} | "
-        f"probabilidad: {opportunity.get('probabilidad')} | vendedorUid: {opportunity.get('vendedorUid')}"
+        f"probabilidad: {opportunity.get('probabilidad')}"
     )
 
 
-def _format_proposal(proposal: dict) -> str:
+def _format_proposal(proposal: dict, client_name: str, opportunity_name: str) -> str:
     return (
-        f"Propuesta: {proposal.get('titulo')} | clienteId: {proposal.get('clienteId')} | "
-        f"oportunidadId: {proposal.get('oportunidadId')} | estado: {proposal.get('estado')} | "
+        f"Propuesta: {proposal.get('titulo')} | cliente: {client_name} | "
+        f"oportunidad: {opportunity_name} | estado: {proposal.get('estado')} | "
         f"montoNeto: {proposal.get('montoNeto')} | montoTotal: {proposal.get('montoTotal')} | "
-        f"descuentoPct: {proposal.get('descuentoPct')} | vendedorUid: {proposal.get('vendedorUid')}"
+        f"descuentoPct: {proposal.get('descuentoPct')}"
     )
 
 
-def _format_interaction(interaction: dict) -> str:
+def _format_interaction(interaction: dict, client_name: str) -> str:
     return (
-        f"Interaccion: {interaction.get('tipo')} | clienteId: {interaction.get('clienteId')} | "
+        f"Interaccion: {interaction.get('tipo')} | cliente: {client_name} | "
         f"fecha: {_safe_value(interaction.get('fecha'))} | resumen: {interaction.get('resumen')} | "
-        f"resultado: {interaction.get('resultado')} | proximaAccion: {interaction.get('proximaAccion')} | "
-        f"vendedorUid: {interaction.get('vendedorUid')}"
+        f"resultado: {interaction.get('resultado')} | proximaAccion: {interaction.get('proximaAccion')}"
     )
+
+
+def is_internal_data_question(question: str) -> bool:
+    """Detecta consultas que requieren datos comerciales internos y Firestore."""
+
+    return bool(_tokens(question) & INTERNAL_DATA_TERMS)
+
+
+def is_conversational_question(question: str) -> bool:
+    """Detecta frases cotidianas breves que no requieren recuperar fuentes."""
+
+    normalized = "".join(
+        character
+        for character in unicodedata.normalize("NFKD", question.lower())
+        if not unicodedata.combining(character)
+    )
+    normalized = re.sub(r"[^a-z0-9 ]+", " ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized in CONVERSATIONAL_QUESTIONS
+
+
+def select_context_chunks(
+    question: str,
+    internal_chunks: list[dict],
+    document_chunks: list[dict],
+    limit: int,
+) -> list[dict]:
+    """Prioriza corpus o datos internos segun la intencion de la consulta."""
+
+    if is_internal_data_question(question):
+        return [*internal_chunks, *document_chunks][: limit * 2]
+    if document_chunks:
+        return document_chunks[:limit]
+    return internal_chunks[:limit]
 
 
 def build_internal_context_chunks(db, question: str, user: dict, limit: int = 16) -> list[dict]:
@@ -189,6 +270,14 @@ def build_internal_context_chunks(db, question: str, user: dict, limit: int = 16
     proposals = list_proposals(db, user=user, limit=120)
     interactions = list_interactions(db, user=user, limit=80)
     dashboard = build_dashboard(db, vendedor_uid=vendedor_uid)
+    client_names = {
+        cliente.get("id"): cliente.get("nombre") or cliente.get("empresa") or "Cliente no identificado"
+        for cliente in clientes
+    }
+    opportunity_names = {
+        opportunity.get("id"): opportunity.get("titulo") or "Oportunidad no identificada"
+        for opportunity in opportunities
+    }
 
     chunks = [
         _source(
@@ -229,21 +318,50 @@ def build_internal_context_chunks(db, question: str, user: dict, limit: int = 16
                 f"Por zona: {_count_by(users, 'zona')}.",
             )
         )
-        chunks.extend(_source("CRM usuarios", crm_user.get("uid") or "users", _format_user(crm_user)) for crm_user in users)
+        chunks.extend(
+            _source("CRM usuarios", crm_user.get("nombre") or "usuario", _format_user(crm_user))
+            for crm_user in users
+        )
     else:
-        chunks.append(_source("CRM usuarios", user.get("uid") or "me", _format_user(user)))
+        chunks.append(_source("CRM usuarios", user.get("nombre") or "usuario actual", _format_user(user)))
 
-    chunks.extend(_source("CRM clientes", cliente.get("id") or "clientes", _format_cliente(cliente)) for cliente in clientes)
     chunks.extend(
-        _source("CRM oportunidades", opportunity.get("id") or "oportunidades", _format_opportunity(opportunity))
+        _source("CRM clientes", cliente.get("nombre") or cliente.get("empresa") or "cliente", _format_cliente(cliente))
+        for cliente in clientes
+    )
+    chunks.extend(
+        _source(
+            "CRM oportunidades",
+            opportunity.get("titulo") or "oportunidad",
+            _format_opportunity(
+                opportunity,
+                client_names.get(opportunity.get("clienteId"), "Cliente no identificado"),
+            ),
+        )
         for opportunity in opportunities
     )
     chunks.extend(
-        _source("CRM propuestas", proposal.get("id") or "propuestas", _format_proposal(proposal))
+        _source(
+            "CRM propuestas",
+            proposal.get("titulo") or "propuesta",
+            _format_proposal(
+                proposal,
+                client_names.get(proposal.get("clienteId"), "Cliente no identificado"),
+                opportunity_names.get(proposal.get("oportunidadId"), "Oportunidad no identificada"),
+            ),
+        )
         for proposal in proposals
     )
     chunks.extend(
-        _source("CRM interacciones", interaction.get("id") or "interacciones", _format_interaction(interaction))
+        _source(
+            "CRM interacciones",
+            f"{interaction.get('tipo') or 'interaccion'} con "
+            f"{client_names.get(interaction.get('clienteId'), 'cliente no identificado')}",
+            _format_interaction(
+                interaction,
+                client_names.get(interaction.get("clienteId"), "Cliente no identificado"),
+            ),
+        )
         for interaction in interactions
     )
 
@@ -252,18 +370,13 @@ def build_internal_context_chunks(db, question: str, user: dict, limit: int = 16
         return chunks[:limit]
 
     scored = [(_score_chunk(question_tokens, chunk), index, chunk) for index, chunk in enumerate(chunks)]
-    relevant = [item for item in scored if item[0] > 0]
+    minimum_score = 1 if is_internal_data_question(question) else 2
+    relevant = [item for item in scored if item[0] >= minimum_score]
     if not relevant:
-        return chunks[: min(4, limit)]
+        return []
 
     relevant.sort(key=lambda item: (item[0], -item[1]), reverse=True)
-    selected = [chunk for _score, _index, chunk in relevant[:limit]]
-    summary_chunks = chunks[:4]
-    selected_keys = {(chunk["documento"], chunk["pagina"]) for chunk in selected}
-    return [
-        *[chunk for chunk in summary_chunks if (chunk["documento"], chunk["pagina"]) not in selected_keys],
-        *selected,
-    ][:limit]
+    return [chunk for _score, _index, chunk in relevant[:limit]]
 
 
 def sanitize_filename(file_name: str) -> str:
@@ -356,7 +469,7 @@ def add_chunks_to_index(chunks: list[str], metadata: list[dict], doc_id: str) ->
 
 
 def search_similar_chunks(query: str, n_results: int | None = None) -> list[dict]:
-    """Busca fragmentos similares y filtra por umbral configurable."""
+    """Combina similitud semantica y coincidencias lexicas para recuperar documentos."""
 
     settings = get_settings()
     try:
@@ -370,30 +483,68 @@ def search_similar_chunks(query: str, n_results: int | None = None) -> list[dict
         query_embedding = _load_embedding_model().encode([query]).tolist()
     except HTTPException:
         return []
+    result_limit = n_results or settings.MAX_CONTEXT_CHUNKS
+    candidate_limit = min(collection.count(), max(result_limit * 4, 20))
     results = collection.query(
         query_embeddings=query_embedding,
-        n_results=n_results or settings.MAX_CONTEXT_CHUNKS,
+        n_results=candidate_limit,
         include=["documents", "metadatas", "distances"],
     )
     documents = results.get("documents") or [[]]
     metadatas = results.get("metadatas") or [[]]
     distances = results.get("distances") or [[]]
-    chunks = []
+    query_tokens = _tokens(query)
+    candidates = []
     for index, document in enumerate(documents[0]):
         distance = distances[0][index]
         similarity = 1 - distance
         metadata = metadatas[0][index] or {}
-        if similarity >= settings.SIMILARITY_THRESHOLD:
-            chunks.append(
+        document_name = metadata.get("documento", "")
+        name_tokens = _tokens(document_name)
+        content_tokens = _tokens(document)
+        token_count = max(1, len(query_tokens))
+        name_coverage = len(query_tokens & name_tokens) / token_count
+        content_coverage = len(query_tokens & content_tokens) / token_count
+        hybrid_score = similarity + (name_coverage * 0.45) + (content_coverage * 0.15)
+        if (
+            similarity >= settings.SIMILARITY_THRESHOLD
+            or name_coverage > 0
+            or content_coverage >= 0.5
+        ):
+            candidates.append(
                 {
                     "texto": document,
-                    "documento": metadata.get("documento", ""),
+                    "documento": document_name,
                     "pagina": metadata.get("pagina", ""),
                     "fragmento": document[:500],
                     "similarity": round(similarity, 4),
+                    "hybrid_score": round(hybrid_score, 4),
                 }
             )
-    return chunks
+
+    if not candidates:
+        return []
+
+    candidates.sort(key=lambda chunk: chunk["hybrid_score"], reverse=True)
+    relevance_floor = candidates[0]["hybrid_score"] - 0.25
+    unique_chunks = []
+    seen = set()
+    for candidate in candidates:
+        if candidate["hybrid_score"] < relevance_floor:
+            continue
+        deduplication_key = (
+            candidate["documento"],
+            candidate["pagina"],
+            normalize_text(candidate["texto"]).lower(),
+        )
+        if deduplication_key in seen:
+            continue
+        seen.add(deduplication_key)
+        candidate.pop("hybrid_score")
+        unique_chunks.append(candidate)
+        if len(unique_chunks) >= result_limit:
+            break
+    return unique_chunks
 
 
 async def read_upload_bytes(file: UploadFile) -> bytes:
@@ -496,7 +647,9 @@ def save_conversation_turn(
     fuentes: list[dict],
     tokens_usados: int,
     sin_contexto: bool,
+    diagnostico: dict | None = None,
     conversacion_id: str | None = None,
+    titulo: str | None = None,
 ) -> str:
     """Persiste pregunta y respuesta en la coleccion chatConversaciones."""
 
@@ -507,13 +660,15 @@ def save_conversation_turn(
     snapshot = conversation_ref.get()
     if snapshot.exists:
         data = snapshot.to_dict()
-        if data.get("usuarioId") != user.get("uid") and user.get("rol") == "vendedor":
+        if data.get("usuarioId") != user.get("uid"):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sin permisos para esta conversacion")
         existing_messages = data.get("mensajes", [])
         created_at = data.get("createdAt", now)
+        conversation_title = data.get("titulo") or titulo
     else:
         existing_messages = []
         created_at = now
+        conversation_title = titulo
 
     messages = [
         *existing_messages,
@@ -525,6 +680,7 @@ def save_conversation_turn(
             "fuentes": fuentes,
             "tokens_usados": tokens_usados,
             "sin_contexto": sin_contexto,
+            "diagnostico": diagnostico,
         },
     ]
     conversation_ref.set(
@@ -533,6 +689,7 @@ def save_conversation_turn(
             "usuarioId": user.get("uid"),
             "usuarioEmail": user.get("email", ""),
             "rol": user.get("rol", "vendedor"),
+            "titulo": conversation_title,
             "mensajes": messages,
             "createdAt": created_at,
             "updatedAt": now,
@@ -569,12 +726,15 @@ def list_documents(db) -> list[dict]:
 
 
 def list_conversations(db, user: dict, limit: int = 50) -> list[dict]:
-    """Lista conversaciones segun permisos del rol autenticado."""
+    """Lista exclusivamente las conversaciones pertenecientes a la cuenta autenticada."""
 
-    query = db.collection("chatConversaciones").order_by("updatedAt", direction=firestore.Query.DESCENDING).limit(limit)
-    if user.get("rol") == "vendedor":
-        query = query.where("usuarioId", "==", user.get("uid"))
-    return [doc.to_dict() for doc in query.stream()]
+    query = db.collection("chatConversaciones").where("usuarioId", "==", user.get("uid"))
+    conversations = [doc.to_dict() for doc in query.stream()]
+    conversations.sort(
+        key=lambda conversation: conversation.get("updatedAt") or datetime.min.replace(tzinfo=timezone.utc),
+        reverse=True,
+    )
+    return conversations[:limit]
 
 
 def upload_and_index_document(db, file_name: str, content: bytes, content_type: str, user: dict) -> dict:
@@ -605,7 +765,34 @@ def reindex_documents(db, user: dict) -> int:
     return indexed_chunks
 
 
-def no_context_payload() -> tuple[str, list[dict], int, bool]:
-    """Entrega respuesta local cuando no hay contexto suficiente."""
+def no_context_payload(question: str = "") -> tuple[str, list[dict], int, bool]:
+    """Responde interacciones cotidianas y orienta consultas fuera del alcance del asistente."""
 
-    return NO_CONTEXT_RESPONSE, [], 0, True
+    normalized_question = "".join(
+        character
+        for character in unicodedata.normalize("NFKD", question.lower())
+        if not unicodedata.combining(character)
+    )
+    tokens = _tokens(question)
+    if "como estas" in normalized_question or "como te encuentras" in normalized_question:
+        response = (
+            "Estoy bien y listo para ayudarte. Mi funcion es responder consultas tecnicas y comerciales de Enci, "
+            "incluyendo el corpus documental y los datos internos disponibles para tu cuenta."
+        )
+    elif tokens & {"hola", "buenas", "saludos"}:
+        response = (
+            "Hola. Soy el Asistente Enci y estoy listo para ayudarte. "
+            "Puedes consultarme sobre productos, documentos, sanidad animal, clientes, oportunidades e interacciones."
+        )
+    elif tokens & {"duda", "pregunta", "ayuda", "consultar"}:
+        response = (
+            "Claro, escribe tu duda con tus propias palabras. Puedes preguntar, por ejemplo, por un producto, "
+            "una norma sanitaria, un cliente, una oportunidad o la ultima interaccion registrada."
+        )
+    elif tokens & {"gracias", "agradecido", "agradecida"}:
+        response = "De nada. Cuando quieras, puedes hacer otra consulta tecnica o comercial sobre Enci."
+    elif tokens & {"adios", "chao", "hasta", "luego"}:
+        response = "Hasta luego. Quedo disponible para tus proximas consultas tecnicas o comerciales de Enci."
+    else:
+        response = NO_CONTEXT_RESPONSE
+    return response, [], 0, True

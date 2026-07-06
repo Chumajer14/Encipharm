@@ -52,9 +52,10 @@ class Settings(BaseSettings):
     DEEPSEEK_MODEL: str = "deepseek-chat"
     MAX_TOKENS_RESPONSE: int = 1024
     MAX_CONTEXT_CHUNKS: int = 5
-    SIMILARITY_THRESHOLD: float = 0.65
+    SIMILARITY_THRESHOLD: float = 0.30
     CHROMA_PERSIST_DIR: str = "./chroma_db"
     GCS_BUCKET_DOCUMENTS: Optional[str] = None
+    LOCAL_DOCUMENT_STORAGE_DIR: str = "./document_storage"
     RAG_CHAT_RATE_LIMIT_PER_MINUTE: int = 30
     RAG_MAX_UPLOAD_BYTES: int = 20 * 1024 * 1024
 

@@ -47,7 +47,7 @@ function buildProxyError({ backendUrl, error, rawPath, traceId }) {
       : "Revisa disponibilidad de Render, DNS, TLS o variables de entorno del backend.",
     traceId,
     proxy: {
-      app: "encipharm",
+      app: "enci",
       method: "FETCH_BACKEND",
       rawPath,
       backendUrl,
