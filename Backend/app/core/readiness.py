@@ -92,12 +92,19 @@ def build_readiness_report(settings: Settings) -> ReadinessReport:
     ]
 
     if settings.APP_ENV in DEPLOYED_ENVS:
-        checks.append(
-            _check(
-                "cors_deployed_origins",
-                all("localhost" not in origin and "127.0.0.1" not in origin for origin in settings.cors_origins_list),
-                "Ambientes desplegados no deben exponer origenes localhost.",
-            )
+        checks.extend(
+            [
+                _check(
+                    "cors_deployed_origins",
+                    all("localhost" not in origin and "127.0.0.1" not in origin for origin in settings.cors_origins_list),
+                    "Ambientes desplegados no deben exponer origenes localhost.",
+                ),
+                _check(
+                    "temporary_role_switcher_disabled",
+                    not settings.ENABLE_TEMPORARY_ROLE_SWITCHER,
+                    "ENABLE_TEMPORARY_ROLE_SWITCHER debe estar deshabilitado para UAT, staging y produccion.",
+                ),
+            ]
         )
 
     status = "ready" if all(check.estado == "ok" for check in checks) else "not_ready"

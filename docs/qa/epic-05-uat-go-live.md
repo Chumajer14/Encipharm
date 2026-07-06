@@ -16,6 +16,8 @@ El endpoint `GET /readiness` entrega un reporte no sensible para revisar condici
 - `google_application_credentials`: confirma que el archivo de credenciales existe y no usa placeholder.
 - `cors_origins`: confirma que existe al menos un origen permitido.
 - `cors_deployed_origins`: en `uat`, `staging` o `production`, bloquea origenes `localhost` o `127.0.0.1`.
+- `temporary_role_switcher_disabled`: en `uat`, `staging` o `production`, confirma que el cambio temporal de rol esta apagado.
+- `rag_deepseek_api_key`, `rag_deepseek_base_url`, `rag_deepseek_model` y `rag_openai_client`: confirman configuracion minima del asistente documental en backend.
 
 Respuesta esperada antes de UAT:
 
@@ -58,18 +60,23 @@ Respuesta esperada antes de UAT:
 Ejecutar despues de cada despliegue UAT o productivo:
 
 ```bash
-curl https://api.example.com/health
-curl https://api.example.com/readiness
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com
+```
+
+Para validar endpoints autenticados, obtener un Firebase ID token de una cuenta real autorizada y ejecutar:
+
+```bash
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com --token <firebase_id_token>
 ```
 
 Validar:
 
 - `/health` retorna `status=ok`.
 - `/readiness` retorna `status=ready`.
-- `/docs` carga la consola de pruebas.
-- Login Google real obtiene token.
-- `GET /me` responde usuario autenticado.
-- `GET /clientes` responde segun rol.
+- `/docs` carga la consola de pruebas fuera de produccion y responde `404` en produccion.
+- La URL frontend responde HTTP 200.
+- Con token real, `GET /me` responde usuario autenticado.
+- Con token real, `GET /clientes` responde segun rol.
 
 ## Matriz de defectos UAT
 
@@ -105,4 +112,4 @@ Aplicar rollback cuando aparezca un S1 o S2 sin mitigacion:
 - Credenciales Firebase reales deben validarse fuera del repositorio.
 - UAT depende de usuarios reales o cuentas de prueba autorizadas.
 - La migracion historica sigue fuera de alcance hasta recibir fuente de datos aprobada.
-- E2E automatizado queda pendiente hasta definir estrategia estable de login.
+- La automatizacion completa de login con navegador real queda fuera del criterio de salida actual; el smoke test valida backend, frontend publicado y endpoints autenticados cuando existe token real.
