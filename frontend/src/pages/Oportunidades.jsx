@@ -1,13 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/authContext";
 import { isSupervisorRole } from "../auth/roles";
+import ClienteSelect from "../components/ClienteSelect";
 import LoadingState from "../components/LoadingState";
-import useCachedQuery from "../hooks/useCachedQuery";
-import { getClientes, getOportunidades, getPropuestas, getUsers, updateOportunidad } from "../services/api";
+import useCachedQuery, { invalidateCachedQuery } from "../hooks/useCachedQuery";
+import { createOportunidad, getClientes, getOportunidades, getPropuestas, getUsers, updateOportunidad } from "../services/api";
+import { getFriendlyApiError } from "../utils/apiErrors";
 import { buildOpportunityCompetitionProfile, STAGE_LABELS, weightedValue } from "../utils/commercialAnalytics";
 
 const FUNNEL_STAGES = ["nuevo", "contactado", "cotizacion", "negociacion", "ganado"];
 const FILTER_STAGES = [...FUNNEL_STAGES, "perdido"];
+const EMPTY_OPPORTUNITY_FORM = {
+  clienteId: "",
+  titulo: "",
+  etapa: "nuevo",
+  valorEstimado: "",
+  probabilidad: 0,
+  descripcion: "",
+};
 
 function money(value) {
   return `$${Number(value || 0).toLocaleString("es-CL")}`;
@@ -65,6 +75,109 @@ function CheckIcon() {
     <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16">
       <path d="m5 12 4 4L19 6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
     </svg>
+  );
+}
+
+function OpportunityFormModal({
+  clientes,
+  mode,
+  onChange,
+  onClose,
+  onSubmit,
+  saving,
+  values,
+}) {
+  const title = mode === "edit" ? "Editar oportunidad" : "Nueva oportunidad";
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "Escape" && !saving) onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose, saving]);
+
+  return (
+    <div className="opportunity-modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && !saving && onClose()}>
+      <form className="opportunity-form-modal" onSubmit={onSubmit}>
+        <header className="opportunity-form-header">
+          <div>
+            <h2>{title}</h2>
+            <p>Gestiona la informacion comercial base del pipeline.</p>
+          </div>
+          <button className="opportunity-modal-close" disabled={saving} onClick={onClose} type="button">x</button>
+        </header>
+
+        <div className="opportunity-form-grid">
+          <label>
+            Cliente
+            <ClienteSelect
+              clientes={clientes}
+              disabled={mode === "edit" || saving}
+              loading={false}
+              onChange={onChange}
+              value={values.clienteId}
+            />
+          </label>
+          <label>
+            Etapa
+            <select disabled={saving} name="etapa" onChange={onChange} value={values.etapa}>
+              {FILTER_STAGES.map((stage) => <option key={stage} value={stage}>{STAGE_LABELS[stage]}</option>)}
+            </select>
+          </label>
+          <label>
+            Titulo
+            <input
+              disabled={saving}
+              maxLength={160}
+              name="titulo"
+              onChange={onChange}
+              required
+              value={values.titulo}
+            />
+          </label>
+          <label>
+            Valor estimado
+            <input
+              disabled={saving}
+              min="0"
+              name="valorEstimado"
+              onChange={onChange}
+              required
+              type="number"
+              value={values.valorEstimado}
+            />
+          </label>
+          <label>
+            Probabilidad
+            <input
+              disabled={saving}
+              max="100"
+              min="0"
+              name="probabilidad"
+              onChange={onChange}
+              type="number"
+              value={values.probabilidad}
+            />
+          </label>
+          <label className="opportunity-form-full">
+            Descripcion
+            <textarea
+              disabled={saving}
+              maxLength={1000}
+              name="descripcion"
+              onChange={onChange}
+              value={values.descripcion}
+            />
+          </label>
+        </div>
+
+        <footer className="opportunity-form-actions">
+          <button className="btn-secondary" disabled={saving} onClick={onClose} type="button">Cancelar</button>
+          <button disabled={saving} type="submit">{saving ? "Guardando..." : "Guardar oportunidad"}</button>
+        </footer>
+      </form>
+    </div>
   );
 }
 
@@ -193,6 +306,12 @@ function Oportunidades() {
   const [savingProbabilityId, setSavingProbabilityId] = useState("");
   const [probabilityMessage, setProbabilityMessage] = useState("");
   const [probabilityError, setProbabilityError] = useState("");
+  const [formMode, setFormMode] = useState("");
+  const [editingOpportunityId, setEditingOpportunityId] = useState("");
+  const [opportunityForm, setOpportunityForm] = useState(EMPTY_OPPORTUNITY_FORM);
+  const [savingOpportunity, setSavingOpportunity] = useState(false);
+  const [opportunityMessage, setOpportunityMessage] = useState("");
+  const [opportunityError, setOpportunityError] = useState("");
   const pipelineQuery = useCachedQuery(
     `pipeline:dataset:${backendUser?.uid || "anon"}:${backendUser?.rol || "sin_acceso"}`,
     async () => {
@@ -253,11 +372,87 @@ function Oportunidades() {
   const totalPipeline = filteredOportunidades.reduce((sum, item) => sum + Number(item.valorEstimado || 0), 0);
   const totalPonderado = filteredOportunidades.reduce((sum, item) => sum + weightedValue(item), 0);
   const selectedOpportunity = oportunidades.find((item) => item.id === selectedOpportunityId);
+  const isOpportunityFormOpen = Boolean(formMode);
 
   const clearFilters = () => {
     setSearch("");
     setSellerFilter("");
     setStageFilter("");
+  };
+
+  const openCreateForm = () => {
+    setOpportunityError("");
+    setOpportunityMessage("");
+    setEditingOpportunityId("");
+    setOpportunityForm(EMPTY_OPPORTUNITY_FORM);
+    setFormMode("create");
+  };
+
+  const openEditForm = (item) => {
+    setOpportunityError("");
+    setOpportunityMessage("");
+    setEditingOpportunityId(item.id);
+    setOpportunityForm({
+      clienteId: item.clienteId || "",
+      titulo: item.titulo || "",
+      etapa: item.etapa || "nuevo",
+      valorEstimado: Number(item.valorEstimado || 0),
+      probabilidad: Number(item.probabilidad || 0),
+      descripcion: item.descripcion || "",
+    });
+    setFormMode("edit");
+  };
+
+  const closeOpportunityForm = () => {
+    setFormMode("");
+    setEditingOpportunityId("");
+    setOpportunityForm(EMPTY_OPPORTUNITY_FORM);
+  };
+
+  const handleOpportunityFormChange = (event) => {
+    const { name, value } = event.target;
+    setOpportunityForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const saveOpportunity = async (event) => {
+    event.preventDefault();
+    if (!idToken || savingOpportunity) return;
+
+    const payload = {
+      titulo: opportunityForm.titulo.trim(),
+      etapa: opportunityForm.etapa,
+      valorEstimado: Number(opportunityForm.valorEstimado || 0),
+      probabilidad: Math.max(0, Math.min(Number(opportunityForm.probabilidad || 0), 100)),
+      descripcion: opportunityForm.descripcion.trim() || null,
+    };
+
+    try {
+      setSavingOpportunity(true);
+      setOpportunityError("");
+      setOpportunityMessage("");
+      if (formMode === "edit") {
+        const updated = await updateOportunidad(idToken, editingOpportunityId, payload);
+        setOportunidades((currentItems) => currentItems.map((item) => (
+          item.id === updated.id ? { ...item, ...updated } : item
+        )));
+        setOpportunityMessage(`Oportunidad actualizada: ${updated.titulo}.`);
+      } else {
+        const created = await createOportunidad(idToken, {
+          ...payload,
+          clienteId: opportunityForm.clienteId,
+        });
+        setOportunidades((currentItems) => [created, ...currentItems]);
+        setOpportunityMessage(`Oportunidad creada: ${created.titulo}.`);
+      }
+      invalidateCachedQuery("pipeline:");
+      invalidateCachedQuery("dashboard:");
+      invalidateCachedQuery("proyecciones:");
+      closeOpportunityForm();
+    } catch (saveError) {
+      setOpportunityError(getFriendlyApiError(saveError));
+    } finally {
+      setSavingOpportunity(false);
+    }
   };
 
   const openProbabilityEditor = (item) => {
@@ -303,11 +498,14 @@ function Oportunidades() {
           <h2>Pipeline & Funnels</h2>
           <p className="sub">Gestion detallada de oportunidades y proyeccion ponderada</p>
         </div>
+        <button className="btn-primary" type="button" onClick={openCreateForm}>Nueva oportunidad</button>
       </section>
 
       {error && <section className="notice notice-error"><strong>Error</strong><span>{error}</span></section>}
       {probabilityMessage && <section className="notice notice-success"><strong>Confirmacion</strong><span>{probabilityMessage}</span></section>}
       {probabilityError && <section className="notice notice-error"><strong>Error</strong><span>{probabilityError}</span></section>}
+      {opportunityMessage && <section className="notice notice-success"><strong>Oportunidad</strong><span>{opportunityMessage}</span></section>}
+      {opportunityError && <section className="notice notice-error"><strong>Oportunidad</strong><span>{opportunityError}</span></section>}
 
       <section className="filters-card pipeline-filter-bar">
         <label>Buscar cliente
@@ -368,6 +566,7 @@ function Oportunidades() {
                 <th className="text-right">Valor Propuesta</th>
                 <th>Probabilidad</th>
                 <th className="text-right">Valor Pond.</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -430,6 +629,9 @@ function Oportunidades() {
                       </div>
                     </td>
                     <td className="td-right">{money(weightedValue(item))}</td>
+                    <td>
+                      <button className="pipeline-clear-btn" type="button" onClick={() => openEditForm(item)}>Editar</button>
+                    </td>
                   </tr>
                 );
               })}
@@ -452,6 +654,17 @@ function Oportunidades() {
           oportunidad={selectedOpportunity}
           propuestas={propuestas}
           sellerName={sellerName(selectedOpportunity.vendedorUid)}
+        />
+      )}
+      {isOpportunityFormOpen && (
+        <OpportunityFormModal
+          clientes={clientes}
+          mode={formMode}
+          onChange={handleOpportunityFormChange}
+          onClose={closeOpportunityForm}
+          onSubmit={saveOpportunity}
+          saving={savingOpportunity}
+          values={opportunityForm}
         />
       )}
     </main>
