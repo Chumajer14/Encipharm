@@ -510,7 +510,7 @@ def build_story():
         17: [
             "Stack web esperado Vue/Pinia.",
             "App movil Flutter.",
-            "RAG operativo.",
+            "RAG parcialmente entregado y sujeto a UAT.",
             "ERP/SAP.",
             "Calendar/Meet.",
             "CRM 360 completo.",

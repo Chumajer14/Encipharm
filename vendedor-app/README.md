@@ -44,7 +44,7 @@ Enci Chat comparte con el CRM web:
 - Respuestas conversacionales para saludos y preguntas fuera de alcance.
 - Historial privado por cuenta y titulos tematicos generados por DeepSeek.
 - Envio con `Enter` y salto de linea con `Shift+Enter`.
-- Escritura progresiva de respuestas y diagnostico temporal de origen.
+- Escritura progresiva de respuestas. La trazabilidad tecnica del origen queda en el contrato backend para UAT, no como promesa de IA completa.
 
 El backend resuelve contexto CRM, documentos indexados y proveedor LLM. No se deben agregar llaves de proveedores en esta app ni en variables `VITE_*`.
 

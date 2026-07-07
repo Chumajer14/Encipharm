@@ -1,157 +1,140 @@
-# Enci Ventas
+# Enci Ventas / MiniCRM Comercial
 
-Sistema web de gestion comercial y MiniCRM para Enci.
+Sistema web de gestion comercial para Enci, desarrollado como MVP avanzado por el Grupo PLM de la UTEM.
 
-## Estado de cierre
+## Descripcion
 
-El proyecto queda en **cierre del MVP web** y preparado para UAT/go-live controlado. El alcance cerrado considera frontend web, backend API, autenticacion, Firestore, flujos comerciales, dashboards, readiness, QA y documentacion operativa.
+Enci Ventas centraliza la gestion de clientes, usuarios, roles, interacciones, oportunidades, propuestas, dashboards comerciales, importacion CSV y asistencia documental RAG en una arquitectura web con backend FastAPI, frontend React/Vite, Firebase Auth, Firebase Admin y Cloud Firestore.
 
-Documentacion principal de cierre:
+El repositorio queda preparado para entrega tecnica, UAT y go-live condicionado por credenciales, dominios y validacion final del cliente.
 
-- `docs/cierre-proyecto.md`
-- `docs/evm/cierre-proyecto.md`
-- `docs/qa/epic-05-uat-go-live.md`
-- `docs/architecture.md`
+## Alcance entregado
 
-## Objetivo
-
-Entregar una plataforma interna para que el equipo comercial pueda gestionar clientes, interacciones, oportunidades, propuestas, usuarios, roles, forecast y dashboards desde una solucion web.
-
-## Alcance cerrado del MVP web
-
-- Autenticacion web con Firebase Auth y Google SSO.
-- Validacion de ID Token/JWT en backend con Firebase Admin.
+- MVP web comercial con login Google mediante Firebase Auth.
+- API FastAPI con validacion de Bearer token usando Firebase Admin.
 - Sincronizacion de usuarios autenticados en Firestore.
-- Control de roles `vendedor`, `supervisor` y `admin`.
-- Bloqueo de usuarios con `activo=false`.
-- CRM de clientes conectado a Firestore.
-- Creacion, listado, busqueda, filtros, paginacion, detalle, edicion y eliminacion logica de clientes.
-- Unicidad de email para clientes activos en alta y edicion manual.
-- Importacion CSV admin con validacion defensiva, duplicados y auditoria.
-- Interacciones comerciales.
-- Pipeline de oportunidades con creacion, edicion, filtros y detalle.
-- Propuestas vinculadas a oportunidad con estados y calculo server-side.
-- Dashboard vendedor y supervisor/admin.
-- Proyecciones, forecast y exportacion CSV.
-- Equipo de ventas, configuracion de usuarios, tema e idioma.
-- Asistente documental RAG entregado en estado operativo documentado.
-- Readiness, smoke test, hardening y documentacion de cierre.
-- Frontend con code splitting por ruta y build sin warning de bundle grande.
-- Dependencias frontend sin vulnerabilidades reportadas por `npm audit --audit-level=low`.
+- Roles `vendedor`, `supervisor`, `admin` y estado `sin_acceso`.
+- Bloqueo de usuarios inactivos y control de acceso por `webApp`/`appMovil`.
+- CRM de clientes conectado a backend y Firestore.
+- Creacion, listado, busqueda, filtros, paginacion, detalle, edicion y baja logica de clientes.
+- Importacion CSV administrada con validaciones defensivas.
+- Interacciones, oportunidades, propuestas y detalle comercial.
+- Dashboard vendedor y dashboard supervisor/admin.
+- Forecast, proyecciones y exportacion CSV.
+- Administracion de usuarios, roles, estado, tema e idioma.
+- Asistente Enci RAG parcialmente entregado, con endpoints backend, historial, documentos e indexacion.
+- App Vendedor/PWA React/Vite dentro del repositorio.
+- Readiness, hardening, QA tecnica y documentacion de cierre.
 
-## No considerado en el cierre web
-
-No forman parte del cierre del CRM web: ERP SAP, calendario operativo, notificaciones push, OCR, firma digital, geolocalizacion avanzada, BI extendido, migracion historica sin fuente aprobada ni integraciones externas no documentadas.
-
-## Stack tecnologico
-
-- **Frontend web:** React + Vite.
-- **Backend API:** FastAPI.
-- **Base de datos:** Cloud Firestore.
-- **Autenticacion:** Firebase Auth con Google SSO.
-- **Autorizacion:** Bearer token validado con Firebase Admin.
-- **Deploy backend previsto:** Cloud Run o runtime compatible.
-- **Deploy frontend:** Vercel.
-
-## Estructura del repositorio
+## Componentes del repositorio
 
 ```text
 /
-├── Backend/
-├── frontend/
-├── docs/
-├── tools/
-├── firebase.json
-├── firestore.rules
-└── README.md
+|-- Backend/              # API FastAPI, routers, modelos, servicios, tests y config
+|-- frontend/             # CRM web React/Vite
+|-- vendedor-app/         # App Vendedor/PWA React/Vite
+|-- docs/                 # Documentacion tecnica, QA, API, deploy, sprints y entrega
+|-- tools/                # Scripts de smoke test y generacion documental
+|-- firebase.json         # Configuracion Firebase del repo
+|-- firestore.rules       # Reglas Firestore deny-all para acceso directo
+|-- vercel.json           # Deploy frontend web
+|-- README.md
 ```
 
-## Flujo de autenticacion
+## Estado de IA RAG
 
-1. El usuario entra al frontend y usa login Google.
-2. Firebase Auth emite un ID Token.
-3. El frontend envia el token al backend:
+El RAG esta parcialmente entregado y preparado para validacion controlada. No debe presentarse como plataforma IA completa, producto con SLA definitivo, fine-tuning o evaluacion masiva.
 
-```http
-Authorization: Bearer <firebase_id_token>
+Incluye:
+
+- `POST /rag/chat`
+- `GET /rag/conversations`
+- `POST /rag/documents/upload`
+- `POST /rag/documents/reindex`
+- `GET /rag/documents`
+- DeepSeek consumido solo desde backend.
+- Chroma como indice vectorial local configurable.
+- GCS o almacenamiento local para documentos segun variables.
+- Historial de conversaciones por usuario.
+- Upload, reindex y listado documental restringidos a `admin`.
+
+Condiciones:
+
+- Requiere `DEEPSEEK_API_KEY` real para ambiente desplegado.
+- Requiere corpus documental definitivo validado por el cliente.
+- Chroma local no sustituye por si solo una estrategia productiva de persistencia controlada.
+
+## Estado de App Vendedor / Flutter
+
+`vendedor-app/` corresponde a una PWA movil React/Vite dentro de este repositorio. Usa Firebase Auth, consume la API con token Bearer, contiene navegacion inferior, inicio, cotizaciones, pipeline, proyeccion, Enci Chat y configuracion.
+
+La app Flutter nativa se considera entregable externo parcial, desarrollado fuera de este repositorio. Su ausencia en GitHub no es incumplimiento del alcance de este repo.
+
+## Arquitectura
+
+- Frontend web React/Vite en Vercel.
+- App Vendedor/PWA React/Vite en Vercel o runtime estatico compatible.
+- Backend FastAPI en Cloud Run, Render o runtime ASGI compatible.
+- Firebase Auth para identidad.
+- Firebase Admin en backend para validar tokens.
+- Cloud Firestore como base de datos.
+- Reglas Firestore deny-all para impedir acceso directo abierto desde cliente.
+- RAG backend con DeepSeek, Chroma y almacenamiento documental configurable.
+
+El frontend y la PWA deben consumir datos de negocio a traves del backend. La configuracion Firebase expuesta en frontend es publica por naturaleza; las credenciales privadas solo corresponden al backend y no deben versionarse.
+
+## Instalacion local
+
+Inicio rapido en Windows:
+
+```powershell
+.\iniciar-enci-local.bat
 ```
 
-4. FastAPI valida el token con Firebase Admin.
-5. El backend consulta o crea el usuario en Firestore.
-6. Las reglas de rol, propiedad y estado activo se aplican en backend.
+Backend:
 
-## Endpoints principales
-
-### Salud y readiness
-
-```http
-GET /health
-GET /readiness
+```bash
+cd Backend
+uv sync
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-`/readiness` valida configuracion minima de UAT/go-live sin exponer secretos. En ambientes desplegados falla si el cambio temporal de rol queda habilitado o si CORS contiene origenes locales.
+Frontend web:
 
-### Usuario y autenticacion
-
-```http
-GET /me
-POST /auth/login
-POST /auth/register
+```bash
+cd frontend
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-### Clientes
+App Vendedor/PWA:
 
-```http
-GET /clientes
-POST /clientes
-GET /clientes/{id}
-PATCH /clientes/{id}
-DELETE /clientes/{id}
-POST /clientes/import-csv
-```
-
-### Flujo comercial
-
-```http
-GET /interacciones
-POST /interacciones
-GET /oportunidades
-POST /oportunidades
-PATCH /oportunidades/{id}
-GET /oportunidades/{id}/detalle
-GET /propuestas
-POST /propuestas
-PATCH /propuestas/{id}
-```
-
-### Usuarios y RAG
-
-```http
-GET /users
-GET /users/{uid}
-PATCH /users/{uid}
-POST /rag/chat
-GET /rag/conversations
-POST /rag/documents/upload
-POST /rag/documents/reindex
-GET /rag/documents
+```bash
+cd vendedor-app
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5174
 ```
 
 ## Variables de entorno
 
-### Backend
+Backend:
 
 ```env
 APP_NAME=Enci Ventas API
 APP_ENV=development
 APP_VERSION=1.0.0
 ENABLE_TEMPORARY_ROLE_SWITCHER=false
-CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"]
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost:5174","http://127.0.0.1:5173","http://127.0.0.1:5174"]
 FIREBASE_PROJECT_ID=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
+FIREBASE_SERVICE_ACCOUNT_JSON=
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+CHROMA_PERSIST_DIR=./chroma_db
+GCS_BUCKET_DOCUMENTS=
+LOCAL_DOCUMENT_STORAGE_DIR=./document_storage
 ```
 
-### Frontend
+Frontend web:
 
 ```env
 VITE_APP_NAME=Enci Ventas
@@ -165,82 +148,103 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 ```
 
-## Instalacion local
+App Vendedor/PWA:
 
-### Inicio rapido en Windows
-
-```powershell
-.\iniciar-enci-local.bat
+```env
+VITE_API_BASE_URL=/api
+VITE_FIREBASE_API_KEY=your-firebase-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
 ```
 
-Servicios esperados:
+Los placeholders anteriores son ejemplos documentales. No se deben versionar `.env`, service accounts, llaves privadas Firebase, tokens ni API keys reales.
 
-- Backend FastAPI: `http://127.0.0.1:8000`.
-- Frontend web: `http://127.0.0.1:5173`.
+## QA y validacion
 
-### Backend
+Comandos esperados:
 
 ```bash
 cd Backend
 uv sync
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+uv run pytest
 ```
-
-### Frontend
 
 ```bash
 cd frontend
-npm install
-npm run dev -- --host 127.0.0.1 --port 5173
-```
-
-## QA tecnica
-
-```bash
-cd frontend
-npm audit --audit-level=low
+npm ci
 npm run lint
 npm run build
 ```
 
 ```bash
-python -m pytest Backend\tests\test_clientes_permissions.py Backend\tests\test_readiness.py Backend\tests\test_security_hardening.py
-python -m py_compile tools\smoke_crm_web.py
+cd vendedor-app
+npm ci
+npm run lint
+npm run build
 ```
 
-## Smoke test de cierre
+Smoke test de ambiente publicado:
 
 ```bash
 python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com
 ```
 
-Con token Firebase real:
+Con token real:
 
 ```bash
 python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com --token <firebase_id_token>
 ```
 
-## Estado por epic
+## Despliegue
 
-- EPIC 1: cerrado con base tecnica, Firebase Auth/JWT y estructura backend.
-- EPIC 2: cerrado con login, CRM, roles, permisos, CSV y dashboards base.
-- EPIC 3: cerrado con interacciones, oportunidades, propuestas y detalle comercial.
-- EPIC 4: cerrado con hardening, 403/404, navegacion por rol, QA y dashboards estabilizados.
-- EPIC 5: cerrado para Development con readiness, smoke test, UAT docs, paginacion de clientes, creacion/edicion de oportunidades, cierre de vulnerabilidades y code splitting frontend.
+- Frontend web: Vercel, con `frontend/` como proyecto o build configurado desde la raiz.
+- App Vendedor/PWA: Vercel separado con root `vendedor-app/`.
+- Backend: Cloud Run, Render u otro runtime compatible con FastAPI/ASGI.
+- Firebase Auth: validar dominios autorizados para web y PWA.
+- CORS: configurar solo origenes reales del ambiente, sin `*` en produccion.
+- Swagger/OpenAPI: `/openapi.json` queda deshabilitado en `APP_ENV=production`.
+- `/docs`: consola de pruebas propia del backend; no debe exponerse como superficie productiva publica sin control de ambiente.
 
-## Definition of Done
+## Documentacion de entrega
 
-Un cambio se considera completo si:
+La carpeta `docs/final-delivery/` consolida la evidencia de auditoria final del repositorio:
 
-- El codigo esta versionado en la rama correspondiente.
-- Existe PR revisable.
-- Tests, lint, build y audit aplicables pasan.
-- La documentacion queda actualizada.
-- El cambio respeta el alcance del cierre web.
+- Inventario final.
+- Residuales y limpieza.
+- Matriz docs vs repo.
+- Cumplimiento de entrega.
+- Endpoints verificados.
+- Validacion RAG.
+- Auditoria de seguridad.
+- Arquitectura verificada.
+- Checklist UAT/go-live.
+- Resultados de validacion.
+- Riesgos residuales.
+- Resumen ejecutivo.
 
-## Riesgos y condiciones externas
+## Exclusiones
 
-- UAT depende de usuarios reales, dominios, credenciales y ambiente final del cliente.
-- Las credenciales Firebase Admin no deben exponerse ni versionarse.
-- Firestore debe mantener reglas deny-all para acceso directo desde cliente.
-- Las reglas comerciales finales de estados, etapas y aprobaciones deben confirmarse con el cliente.
+Quedan fuera del alcance cerrado de este repositorio salvo evidencia futura:
+
+- ERP SAP.
+- Google Calendar operativo.
+- WhatsApp productivo.
+- Mapas/geolocalizacion avanzada.
+- OCR y firma digital.
+- BI extendido.
+- Offline total.
+- Publicacion Play Store/App Store.
+- Fine-tuning, evaluacion masiva o SLA productivo del proveedor IA.
+- App Flutter nativa dentro del repositorio.
+
+## Residual autorizado temporalmente
+
+El CRM web contiene una barra superior temporal de pruebas para cambio de rol (`Vendedor`/`Administrador`). Por instruccion del equipo, esta barra debe mantenerse intacta durante esta auditoria y retirarse manualmente solo antes de la entrega productiva final.
+
+## Equipo PLM UTEM
+
+- Lider: Joshua Flores.
+- Integrantes: Falon Berrios, Carolaine Palacios y Eliseo Poblete.

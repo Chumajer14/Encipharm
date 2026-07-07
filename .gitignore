@@ -5,8 +5,16 @@
 Thumbs.db
 *.log
 *.tmp
+*.bak
+*.backup
+*.old
+*.orig
+*final_final*
+*copia*
+*corregido*
 *.swp
 *.swo
+__pycache__/
 .idea/
 .vscode/
 .vscode-test/
@@ -93,6 +101,23 @@ frontend/.svelte-kit/
 frontend/.nuxt/
 frontend/.next/
 frontend/out/
+
+# =========================
+# Vendedor app / PWA (React / Vite)
+# =========================
+vendedor-app/node_modules/
+vendedor-app/dist/
+vendedor-app/.vite/
+vendedor-app/.cache/
+vendedor-app/coverage/
+vendedor-app/.eslintcache
+vendedor-app/*.tsbuildinfo
+vendedor-app/npm-debug.log*
+vendedor-app/yarn-debug.log*
+vendedor-app/yarn-error.log*
+vendedor-app/pnpm-debug.log*
+vendedor-app/.npm/
+vendedor-app/.parcel-cache/
 
 # =========================
 # Mobile (Flutter / Dart)

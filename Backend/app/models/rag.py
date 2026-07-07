@@ -34,7 +34,7 @@ class RagSource(BaseModel):
 
 
 class RagResponseDiagnostics(BaseModel):
-    """Metadatos temporales para validar el origen de respuestas durante la entrega."""
+    """Metadatos de trazabilidad para validar el origen de respuestas durante UAT."""
 
     origen: Literal["deepseek", "local", "other"]
     proveedor: str

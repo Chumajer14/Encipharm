@@ -18,7 +18,7 @@ Authorization: Bearer <firebase_id_token>
 | `POST /rag/documents/reindex` | `admin` |
 | `GET /rag/documents` | `admin` |
 
-Los vendedores solo recuperan sus propias conversaciones. Supervisores y administradores pueden consultar el consolidado.
+Cada usuario recupera sus propias conversaciones. Supervisores y administradores mantienen acceso a chat y gestion documental segun rol, pero el historial de `/rag/conversations` queda filtrado por `usuarioId`.
 
 ## POST `/rag/chat`
 
@@ -45,7 +45,15 @@ Respuesta:
   ],
   "conversacion_id": "uuid",
   "tokens_usados": 512,
-  "timestamp": "2026-06-17T23:00:00Z"
+  "timestamp": "2026-06-17T23:00:00Z",
+  "diagnostico": {
+    "origen": "deepseek",
+    "proveedor": "DeepSeek",
+    "modelo": "deepseek-chat",
+    "fragmentos_documentales": 1,
+    "fragmentos_internos": 0
+  },
+  "titulo_conversacion": "Consulta producto X"
 }
 ```
 
@@ -64,6 +72,7 @@ Controles:
 - Rate limit por `uid`: 30 consultas por minuto por defecto.
 - Tamaño máximo de `pregunta`: 1000 caracteres.
 - No se expone el proveedor ni detalles técnicos en errores 503.
+- `diagnostico` se entrega como trazabilidad tecnica de UAT y no contiene secretos.
 
 ## POST `/rag/documents/upload`
 

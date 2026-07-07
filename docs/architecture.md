@@ -67,7 +67,7 @@ Reglas de cierre:
 | Dashboard vendedor/supervisor | Cerrado para Development |
 | Proyecciones y forecast exportable | Cerrado para Development |
 | Configuracion de usuarios, tema e idioma | Cerrado para Development |
-| Asistente documental RAG | Entregado en estado operativo documentado |
+| Asistente documental RAG | Parcialmente entregado y preparado para UAT |
 | Readiness, hardening y smoke test | Cerrado para Development |
 
 ## Controles de salida
@@ -99,4 +99,4 @@ python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com -
 
 ## No considerado en el cierre web
 
-No forman parte del cierre del CRM web las integraciones externas no documentadas, migracion historica sin fuente aprobada, calendario operativo, notificaciones push, OCR, firma digital, SAP/ERP, geolocalizacion avanzada ni reportes BI extendidos.
+No forman parte del cierre del CRM web las integraciones externas no documentadas, migracion historica sin fuente aprobada, calendario operativo, notificaciones push, OCR, firma digital, SAP/ERP, geolocalizacion avanzada, reportes BI extendidos ni la app Flutter nativa dentro de este repositorio. La carpeta `vendedor-app/` corresponde a una PWA React/Vite y no reemplaza por si sola el entregable Flutter externo parcial.

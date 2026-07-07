@@ -133,12 +133,6 @@ function AsistenteEnci() {
           <div>
             <p className="eyebrow">Enci Chat</p>
             <h1>Consulta tecnica y comercial</h1>
-            {/* TEMPORAL: retirar la leyenda de diagnostico antes de la entrega final. */}
-            <div className="rag-diagnostic-legend" aria-label="Leyenda temporal de origen de respuestas">
-              <span><i className="rag-origin-dot deepseek" />DeepSeek</span>
-              <span><i className="rag-origin-dot local" />Motor local</span>
-              <span><i className="rag-origin-dot other" />Otro origen</span>
-            </div>
           </div>
           <button className="btn-secondary compact" onClick={resetConversation} type="button">
             Nueva conversacion

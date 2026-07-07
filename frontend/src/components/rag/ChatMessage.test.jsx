@@ -4,12 +4,12 @@ import ChatMessage, { NO_CONTEXT_TEXT } from "./ChatMessage";
 
 const timestamp = new Date("2026-06-22T18:12:00Z");
 
-describe("ChatMessage diagnostics", () => {
+describe("ChatMessage", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it("shows red for a deterministic local response", () => {
+  it("does not expose diagnostics for a deterministic local response", () => {
     render(<ChatMessage message={{
       tipo: "respuesta",
       texto: NO_CONTEXT_TEXT,
@@ -19,10 +19,11 @@ describe("ChatMessage diagnostics", () => {
       tokensUsados: 0,
     }} />);
 
-    expect(screen.getByLabelText("Respuesta generada por el motor local de Enci")).toHaveClass("local");
+    expect(screen.getByText("Sin contexto")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Respuesta generada por el motor local de Enci")).not.toBeInTheDocument();
   });
 
-  it("shows blue when the response origin is absent", () => {
+  it("renders historical responses without origin indicators", () => {
     render(<ChatMessage message={{
       tipo: "respuesta",
       texto: "Respuesta historica",
@@ -30,7 +31,8 @@ describe("ChatMessage diagnostics", () => {
       timestamp,
     }} />);
 
-    expect(screen.getByLabelText("Respuesta generada por otro origen")).toHaveClass("other");
+    expect(screen.getByText("Respuesta historica")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Respuesta generada por otro origen")).not.toBeInTheDocument();
   });
 
   it("reveals a new response one character at a time", () => {

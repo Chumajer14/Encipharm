@@ -136,7 +136,6 @@ async def chat_with_rag(
         conversacion_id=conversation_id,
         tokens_usados=tokens_usados,
         timestamp=datetime.now(timezone.utc),
-        # TEMPORAL: retirar diagnostico y su indicador visual antes de la entrega final.
         diagnostico=diagnostico,
         titulo_conversacion=conversation_title,
     )

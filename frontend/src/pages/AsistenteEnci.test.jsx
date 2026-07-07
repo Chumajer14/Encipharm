@@ -72,11 +72,7 @@ describe("AsistenteEnci", () => {
     }));
     expect(await screen.findByText("Segun el manual interno, usar la pauta indicada.")).toBeInTheDocument();
     expect(screen.getByText("Fuentes (1)")).toBeInTheDocument();
-    expect(screen.getByLabelText("Respuesta generada por DeepSeek")).toHaveClass("deepseek");
-    expect(screen.getByLabelText("Respuesta generada por DeepSeek")).toHaveAttribute(
-      "title",
-      expect.stringContaining("Modelo: deepseek-chat"),
-    );
+    expect(screen.queryByLabelText("Respuesta generada por DeepSeek")).not.toBeInTheDocument();
   });
 
   it("uses suggestions to populate the question field", () => {
