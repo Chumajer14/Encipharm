@@ -2,62 +2,101 @@
 
 ## Vision general
 
-Sistema de gestion de ventas y MiniCRM para Enci, construido como monorepo con backend API, frontend web y carpeta mobile reservada para Fase 2.
+Enci Ventas es un MiniCRM comercial web construido como monorepo. El cierre del proyecto considera la aplicacion web React/Vite, la API FastAPI, Firebase Auth y Firestore como sistema operativo principal.
+
+El estado de cierre es **MVP web avanzado cerrado para Development**, con salida condicionada a UAT, ambiente final y aprobacion del cliente.
 
 ## Stack tecnologico
 
-| Capa | Tecnologia | Justificacion |
-|------|------------|---------------|
-| Backend | FastAPI + Python 3.12+ | Alto rendimiento, tipado y Swagger automatico |
-| Gestor de dependencias | uv | Instalacion reproducible y rapida |
-| Autenticacion | Firebase Auth | SSO con Google y validacion de JWT |
-| Base de datos | Firestore | NoSQL administrado en el ecosistema Firebase/GCP |
-| Frontend | React + Vite | MVP web rapido, liviano y validable |
-| Mobile | Flutter (Fase 2) | iOS/Android desde un solo codebase cuando el MVP web este estable |
-| Deploy previsto | GCP Cloud Run | Mismo ecosistema que Firebase/Firestore |
+| Capa | Tecnologia | Uso |
+|------|------------|-----|
+| Backend | FastAPI + Python 3.12+ | API REST, validaciones, permisos y Swagger controlado |
+| Gestor de dependencias | uv | Instalacion reproducible y ejecucion de pruebas |
+| Autenticacion | Firebase Auth | Login Google SSO y emision de ID Token |
+| Autorizacion | Firebase Admin SDK | Validacion de token, rol, estado activo y propiedad |
+| Base de datos | Cloud Firestore | Persistencia de usuarios, clientes y flujo comercial |
+| Frontend web | React + Vite | CRM, dashboards, pipeline, propuestas, usuarios y asistente |
+| Deploy backend | Cloud Run o runtime compatible | API publica HTTPS para ambientes UAT/produccion |
+| Deploy frontend | Vercel | Publicacion independiente del CRM web |
 
 ## Estructura del monorepo
 
 ```text
-Enci/
+Encipharm/
 ├── Backend/        # FastAPI
 │   ├── app/
 │   │   ├── api/       # routers por modulo
-│   │   ├── core/      # config y auth JWT
+│   │   ├── core/      # config, auth, readiness, headers y rate limit
 │   │   ├── models/    # schemas Pydantic
-│   │   └── services/  # Firebase y Firestore
+│   │   └── services/  # Firebase, Firestore y reglas de negocio
 │   └── pyproject.toml
-├── frontend/       # React + Vite
-├── mobile/         # Fase 2
-└── docs/
+├── frontend/       # CRM web React + Vite
+├── docs/           # documentacion tecnica, QA, EVM y cierre
+├── tools/          # utilidades operativas de smoke/cierre
+├── firebase.json
+└── firestore.rules
 ```
 
 ## Flujo de autenticacion
 
 ```text
-Usuario -> Google SSO -> Firebase Auth -> JWT
-JWT -> FastAPI valida token -> Firestore guarda/consulta perfil
+Usuario web -> Google SSO -> Firebase Auth -> ID Token
+ID Token -> FastAPI valida con Firebase Admin -> Firestore entrega rol/estado
+FastAPI -> aplica permisos por rol y propiedad -> responde al frontend
 ```
 
-## Roles del sistema
+Reglas de cierre:
 
-| Rol | Permisos esperados |
-|-----|--------------------|
-| `admin` | Acceso total y gestion de usuarios |
-| `supervisor` | Dashboard, reportes y equipo |
-| `vendedor` | Clientes propios, visitas y pipeline |
+- El frontend nunca escribe directo en Firestore.
+- Todo endpoint protegido exige `Authorization: Bearer <firebase_id_token>`.
+- Usuario con `activo=false` queda bloqueado.
+- El rol `vendedor` solo opera sus propios clientes y registros comerciales.
+- `supervisor` consulta datos consolidados y puede aprobar propuestas segun reglas backend.
+- `admin` administra usuarios, roles, estado e importacion CSV.
 
-## Alcance MVP
+## Modulos cerrados
 
-- EPIC 1: autenticacion y modelo de usuarios.
-- EPIC 2: CRM, login web, usuarios/roles, dashboard base e importacion CSV.
-- EPIC 3: interacciones, pipeline y propuestas basicas.
-- EPIC 4: dashboards, hardening, QA y navegacion por rol cerrados para Development; migracion diferida.
-- EPIC 5: UAT, documentacion y go-live.
+| Modulo | Estado |
+|--------|--------|
+| Autenticacion Google SSO | Cerrado para Development |
+| Usuarios, roles y estado activo | Cerrado para Development |
+| CRM clientes | Cerrado para Development |
+| Interacciones comerciales | Cerrado para Development |
+| Oportunidades y pipeline | Cerrado para Development |
+| Propuestas y calculo server-side | Cerrado para Development |
+| Dashboard vendedor/supervisor | Cerrado para Development |
+| Proyecciones y forecast exportable | Cerrado para Development |
+| Configuracion de usuarios, tema e idioma | Cerrado para Development |
+| Asistente documental RAG | Entregado en estado operativo documentado |
+| Readiness, hardening y smoke test | Cerrado para Development |
 
-## Estado actual
+## Controles de salida
 
-- Backend FastAPI inicializado con Firebase Auth/JWT.
-- Registro de perfil de usuario autenticado en Firestore.
-- Frontend React con CRM mock, busqueda y formulario de creacion mock.
-- Mobile, SAP, IA, Google Calendar y reportes extendidos quedan fuera del MVP.
+Antes de abrir UAT o go-live, el ambiente objetivo debe cumplir:
+
+- `GET /health` responde `{"status":"ok"}`.
+- `GET /readiness` responde `status=ready`.
+- `ENABLE_TEMPORARY_ROLE_SWITCHER=false`.
+- CORS no contiene origenes localhost en `uat`, `staging` ni `production`.
+- `/docs` no queda expuesto en `production`.
+- `firestore.rules` mantiene `deny-all` para acceso cliente directo.
+- `npm audit --audit-level=low` queda sin vulnerabilidades reportadas.
+- `npm run lint`, `npm run build` y pruebas backend relevantes pasan.
+
+## Smoke test operativo
+
+El repositorio incluye un smoke test para validar ambiente publicado:
+
+```bash
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com
+```
+
+Con token real autorizado:
+
+```bash
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com --token <firebase_id_token>
+```
+
+## No considerado en el cierre web
+
+No forman parte del cierre del CRM web las integraciones externas no documentadas, migracion historica sin fuente aprobada, calendario operativo, notificaciones push, OCR, firma digital, SAP/ERP, geolocalizacion avanzada ni reportes BI extendidos.

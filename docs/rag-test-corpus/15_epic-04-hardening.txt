@@ -1,7 +1,7 @@
-﻿# QA - EPIC 4 Hardening, dashboards y navegacion por rol
+# QA - EPIC 4 Hardening, dashboards y navegacion por rol
 
 Rama: `feature-epic-4-hardening-qa`  
-Estado: cerrado para Development.  
+Estado: cerrado para Development e incorporado al cierre MVP web.  
 Alcance: frontend web, reglas de sesion, rutas inexistentes, navegacion por rol, dashboards y pruebas automatizables sin migracion historica.
 
 ## Resultado ejecutivo
@@ -113,7 +113,6 @@ npm.cmd run build
 ## Riesgos residuales
 
 - Firebase real debe validarse en ambiente UAT con dominios autorizados.
-- E2E completo requiere estrategia de login mockeado o proyecto Firebase de pruebas.
-- Migracion historica no forma parte del EPIC 4 y debe planificarse con archivos fuente definidos.
-- Los listados actuales usan lectura completa de colecciones y filtros en memoria; es aceptable para Development, pero no para alto volumen productivo.
-
+- E2E completo queda reemplazado para este cierre por smoke test operativo y pruebas backend/frontend disponibles.
+- Migracion historica no forma parte del cierre MVP web.
+- Los listados actuales usan lectura completa de colecciones y filtros en memoria; es aceptable para el volumen del MVP web cerrado.

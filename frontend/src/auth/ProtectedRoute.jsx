@@ -6,7 +6,7 @@ import { hasMinimumRole } from "./roles";
 import { useAuth } from "./authContext";
 
 const showTemporaryRoleSwitcher =
-  import.meta.env.VITE_ENABLE_TEMP_ROLE_SWITCHER !== "false";
+  import.meta.env.VITE_ENABLE_TEMP_ROLE_SWITCHER === "true";
 
 function ProtectedRoute({ children, minimumRole = "vendedor" }) {
   const { backendUser, isAuthenticated, loading } = useAuth();

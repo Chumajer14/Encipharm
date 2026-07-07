@@ -1,4 +1,4 @@
-﻿# API - Usuarios y roles
+# API - Usuarios y roles
 
 Base URL desarrollo: `http://127.0.0.1:8000`
 
@@ -90,4 +90,3 @@ Activa o desactiva un usuario. Requiere `admin`.
 - `Backend/app/models/user.py`
 - `Backend/app/services/users.py`
 - `Backend/app/core/auth.py`
-

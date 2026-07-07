@@ -57,6 +57,16 @@ def test_readiness_report_flags_localhost_cors_in_deployed_env():
     )
 
 
+def test_readiness_report_flags_temporary_role_switcher_in_deployed_env():
+    report = build_readiness_report(_settings(ENABLE_TEMPORARY_ROLE_SWITCHER=True))
+
+    assert report.status == "not_ready"
+    assert any(
+        check.nombre == "temporary_role_switcher_disabled" and check.estado == "fail"
+        for check in report.checks
+    )
+
+
 def test_readiness_report_flags_missing_deepseek_key():
     report = build_readiness_report(_settings(DEEPSEEK_API_KEY=""))
 

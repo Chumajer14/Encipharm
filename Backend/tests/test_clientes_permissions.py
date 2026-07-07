@@ -19,6 +19,7 @@ from app.services.clientes import (
     import_clientes_csv,
     list_clientes,
     parse_clientes_csv,
+    update_cliente,
 )
 from app.services.users import list_users, update_user
 
@@ -165,6 +166,71 @@ def test_list_clientes_limits_large_responses():
         )
 
     assert len(list_clientes(db, limit=10)) == 10
+
+
+def test_manual_cliente_create_rejects_duplicate_email():
+    db = FakeDb()
+    create_cliente(
+        db,
+        ClienteCreate(
+            nombre="Cliente Uno",
+            empresa="Empresa Uno",
+            email="contacto@empresa.cl",
+            rubro="Aves",
+            region="Maule",
+            vendedorUid="seller-1",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        create_cliente(
+            db,
+            ClienteCreate(
+                nombre="Cliente Dos",
+                empresa="Empresa Dos",
+                email="CONTACTO@empresa.cl",
+                rubro="Cerdos",
+                region="Bio Bio",
+                vendedorUid="seller-1",
+            ),
+        )
+
+    assert exc_info.value.status_code == 409
+    assert len(list_clientes(db, limit=None)) == 1
+
+
+def test_manual_cliente_update_rejects_duplicate_email_but_allows_current_email():
+    db = FakeDb()
+    first = create_cliente(
+        db,
+        ClienteCreate(
+            nombre="Cliente Uno",
+            empresa="Empresa Uno",
+            email="uno@empresa.cl",
+            rubro="Aves",
+            region="Maule",
+            vendedorUid="seller-1",
+        ),
+    )
+    second = create_cliente(
+        db,
+        ClienteCreate(
+            nombre="Cliente Dos",
+            empresa="Empresa Dos",
+            email="dos@empresa.cl",
+            rubro="Cerdos",
+            region="Bio Bio",
+            vendedorUid="seller-1",
+        ),
+    )
+
+    updated = update_cliente(db, first["id"], {"email": "uno@empresa.cl"})
+    assert updated["email"] == "uno@empresa.cl"
+
+    with pytest.raises(HTTPException) as exc_info:
+        update_cliente(db, second["id"], {"email": "UNO@empresa.cl"})
+
+    assert exc_info.value.status_code == 409
 
 
 def test_list_clientes_normalizes_legacy_records_for_api_response():

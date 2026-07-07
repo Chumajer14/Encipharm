@@ -5,9 +5,12 @@ import LoadingState from "../components/LoadingState";
 import useCachedQuery from "../hooks/useCachedQuery";
 import { getClientes } from "../services/api";
 
+const PAGE_SIZE = 10;
+
 function Clientes() {
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [clientes, setClientes] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,6 +47,13 @@ function Clientes() {
       cliente.region?.toLowerCase().includes(texto)
     );
   });
+  const totalPages = Math.max(1, Math.ceil(clientesFiltrados.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const clientesPaginados = clientesFiltrados.slice(startIndex, endIndex);
+  const rangeStart = clientesFiltrados.length === 0 ? 0 : startIndex + 1;
+  const rangeEnd = Math.min(endIndex, clientesFiltrados.length);
 
   return (
     <main className="page">
@@ -82,13 +92,19 @@ function Clientes() {
           type="text"
           placeholder="Buscar por cliente, empresa, correo, rubro o region..."
           value={busqueda}
-          onChange={(event) => setBusqueda(event.target.value)}
+          onChange={(event) => {
+            setBusqueda(event.target.value);
+            setCurrentPage(1);
+          }}
         />
 
         <select
           className="filter-select"
           value={estado}
-          onChange={(event) => setEstado(event.target.value)}
+          onChange={(event) => {
+            setEstado(event.target.value);
+            setCurrentPage(1);
+          }}
         >
           <option value="">Todos los estados</option>
           <option value="En proceso">En proceso</option>
@@ -98,7 +114,7 @@ function Clientes() {
       </section>
 
       {!loading && <section className="list">
-        {clientesFiltrados.map((cliente) => (
+        {clientesPaginados.map((cliente) => (
           <article className="client-card" key={cliente.id}>
             <div>
               <h3>{cliente.empresa}</h3>
@@ -121,6 +137,33 @@ function Clientes() {
           </article>
         ))}
       </section>}
+
+      {!loading && clientesFiltrados.length > PAGE_SIZE && (
+        <section className="pagination-bar" aria-label="Paginacion de clientes">
+          <span>
+            Mostrando {rangeStart}-{rangeEnd} de {clientesFiltrados.length} clientes
+          </span>
+          <div className="pagination-actions">
+            <button
+              className="btn-secondary compact"
+              disabled={safePage === 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              type="button"
+            >
+              Anterior
+            </button>
+            <strong>Pagina {safePage} de {totalPages}</strong>
+            <button
+              className="btn-secondary compact"
+              disabled={safePage === totalPages}
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              type="button"
+            >
+              Siguiente
+            </button>
+          </div>
+        </section>
+      )}
 
       {!loading && clientesFiltrados.length === 0 && (
         <section className="empty-state">

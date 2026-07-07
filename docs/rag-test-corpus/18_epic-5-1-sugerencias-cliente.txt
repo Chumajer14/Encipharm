@@ -7,7 +7,7 @@ Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al
 ## Alcance implementado
 
 - Replica visual del Command Center del HTML de referencia en dashboard, pipeline, proyecciones, equipo de ventas, configuracion, inteligencia de mercado y analisis de competencia.
-- Cambio de marca visible desde Enci a Enci en la experiencia principal.
+- Consolidacion de la marca visible Enci en la experiencia principal.
 - Sidebar ajustado a las secciones solicitadas:
   - Principal: Dashboard, Pipeline & Funnels, Proyecciones.
   - Gestion: Equipo de Ventas, Inteligencia de Mercado, Analisis de Competencia.
@@ -15,13 +15,14 @@ Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al
 - Perfil inferior del usuario con iniciales, nombre normalizado, rango laboral y zona comercial.
 - Dashboard con KPIs conectados a datos reales, forecast, embudo por zona, rendimiento de equipo y alertas derivadas de oportunidades/propuestas.
 - Pipeline & Funnels con filtros por cliente, vendedor y etapa, resumen de funnel, tabla de oportunidades, calculo ponderado y modal de detalle de oportunidad.
+- Creacion y edicion de oportunidades desde Pipeline & Funnels.
 - Proyecciones con selector de periodo, grafico proyectado vs realizado, seleccion de vendedor y detalle operativo de ventas cerradas/negociaciones.
 - Equipo de Ventas con matriz vendedor x etapa, valores por etapa, conteo de oportunidades, total por vendedor y zona.
 - Configuracion con gestion de usuarios, rangos laborales, zonas, apariencia e idioma persistidos por usuario.
 - Modo claro/oscuro aplicado inmediatamente con guardado optimista en segundo plano.
 - Traduccion global de interfaz a ingles/portugues, excluyendo nombres de vendedores, empresas y datos comerciales propios.
 - Modo ahorro Firebase para reducir consultas repetitivas en plan gratuito, con cache temporal, invalidacion al guardar y nota visible al usuario.
-- Loader central para consultas pendientes, evitando mostrar estados vacios antes de recibir respuesta de backend.
+- Loader central para consultas en curso, evitando mostrar estados vacios antes de recibir respuesta de backend.
 - Endurecimiento de seguridad MVP: validacion de usuarios activos, bloqueo de funciones temporales en produccion, sanitizacion/validacion de payloads, headers, CORS, docs protegidas y tests de autorizacion.
 - Repositorio de competencia preparado en backend y frontend para futura carga de datos de competencia, sin formulario de ingreso hasta definicion del cliente.
 
@@ -43,7 +44,7 @@ Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al
 
 ## Riesgos controlados
 
-- El endpoint temporal de cambio de rol queda documentado como utilidad de desarrollo, bloqueado en produccion y restringido a la cuenta autenticada.
+- El endpoint temporal de cambio de rol queda documentado como utilidad de desarrollo, apagado por defecto, bloqueado en produccion y restringido a la cuenta autenticada cuando se habilita localmente.
 - Se evita escritura directa cliente-Firestore: el frontend opera contra FastAPI con Firebase ID Token.
 - Se agregan controles para mass assignment, acceso por propietario/rol y usuarios inactivos.
 - Se limita la exposicion de Swagger/docs en produccion.
@@ -66,12 +67,10 @@ Consolidar las sugerencias levantadas con el cliente para acercar Enci Ventas al
   - `npx vercel --prod --yes`
 - En la ultima ejecucion local, Vercel rechazo el token configurado. El build fue validado localmente; el bloqueo corresponde a credenciales de Vercel, no a error de compilacion.
 
-## Pendiente para UAT
+## Estado de cierre
 
-- Confirmar textos finales con cliente.
-- Confirmar si inteligencia de mercado tendra IA/RAG, fuente manual o integracion externa.
-- Definir proceso de ingreso y gobierno de datos de competencia.
-- Definir flujo de notificaciones y calendario.
-- Retirar control temporal de rol antes de produccion final.
-- Desactivar nota de modo ahorro Firebase cuando el proyecto pase a un plan con cuota suficiente.
-
+- La visual y los flujos comerciales del CRM web quedan cerrados para Development.
+- Las vistas no operativas permanecen bloqueadas hasta definicion de negocio.
+- El cambio temporal de rol queda apagado por defecto y readiness falla en ambientes desplegados si se habilita.
+- El modo ahorro Firebase queda visible como condicion operativa mientras se mantenga el plan gratuito.
+- La validacion final depende de UAT con usuarios reales y ambiente objetivo.

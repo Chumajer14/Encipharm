@@ -1,4 +1,4 @@
-﻿# API - Flujo comercial EPIC 3
+# API - Flujo comercial EPIC 3
 
 Base URL desarrollo: `http://127.0.0.1:8000`
 
@@ -89,6 +89,8 @@ Alias aceptados desde la terminologia del cliente:
 
 Actualiza parcialmente etapa, titulo, valor, probabilidad o descripcion.
 
+La interfaz web expone alta y edicion de oportunidades desde `Pipeline & Funnels`, usando `POST /oportunidades` y `PATCH /oportunidades/{oportunidad_id}`. En edicion, el cliente asociado se mantiene fijo para preservar trazabilidad.
+
 ### GET `/oportunidades/{oportunidad_id}/detalle`
 
 Retorna la oportunidad visible para el usuario con:
@@ -164,4 +166,3 @@ Reglas por rol:
 ## Auditoria
 
 Las altas y cambios criticos de interacciones, oportunidades y propuestas escriben eventos tecnicos en `audit_logs` con usuario, rol, accion, recurso, resultado y timestamp.
-

@@ -1,8 +1,8 @@
 # QA - EPIC 5 UAT, documentacion y go-live
 
-Rama: `feature/epic-5-uat-go-live`  
-Estado: en desarrollo.  
-Alcance: UAT funcional, readiness backend, documentacion operativa, smoke test y salida controlada sin cambios de frontend.
+Rama de cierre: `cierre-proyecto`  
+Estado: cerrado para Development.  
+Alcance: UAT funcional, readiness backend, documentacion operativa, smoke test, cierre CRM web y salida controlada.
 
 ## Resultado esperado
 
@@ -16,6 +16,8 @@ El endpoint `GET /readiness` entrega un reporte no sensible para revisar condici
 - `google_application_credentials`: confirma que el archivo de credenciales existe y no usa placeholder.
 - `cors_origins`: confirma que existe al menos un origen permitido.
 - `cors_deployed_origins`: en `uat`, `staging` o `production`, bloquea origenes `localhost` o `127.0.0.1`.
+- `temporary_role_switcher_disabled`: en `uat`, `staging` o `production`, confirma que el cambio temporal de rol esta apagado.
+- `rag_deepseek_api_key`, `rag_deepseek_base_url`, `rag_deepseek_model` y `rag_openai_client`: confirman configuracion minima del asistente documental en backend.
 
 Respuesta esperada antes de UAT:
 
@@ -40,36 +42,41 @@ Respuesta esperada antes de UAT:
 
 | Caso | Rol | Resultado esperado | Estado |
 |------|-----|--------------------|--------|
-| Login Google real | vendedor | Sesion iniciada y usuario sincronizado en Firestore | Pendiente |
-| Dashboard vendedor | vendedor | Metricas propias visibles sin error API | Pendiente |
-| CRM clientes | vendedor | Lista solo clientes asignados | Pendiente |
-| Crear cliente | vendedor | Cliente guardado con vendedor asignado | Pendiente |
-| Registrar interaccion | vendedor | Interaccion vinculada al cliente visible | Pendiente |
-| Crear oportunidad | vendedor | Oportunidad creada en etapa inicial | Pendiente |
-| Crear propuesta | vendedor | Monto total calculado en backend | Pendiente |
-| Dashboard supervisor | supervisor | Metricas agregadas visibles | Pendiente |
-| Revision de propuestas | supervisor | Puede leer y aprobar propuestas segun permisos | Pendiente |
-| Importacion CSV | admin | Endpoint acepta archivo valido y rechaza duplicados | Pendiente |
-| Usuarios y roles | admin | Puede listar usuarios y ajustar rol operativo | Pendiente |
-| Ruta sin permiso | vendedor | Backend responde 403 para acciones restringidas | Pendiente |
+| Login Google real | vendedor | Sesion iniciada y usuario sincronizado en Firestore | Listo para UAT |
+| Dashboard vendedor | vendedor | Metricas propias visibles sin error API | Listo para UAT |
+| CRM clientes | vendedor | Lista solo clientes asignados | Listo para UAT |
+| Crear cliente | vendedor | Cliente guardado con vendedor asignado | Listo para UAT |
+| Registrar interaccion | vendedor | Interaccion vinculada al cliente visible | Listo para UAT |
+| Crear oportunidad | vendedor | Oportunidad creada en etapa inicial | Listo para UAT |
+| Crear propuesta | vendedor | Monto total calculado en backend | Listo para UAT |
+| Dashboard supervisor | supervisor | Metricas agregadas visibles | Listo para UAT |
+| Revision de propuestas | supervisor | Puede leer y aprobar propuestas segun permisos | Listo para UAT |
+| Importacion CSV | admin | Endpoint acepta archivo valido y rechaza duplicados | Listo para UAT |
+| Usuarios y roles | admin | Puede listar usuarios y ajustar rol operativo | Listo para UAT |
+| Ruta sin permiso | vendedor | Backend responde 403 para acciones restringidas | Listo para UAT |
 
 ## Smoke test post despliegue
 
 Ejecutar despues de cada despliegue UAT o productivo:
 
 ```bash
-curl https://api.example.com/health
-curl https://api.example.com/readiness
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com
+```
+
+Para validar endpoints autenticados, obtener un Firebase ID token de una cuenta real autorizada y ejecutar:
+
+```bash
+python tools/smoke_crm_web.py --env uat --api-base-url https://api.example.com --web-url https://crm.example.com --token <firebase_id_token>
 ```
 
 Validar:
 
 - `/health` retorna `status=ok`.
 - `/readiness` retorna `status=ready`.
-- `/docs` carga la consola de pruebas.
-- Login Google real obtiene token.
-- `GET /me` responde usuario autenticado.
-- `GET /clientes` responde segun rol.
+- `/docs` carga la consola de pruebas fuera de produccion y responde `404` en produccion.
+- La URL frontend responde HTTP 200.
+- Con token real, `GET /me` responde usuario autenticado.
+- Con token real, `GET /clientes` responde segun rol.
 
 ## Matriz de defectos UAT
 
@@ -104,5 +111,5 @@ Aplicar rollback cuando aparezca un S1 o S2 sin mitigacion:
 
 - Credenciales Firebase reales deben validarse fuera del repositorio.
 - UAT depende de usuarios reales o cuentas de prueba autorizadas.
-- La migracion historica sigue fuera de alcance hasta recibir fuente de datos aprobada.
-- E2E automatizado queda pendiente hasta definir estrategia estable de login.
+- La migracion historica no forma parte del cierre web hasta recibir fuente de datos aprobada.
+- La automatizacion completa de login con navegador real queda fuera del criterio de salida actual; el smoke test valida backend, frontend publicado y endpoints autenticados cuando existe token real.

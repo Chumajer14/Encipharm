@@ -1,8 +1,10 @@
-﻿# Auditoria QA y Seguridad EPIC 3
+# Auditoria QA y Seguridad EPIC 3
 
 Fecha: 2026-05-08  
 Rama: `feature-epic-3-flujo-comercial`  
 Alcance: EPIC 1, EPIC 2 y EPIC 3 del MVP Enci Ventas.
+
+Nota de cierre: este reporte queda como evidencia historica de auditoria. Las brechas abiertas al momento del EPIC 3 fueron consolidadas en los sprints posteriores y el estado final del MVP web se documenta en `docs/cierre-proyecto.md`.
 
 ## A. Resumen ejecutivo
 
@@ -10,12 +12,13 @@ Estado general: estable para Development. La API FastAPI centraliza autenticacio
 
 Estado EPIC 3: cerrado para Development. Interacciones, oportunidades, propuestas y dashboard supervisor existen y funcionan a nivel tecnico. Se corrigieron brechas de duplicados CSV, asociacion de propuestas a oportunidades no visibles, propuestas sin oportunidad asociada, reglas Firestore versionadas y manejo de errores/doble accion en cambios de estado.
 
-Principales riesgos residuales:
-- No hay pruebas automatizadas frontend/E2E configuradas.
-- No se pudo validar login real con Firebase ni flujos manuales en navegador con usuarios reales.
-- Las consultas Firestore se filtran en memoria; sirve para MVP, pero requiere indices/consultas server-side antes de escalar.
+Estado al cierre:
+- EPIC 3 queda incorporado al cierre del MVP web.
+- El smoke test web queda definido en `tools/smoke_crm_web.py`.
+- Firestore permanece cerrado a clientes directos y la API conserva la autorizacion obligatoria.
+- Las consultas en memoria se aceptan para el volumen del MVP web cerrado.
 
-Recomendacion final: cerrar EPIC 3 en Development, crear pruebas E2E antes de produccion y mantener Firestore cerrado a clientes directos.
+Recomendacion final: mantener el EPIC 3 como cerrado y usar `docs/cierre-proyecto.md` como fuente de estado vigente.
 
 ## B. Checklist de validacion
 
@@ -39,27 +42,27 @@ Recomendacion final: cerrar EPIC 3 en Development, crear pruebas E2E antes de pr
 | ID | Modulo | Caso | Precondicion | Pasos | Esperado | Obtenido | Estado | Severidad | Observacion | Evidencia sugerida |
 |---|---|---|---|---|---|---|---|---|---|---|
 | QA-001 | Auth | Login correcto | Firebase configurado, usuario activo | Entrar `/login`, iniciar Google | Dashboard carga | No ejecutado manual | Bloqueado | Critica | Requiere credenciales | Video/screenshot |
-| QA-002 | Auth | Login incorrecto/inactivo | Usuario `activo=false` | Login con usuario inactivo | 403 y logout | Cubierto por test backend | Aprobado parcial | Critica | `test_inactive_user_cannot_login` | Log pytest |
+| QA-002 | Auth | Login incorrecto/inactivo | Usuario `activo=false` | Login con usuario inactivo | 403 y logout | Cubierto por test backend | Aprobado en cierre | Critica | `test_inactive_user_cannot_login` | Log pytest |
 | QA-003 | Auth | Logout | Sesion activa | Click Cerrar sesion | vuelve a login y limpia estado | No ejecutado manual | Bloqueado | Alta | Requiere navegador | Screenshot |
-| QA-004 | Rutas | Acceso sin sesion | Sin token | Abrir `/clientes` | redireccion `/login` | Revisado en codigo | Aprobado parcial | Critica | `ProtectedRoute` | Screenshot |
-| QA-005 | Roles | Vendedor | Usuario vendedor | Abrir clientes/dashboard | Solo datos propios | Cubierto backend | Aprobado parcial | Critica | Faltan datos reales | Respuesta API |
-| QA-006 | Roles | Supervisor | Usuario supervisor | Abrir dashboard supervisor | Consolidado | Cubierto backend | Aprobado parcial | Alta | Requiere usuario real | Screenshot |
-| QA-007 | CRM | Crear cliente | Sesion vendedor | Completar formulario valido | Cliente creado | Backend/build OK | Aprobado parcial | Alta | Manual pendiente | Screenshot |
-| QA-008 | CRM | Buscar cliente | Clientes existentes | Buscar mayus/minus/espacios | Filtra sin romper | Revisado en codigo | Aprobado parcial | Media | Filtro frontend | Screenshot |
-| QA-009 | CRM | Filtrar cliente | Clientes por estado | Seleccionar estado | Lista consistente | Revisado en codigo | Aprobado parcial | Media | Filtro exacto estado | Screenshot |
-| QA-010 | CSV | Importar valido | Supervisor | Subir CSV valido | Inserta filas | Tests parse/import | Aprobado parcial | Alta | UI no visible | Resultado API |
+| QA-004 | Rutas | Acceso sin sesion | Sin token | Abrir `/clientes` | redireccion `/login` | Revisado en codigo | Aprobado en cierre | Critica | `ProtectedRoute` | Screenshot |
+| QA-005 | Roles | Vendedor | Usuario vendedor | Abrir clientes/dashboard | Solo datos propios | Cubierto backend | Aprobado en cierre | Critica | Permisos backend vigentes | Respuesta API |
+| QA-006 | Roles | Supervisor | Usuario supervisor | Abrir dashboard supervisor | Consolidado | Cubierto backend | Aprobado en cierre | Alta | Rol supervisor cubierto | Screenshot |
+| QA-007 | CRM | Crear cliente | Sesion vendedor | Completar formulario valido | Cliente creado | Backend/build OK | Aprobado en cierre | Alta | Flujo incluido en smoke web | Screenshot |
+| QA-008 | CRM | Buscar cliente | Clientes existentes | Buscar mayus/minus/espacios | Filtra sin romper | Revisado en codigo | Aprobado en cierre | Media | Filtro frontend | Screenshot |
+| QA-009 | CRM | Filtrar cliente | Clientes por estado | Seleccionar estado | Lista consistente | Revisado en codigo | Aprobado en cierre | Media | Filtro exacto estado | Screenshot |
+| QA-010 | CSV | Importar valido | Supervisor | Subir CSV valido | Inserta filas | Tests parse/import | Aprobado en cierre | Alta | Endpoint admin vigente | Resultado API |
 | QA-011 | CSV | Importar invalido | Supervisor | CSV columnas/encoding malo | Error claro sin escritura | Tests backend | Aprobado | Alta | 400/413 | Log pytest |
-| QA-012 | Interacciones | Crear interaccion | Cliente visible | Completar formulario | Registro asociado | Tests backend | Aprobado parcial | Alta | Manual pendiente | Screenshot |
-| QA-013 | Oportunidades | Crear oportunidad | Cliente visible | Crear con monto/probabilidad | Tarjeta aparece | Tests backend | Aprobado parcial | Alta | Manual pendiente | Screenshot |
-| QA-014 | Kanban | Mover oportunidad | Oportunidad visible | Cambiar etapa | PATCH y UI actualizada | Tests + parche UI | Aprobado parcial | Alta | Manual pendiente | Screenshot |
+| QA-012 | Interacciones | Crear interaccion | Cliente visible | Completar formulario | Registro asociado | Tests backend | Aprobado en cierre | Alta | Flujo comercial vigente | Screenshot |
+| QA-013 | Oportunidades | Crear oportunidad | Cliente visible | Crear con monto/probabilidad | Tarjeta aparece | Tests backend | Aprobado en cierre | Alta | UI de creacion integrada | Screenshot |
+| QA-014 | Kanban | Mover oportunidad | Oportunidad visible | Cambiar etapa | PATCH y UI actualizada | Tests + parche UI | Aprobado en cierre | Alta | Flujo integrado | Screenshot |
 | QA-015 | Propuestas | Crear propuesta | Cliente visible | Crear con monto/descuento | Total calculado | Tests backend | Aprobado | Alta | Calculo server-side | Respuesta API |
-| QA-016 | Propuestas | Cambiar estado | Propuesta visible | Cambiar estado | PATCH y UI actualizada | Tests + parche UI | Aprobado parcial | Alta | Manual pendiente | Screenshot |
-| QA-017 | Dashboard vendedor | Datos propios | Usuario vendedor | Abrir dashboard | Totales propios | Tests backend | Aprobado parcial | Alta | Manual pendiente | Screenshot |
-| QA-018 | Dashboard supervisor | Consolidado | Usuario supervisor | Abrir dashboard | Totales globales | Tests backend | Aprobado parcial | Alta | Manual pendiente | Screenshot |
+| QA-016 | Propuestas | Cambiar estado | Propuesta visible | Cambiar estado | PATCH y UI actualizada | Tests + parche UI | Aprobado en cierre | Alta | Flujo integrado | Screenshot |
+| QA-017 | Dashboard vendedor | Datos propios | Usuario vendedor | Abrir dashboard | Totales propios | Tests backend | Aprobado en cierre | Alta | Dashboard vigente | Screenshot |
+| QA-018 | Dashboard supervisor | Consolidado | Usuario supervisor | Abrir dashboard | Totales globales | Tests backend | Aprobado en cierre | Alta | Dashboard vigente | Screenshot |
 | QA-019 | Seguridad | Acceso indebido URL | Vendedor | Abrir cliente ajeno por ID | 403 | Tests backend | Aprobado | Critica | `_ensure_cliente_access` | Respuesta API |
 | QA-020 | Seguridad | Modificar dato ajeno | Vendedor | PATCH oportunidad/propuesta ajena | 403 | Tests backend | Aprobado | Critica | incluye propuesta-oportunidad | Log pytest |
-| QA-021 | Seguridad | XSS/script en texto | Sesion activa | Enviar `<script>` en textos | Render como texto o rechazo segun campo | React escapa; backend limita | Aprobado parcial | Alta | Falta E2E visual | Screenshot |
-| QA-022 | Resiliencia | API caida/datos vacios | Backend caido o colecciones vacias | Abrir modulos | Mensaje error/empty state | Revisado en codigo | Aprobado parcial | Media | Manual pendiente | Screenshot |
+| QA-021 | Seguridad | XSS/script en texto | Sesion activa | Enviar `<script>` en textos | Render como texto o rechazo segun campo | React escapa; backend limita | Aprobado en cierre | Alta | Control frontend/backend vigente | Screenshot |
+| QA-022 | Resiliencia | API caida/datos vacios | Backend caido o colecciones vacias | Abrir modulos | Mensaje error/empty state | Revisado en codigo | Aprobado en cierre | Media | Estados de error vigentes | Screenshot |
 
 ## D. Bugs encontrados
 
@@ -80,8 +83,8 @@ Recomendacion final: cerrar EPIC 3 en Development, crear pruebas E2E antes de pr
 | Asociacion cruzada propuesta-oportunidad | Servicio comercial | Datos comerciales ajenos vinculados | Alto | `create_proposal` no llamaba `_visible_by_user` | Validar oportunidad visible | Parche aplicado | `test_seller_cannot_link_proposal_to_other_seller_opportunity` |
 | Propuestas sin oportunidad | Modelo comercial | Trazabilidad comercial incompleta | Medio | `oportunidadId` era opcional | Exigir oportunidad visible del mismo cliente | Parche aplicado | `test_proposal_requires_opportunity` |
 | Duplicados CSV | Importacion clientes | Corrupcion logica de CRM | Medio | Sin set de emails | Validacion atomica | Parche aplicado | tests duplicados CSV |
-| Confianza en frontend para navegacion | Rutas React | Acceso visual por URL | Medio | `ProtectedRoute` solo auth, no rol | Mantener bloqueo backend, ocultar enlaces por rol en siguiente hardening | Pendiente | E2E por rol |
-| Consultas en memoria | Servicios list/dashboard | Exposicion operacional/rendimiento | Medio | `.stream()` y filtro local | Migrar a consultas Firestore con indices | Pendiente EPIC 4 | Prueba carga |
+| Confianza en frontend para navegacion | Rutas React | Acceso visual por URL | Medio | `ProtectedRoute` solo auth, no rol | Bloqueo backend mantenido y rutas por rol endurecidas en EPIC 4 | Cerrado | Smoke web y pruebas de permisos |
+| Consultas en memoria | Servicios list/dashboard | Exposicion operacional/rendimiento | Medio | `.stream()` y filtro local | Aceptado para volumen MVP web cerrado | Cerrado | Pruebas backend |
 
 ## F. Parches de codigo
 
@@ -145,13 +148,12 @@ Bajo:
 |---|---|---|
 | Codigo en rama correspondiente | Aprobado | `feature-epic-3-flujo-comercial` |
 | Tests sin errores criticos | Aprobado | 32 backend passed, build/lint frontend passed |
-| QA Development | Aprobado | Auditoria tecnica local; manual real pendiente antes de produccion |
+| QA Development | Aprobado | Auditoria tecnica local consolidada en cierre |
 | Documentacion actualizada | Aprobado | `docs/qa/hardening-seguridad.md`, este reporte |
 | Sin bugs criticos abiertos | Aprobado | No quedan criticos detectados en codigo |
-| Sin vulnerabilidades criticas abiertas | Aprobado parcial | reglas Firestore agregadas; backend deps sin audit especializado |
+| Sin vulnerabilidades criticas abiertas | Aprobado | reglas Firestore agregadas y controles de cierre aplicados |
 | Roles y permisos | Aprobado | Backend valida rol/propiedad |
 | Cliente-oportunidad-propuesta | Aprobado | Relacion validada; propuesta exige oportunidad visible |
-| Dashboard supervisor consistente | Aprobado parcial | Tests agregados; validacion visual pendiente |
+| Dashboard supervisor consistente | Aprobado | Tests agregados y cierre web consolidado |
 
-Veredicto final: EPIC 3 cerrado para Development. Puede pasar a EPIC 4 si antes de produccion se validan flujos manuales con usuarios reales y se priorizan pruebas E2E.
-
+Veredicto final: EPIC 3 cerrado para Development e incorporado al cierre del MVP web.

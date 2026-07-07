@@ -163,8 +163,46 @@ def get_cliente_or_404(db, cliente_id: str) -> dict[str, Any]:
     return normalize_cliente(cliente_id, data)
 
 
+def _normalized_email(value: str) -> str:
+    return str(value or "").strip().lower()
+
+
+def _find_cliente_id_by_email(
+    db,
+    email: str,
+    exclude_cliente_id: str | None = None,
+) -> str | None:
+    normalized_email = _normalized_email(email)
+    if not normalized_email:
+        return None
+
+    for doc in db.collection(CLIENTES_COLLECTION).stream():
+        data = doc.to_dict() or {}
+        if data.get("deletedAt"):
+            continue
+        if exclude_cliente_id and doc.id == exclude_cliente_id:
+            continue
+        if _normalized_email(data.get("email")) == normalized_email:
+            return doc.id
+    return None
+
+
+def _ensure_unique_cliente_email(
+    db,
+    email: str,
+    exclude_cliente_id: str | None = None,
+) -> None:
+    existing_id = _find_cliente_id_by_email(db, email, exclude_cliente_id=exclude_cliente_id)
+    if existing_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe un cliente activo con ese email",
+        )
+
+
 def create_cliente(db, payload: ClienteCreate, user: dict[str, Any] | None = None) -> dict[str, Any]:
     """Create a cliente document with mirrored owner and vendedor identifiers."""
+    _ensure_unique_cliente_email(db, str(payload.email))
     now = datetime.now(timezone.utc)
     cliente_id = str(uuid4())
     data = {
@@ -210,6 +248,8 @@ def update_cliente(
         for key, value in changes.items()
         if value is not None
     }
+    if clean_changes.get("email"):
+        _ensure_unique_cliente_email(db, str(clean_changes["email"]), exclude_cliente_id=cliente_id)
     clean_changes["updatedAt"] = datetime.now(timezone.utc)
 
     cliente_ref.update(clean_changes)
