@@ -6,7 +6,7 @@ class ApiService {
 
   static Future<Dio> _client() async {
     final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-    return Dio(BaseOptions(
+    final dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
@@ -15,7 +15,31 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     ));
+    dio.interceptors.add(InterceptorsWrapper(
+      onError: (DioException e, handler) {
+        if (e.response?.statusCode == 403 || e.response?.statusCode == 401) {
+          return handler.reject(DioException(
+            requestOptions: e.requestOptions,
+            error: 'SIN_ACCESO',
+            message: 'SIN_ACCESO',
+          ));
+        }
+        handler.next(e);
+      },
+    ));
+    return dio;
   }
+
+    static Future<bool> verificarAcceso() async {
+  try {
+    await getDashboard();
+    return true;
+  } catch (e) {
+    if (e.toString().contains('SIN_ACCESO')) return false;
+    return true; // si es error de red, dejamos pasar
+  }
+}
+
 
   static Future<Map<String, dynamic>> getDashboard() async {
     final dio = await _client();
@@ -62,7 +86,7 @@ class ApiService {
     final res = await dio.post('/rag/chat', data: {
       'pregunta': pregunta,
       if (conversacionId != null) 'conversacion_id': conversacionId,
-    });
+       });
     return res.data;
   }
 }

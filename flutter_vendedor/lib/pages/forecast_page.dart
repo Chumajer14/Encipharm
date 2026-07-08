@@ -58,21 +58,60 @@ class _ForecastPageState extends State<ForecastPage> {
     }
 
     if (_error != null) {
+  final sinAcceso = _error!.contains('SIN_ACCESO');
   return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.wifi_off, color: Colors.redAccent, size: 48),
-        const SizedBox(height: 12),
-        const Text('El servidor está iniciando...',
-            style: TextStyle(color: Colors.white, fontSize: 18)),
-        const SizedBox(height: 8),
-        const Text('Render tarda ~30s en despertar. Intenta de nuevo.',
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            sinAcceso ? Icons.lock_outline : Icons.wifi_off,
+            color: sinAcceso ? Colors.orangeAccent : Colors.redAccent,
+            size: 64,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            sinAcceso ? 'Sin acceso' : 'Error de conexión',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            sinAcceso
+                ? 'Tu cuenta no tiene permisos para ver esta información. Contacta al administrador del sistema para solicitar acceso.'
+                : 'El servidor está iniciando. Intenta de nuevo en 30 segundos.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
-        const SizedBox(height: 20),
-        ElevatedButton(onPressed: _load, child: const Text('Reintentar')),
-      ],
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 28),
+          if (!sinAcceso)
+            ElevatedButton(
+              onPressed: _load,
+              child: const Text('Reintentar'),
+            ),
+          if (sinAcceso)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Text(
+                '📧 Contacta a tu administrador ENCI para que te asigne un rol en el sistema.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSoft, fontSize: 13),
+              ),
+            ),
+        ],
+      ),
     ),
   );
 }

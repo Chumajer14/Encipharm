@@ -50,7 +50,11 @@ class HomePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppHeader(title: 'Enci', subtitle: 'Sales command'),
+          AppHeader(
+            title: 'Enci',
+            subtitle: 'Sales command',
+            onSettingsTap: () => onNavigate(5),
+          ),
           const SizedBox(height: 24),
 
           Container(
